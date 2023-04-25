@@ -1,0 +1,65 @@
+
+plugins {
+    id "architectury-plugin" version "3.4-SNAPSHOT"
+    id "dev.architectury.loom" version "0.12.0-SNAPSHOT" apply false
+}
+
+architectury {
+    minecraft = mc_version
+}
+
+subprojects {
+    apply plugin: "dev.architectury.loom"
+
+    loom {
+        silentMojangMappingsLicense()
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:$mc_version"
+        mappings loom.officialMojangMappings()
+
+        compileOnly group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
+        compileOnly group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
+        compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
+
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.1'
+        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.3.1'
+        testImplementation group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
+    }
+}
+
+allprojects {
+    apply plugin: "java"
+    apply plugin: "architectury-plugin"
+
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    archivesBaseName = "$archive_base-$platform"
+    version mod_version
+
+    repositories {
+        // More convenient access to CF mods.
+        maven { url = 'https://www.cursemaven.com' }
+        mavenLocal()
+        mavenCentral()
+    }
+
+    tasks.withType(Test) {
+        useJUnitPlatform()
+        ignoreFailures = false
+        failFast = true
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+}
