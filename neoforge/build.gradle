@@ -1,28 +1,42 @@
 
 architectury {
     platformSetupLoomIde()
-    forge()
+    neoForge {
+        platformPackage = "neo"
+    }
 }
 
 loom {
-    forge {}
+    neoForge {}
+
+    mods {
+        // force this mod onto the classpath since for some reason arch misses it
+        forge {
+            sourceSet sourceSets.main
+        }
+    }
 }
 
 configurations {
-    developmentForge.extendsFrom common
+    developmentNeoForge.extendsFrom common
+}
+
+repositories {
+    maven { url 'https://maven.neoforged.net/releases/' }
 }
 
 dependencies {
-    shadowCommon(project(path: ':common', configuration: 'transformProductionForge'))
+    shadowCommon(project(path: ':common', configuration: 'transformProductionNeoForge'))
     common(project(path: ':common', configuration: 'namedElements'))
-    forge "net.minecraftforge:forge:$mc_version-$forge_version"
-    modImplementation("com.personthecat:catlib-forge:$catlib_version") {
+
+    neoForge "net.neoforged:neoforge:$neo_version"
+    modImplementation("com.personthecat:catlib-neoforge:$catlib_version") {
         exclude group: 'org.jetbrains', module: 'annotations'
     }
 }
 
 processResources {
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
         expand project.properties
     }
 }

@@ -1,11 +1,9 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
-plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
-}
-
 architectury {
-    common(rootProject.enabled_platforms.split(","))
+    common(rootProject.enabled_platforms.split(",")) {
+        it.platformPackage 'neoforge', 'neo'
+    }
 }
 
 dependencies {

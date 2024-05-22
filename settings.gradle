@@ -1,16 +1,21 @@
 pluginManagement {
     repositories {
-        maven { url "https://maven.fabricmc.net/" }
-        maven { url "https://maven.architectury.dev/" }
-        maven { url "https://maven.minecraftforge.net/" }
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        maven {
+            name = 'Forge'
+            url = 'https://files.minecraftforge.net/maven/'
+        }
+        maven {
+            name = 'Architectury'
+            url = 'https://maven.architectury.dev/'
+        }
         gradlePluginPortal()
     }
 }
 
-include("common")
-include("fabric-like")
-include("fabric")
-include("quilt")
-include("forge")
+rootProject.name = 'Pangaea'
 
-rootProject.name = "architectury-example-mod"
+include 'common', 'forge', 'neoforge', 'fabric'
