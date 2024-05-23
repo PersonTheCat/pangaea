@@ -15,7 +15,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "personthecat.pangaea.fabric.Pangaea"
+      "personthecat.pangaea.fabric.PangaeaFabric"
     ]
   },
   "depends": {
