@@ -22,5 +22,8 @@
     "fabric": "*",
     "minecraft": ">=${mc_version}",
     "catlib": ">=${catlib_min_version}"
-  }
+  },
+  "mixins": [
+    "pangaea.common.mixins.json"
+  ]
 }

@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "personthecat.pangaea.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ServerLevelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

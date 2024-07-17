@@ -5,17 +5,24 @@ architectury {
 }
 
 loom {
-    forge {}
+    forge {
+        mixinConfig 'pangaea.common.mixins.json'
+    }
 }
 
 configurations {
     developmentForge.extendsFrom common
 }
 
+repositories {
+    maven { url 'https://cursemaven.com' }
+}
+
 dependencies {
     shadowCommon(project(path: ':common', configuration: 'transformProductionForge'))
     common(project(path: ':common', configuration: 'namedElements'))
     forge "net.minecraftforge:forge:$mc_version-$forge_version"
+    modImplementation group: 'curse.maven', name: 'configured-457570', version: configured_maven_version_forge
     modImplementation("com.personthecat:catlib-forge:$catlib_version") {
         exclude group: 'org.jetbrains', module: 'annotations'
     }

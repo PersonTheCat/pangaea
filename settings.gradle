@@ -18,4 +18,4 @@ pluginManagement {
 
 rootProject.name = 'Pangaea'
 
-include 'common', 'forge', 'neoforge', 'fabric'
+include 'common', 'neoforge', 'fabric'

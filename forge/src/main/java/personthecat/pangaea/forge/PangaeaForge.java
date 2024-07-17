@@ -4,10 +4,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.pangaea.Pangaea;
-import personthecat.pangaea.config.Cfg;
-import personthecat.pangaea.util.Reference;
 
-@Mod(Reference.MOD_ID)
+@Mod(Pangaea.ID)
 public class PangaeaForge extends Pangaea {
 
     public PangaeaForge() {

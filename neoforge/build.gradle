@@ -23,6 +23,7 @@ configurations {
 
 repositories {
     maven { url 'https://maven.neoforged.net/releases/' }
+    maven { url 'https://cursemaven.com' }
 }
 
 dependencies {
@@ -30,6 +31,7 @@ dependencies {
     common(project(path: ':common', configuration: 'namedElements'))
 
     neoForge "net.neoforged:neoforge:$neo_version"
+    modImplementation group: 'curse.maven', name: 'configured-457570', version: configured_maven_version_neo
     modImplementation("com.personthecat:catlib-neoforge:$catlib_version") {
         exclude group: 'org.jetbrains', module: 'annotations'
     }
