@@ -3,6 +3,7 @@
   "package": "personthecat.pangaea.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "MinecraftServerAccessor",
     "ServerLevelMixin"
   ],
   "injectors": {

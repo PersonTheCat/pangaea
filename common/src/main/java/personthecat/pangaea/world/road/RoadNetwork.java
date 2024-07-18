@@ -1,12 +1,15 @@
 package personthecat.pangaea.world.road;
 
 import lombok.extern.log4j.Log4j2;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import personthecat.pangaea.data.Point;
 import personthecat.pangaea.data.VertexGraph;
 import personthecat.pangaea.io.ByteReader;
 import personthecat.pangaea.io.ByteWriter;
+import personthecat.pangaea.world.level.LevelExtras;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,7 +20,7 @@ import java.util.List;
 
 @Log4j2
 public class RoadNetwork implements Iterable<Road> {
-  private static final String TEMP_SAVE_DIR = "networks";
+  private static final String SAVE_DIR = "data/networks";
   private static final String EXTENSION = "rn";
   private static final int PADDING = Road.PADDING;
 
@@ -109,17 +112,18 @@ public class RoadNetwork implements Iterable<Road> {
     return this.roads.iterator();
   }
 
-  public void saveToDisk(final long seed) {
+  public void saveToDisk(final ServerLevel level) {
     final RoadVertex o = this.origin();
-    try (final ByteWriter bw = new ByteWriter(getOutputFile(seed, o.x, o.z))) {
+    try (final ByteWriter bw = new ByteWriter(getOutputFile(level, o.x, o.z))) {
       this.writeTo(bw);
     } catch (final IOException e) {
       log.error("Error saving network {} to disk", new Point(o.x, o.z));
     }
   }
 
-  private static File getOutputFile(final long seed, final int x, final int z) {
-    final File f = new File(TEMP_SAVE_DIR, String.format("%s/%sx%s.%s", seed, x, z, EXTENSION));
+  private static File getOutputFile(final ServerLevel level, final int x, final int z) {
+    final String filename = String.format("%sx%s.%s", x, z, EXTENSION);
+    final File f = LevelExtras.getDimensionPath(level).resolve(SAVE_DIR).resolve(filename).toFile();
     try {
       FileUtils.forceMkdir(f.getParentFile());
     } catch (final IOException e) {
@@ -140,8 +144,8 @@ public class RoadNetwork implements Iterable<Road> {
     this.graph.writeTo(writer);
   }
 
-  public static RoadNetwork loadFromDisk(final long seed, final int x, final int z) {
-    try (final ByteReader br = new ByteReader(getOutputFile(seed, x, z))) {
+  public static RoadNetwork loadFromDisk(final ServerLevel level, final int x, final int z) {
+    try (final ByteReader br = new ByteReader(getOutputFile(level, x, z))) {
       return fromReader(br);
     } catch (final FileNotFoundException fnf) {
       return null;
@@ -165,13 +169,16 @@ public class RoadNetwork implements Iterable<Road> {
     return new RoadNetwork(minX, maxX, minY, maxY, roads, graph);
   }
 
-  public static void deleteAllNetworks() {
-    try {
-      FileUtils.forceDelete(new File(TEMP_SAVE_DIR));
-    } catch (final IOException e) {
-      log.error("Error cleaning road files", e);
-    } catch (final NullPointerException ignored) {
-      // nothing to delete
+  public static void deleteAllNetworks(final MinecraftServer server) {
+    for (final ServerLevel level : server.getAllLevels()) {
+      final File f = LevelExtras.getDimensionPath(level).resolve(SAVE_DIR).toFile();
+      try {
+        FileUtils.forceDelete(f);
+      } catch (final IOException e) {
+        log.error("Error cleaning road files for dim {}", level.dimension(), e);
+      } catch (final NullPointerException ignored) {
+        // nothing to delete
+      }
     }
   }
 

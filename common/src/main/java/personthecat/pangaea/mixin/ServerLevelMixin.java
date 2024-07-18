@@ -10,8 +10,10 @@ import personthecat.pangaea.data.NoiseGraph;
 import personthecat.pangaea.world.level.LevelExtras;
 import personthecat.pangaea.world.road.RoadMap;
 
+import java.nio.file.Path;
+
 @Mixin(ServerLevel.class)
-public class ServerLevelMixin implements LevelExtras {
+public abstract class ServerLevelMixin implements LevelExtras {
     @Unique
     private RoadMap pangaea$roadMap;
     @Unique
@@ -31,5 +33,11 @@ public class ServerLevelMixin implements LevelExtras {
     @Override
     public NoiseGraph pangaea$getNoiseGraph() {
         return this.pangaea$noiseGraph;
+    }
+
+    @Override
+    public Path pangaea$getDimensionPath() {
+        final var level = (ServerLevel) (Object) this;
+        return ((MinecraftServerAccessor) level.getServer()).getStorageSource().getDimensionPath(level.dimension());
     }
 }

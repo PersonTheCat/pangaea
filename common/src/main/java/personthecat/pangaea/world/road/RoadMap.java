@@ -76,7 +76,7 @@ public class RoadMap {
   }
 
   public RoadRegion loadRegionFromDisk(final short x, final short z) {
-    return RoadRegion.loadFromDisk(this, this.level.getSeed(), x, z);
+    return RoadRegion.loadFromDisk(this, this.level, x, z);
   }
 
   public void generateRegion(final Sampler sampler, final short x, final short z) {
@@ -101,10 +101,9 @@ public class RoadMap {
       }
     }
     if (Cfg.persistRoads()) {
-      final long seed = this.seed;
       this.runInBackground(() -> {
-        region.saveToDisk(seed);
-        region.forEach(n -> n.saveToDisk(seed));
+        region.saveToDisk(this.level);
+        region.forEach(n -> n.saveToDisk(this.level));
       });
     }
   }
@@ -160,7 +159,7 @@ public class RoadMap {
   }
 
   public RoadNetwork loadNetworkFromDisk(final int x, final int z) {
-    return RoadNetwork.loadFromDisk(this.level.getSeed(), x, z);
+    return RoadNetwork.loadFromDisk(this.level, x, z);
   }
 
   public void cleanupNetworkCache() {

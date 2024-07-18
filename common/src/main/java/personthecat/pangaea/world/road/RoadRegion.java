@@ -1,10 +1,13 @@
 package personthecat.pangaea.world.road;
 
 import lombok.extern.log4j.Log4j2;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import personthecat.pangaea.io.ByteReader;
 import personthecat.pangaea.io.ByteWriter;
+import personthecat.pangaea.world.level.LevelExtras;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,7 +18,7 @@ import java.util.List;
 
 @Log4j2
 public class RoadRegion implements Iterable<RoadNetwork> {
-  private static final String TEMP_SAVE_DIR = "regions";
+  private static final String SAVE_DIR = "data/regions";
   private static final String EXTENSION = "rr";
   public static final int LEN = 2048;
   public static final int CHUNK_LEN = LEN / 16;
@@ -96,16 +99,17 @@ public class RoadRegion implements Iterable<RoadNetwork> {
     return this.data.iterator();
   }
 
-  public void saveToDisk(final long seed) {
-    try (final ByteWriter bw = new ByteWriter(getOutputFile(seed, this.x, this.z))) {
+  public void saveToDisk(final ServerLevel level) {
+    try (final ByteWriter bw = new ByteWriter(getOutputFile(level, this.x, this.z))) {
       this.writeTo(bw);
     } catch (final IOException e) {
       log.error("Error saving region ({}, {}) to disk", this.x, this.z, e);
     }
   }
 
-  private static File getOutputFile(final long seed, final int x, final int z) {
-    final File f = new File(TEMP_SAVE_DIR, String.format("%s/%sx%s.%s", seed, x, z, EXTENSION));
+  private static File getOutputFile(final ServerLevel level, final int x, final int z) {
+    final String filename = String.format("%sx%s.%s", x, z, EXTENSION);
+    final File f = LevelExtras.getDimensionPath(level).resolve(SAVE_DIR).resolve(filename).toFile();
     try {
       FileUtils.forceMkdir(f.getParentFile());
     } catch (final IOException e) {
@@ -126,8 +130,8 @@ public class RoadRegion implements Iterable<RoadNetwork> {
     }
   }
 
-  public static RoadRegion loadFromDisk(final RoadMap map, final long seed, final int x, final int z) {
-    try (final ByteReader br = new ByteReader(getOutputFile(seed, x, z))) {
+  public static RoadRegion loadFromDisk(final RoadMap map, final ServerLevel level, final int x, final int z) {
+    try (final ByteReader br = new ByteReader(getOutputFile(level, x, z))) {
       return fromReader(map, br);
     } catch (final FileNotFoundException fnf) {
       return null;
@@ -161,13 +165,16 @@ public class RoadRegion implements Iterable<RoadNetwork> {
     return "Region[" + this.x + ',' + this.z + ']';
   }
 
-  public static void deleteAllRegions() {
-    try {
-      FileUtils.forceDelete(new File(TEMP_SAVE_DIR));
-    } catch (final IOException e) {
-      log.error("Error cleaning region files", e);
-    } catch (final NullPointerException ignored) {
-      // nothing to delete
+  public static void deleteAllRegions(final MinecraftServer server) {
+    for (final ServerLevel level : server.getAllLevels()) {
+      final File f = LevelExtras.getDimensionPath(level).resolve(SAVE_DIR).toFile();
+      try {
+        FileUtils.forceDelete(f);
+      } catch (final IOException e) {
+        log.error("Error cleaning region files", e);
+      } catch (final NullPointerException ignored) {
+        // nothing to delete
+      }
     }
   }
 
