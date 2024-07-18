@@ -17,11 +17,11 @@ public interface LevelExtras {
     }
 
     static LevelExtras get(Level level) {
-        if (level.isClientSide()) {
-            throw new IllegalArgumentException("Tried to get extras from client level");
-        }
         if (level instanceof LevelExtras extras) {
             return extras;
+        }
+        if (level.isClientSide()) {
+            throw new IllegalArgumentException("Tried to get extras from client level");
         }
         throw new IllegalStateException("Level extras mixin was not applied");
     }
