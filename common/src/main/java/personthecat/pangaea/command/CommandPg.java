@@ -9,6 +9,7 @@ import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.util.Utils;
 import personthecat.pangaea.world.level.LevelExtras;
+import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.road.TmpRoadUtils;
 
 public class CommandPg {
@@ -52,5 +53,11 @@ public class CommandPg {
                 }
             }
         }
+    }
+
+    @ModCommand(description = "Clears road region data from memory")
+    void cacheClear(final CommandContextWrapper ctx) {
+        RoadMap.clearAll(ctx.getServer());
+        ctx.sendMessage("Successfully cleared road cache.");
     }
 }

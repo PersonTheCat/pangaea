@@ -11,6 +11,7 @@ public class PangaeaForge extends Pangaea {
     public PangaeaForge() {
         this.init();
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::initCommon);
+        modBus.addListener((ServerStoppingEvent e) -> this.shutdown(e.getServer()));
     }
 
     private void initCommon(final FMLCommonSetupEvent event) {

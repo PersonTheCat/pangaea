@@ -1,10 +1,12 @@
 package personthecat.pangaea.world.road;
 
 import lombok.extern.log4j.Log4j2;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Climate.Sampler;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.data.Point;
+import personthecat.pangaea.world.level.LevelExtras;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -23,12 +25,10 @@ public class RoadMap {
   private final Map<Point, WeakReference<RoadNetwork>> networks = new HashMap<>();
   private final ServerLevel level;
   private final RoadGenerator generator;
-  private long seed;
 
   public RoadMap(ServerLevel level) {
     this.level = level;
     this.generator = this.newGenerator();
-    this.seed = level.getSeed();
   }
 
   public void pregen(final Sampler sampler, final short x, final short z) {
@@ -40,10 +40,6 @@ public class RoadMap {
   }
 
   public RoadRegion getRegion(final Sampler sampler, final short x, final short z) {
-    if (this.seed != this.level.getSeed()) {
-      Arrays.fill(this.regionCache, null);
-      this.seed = this.level.getSeed();
-    }
     final RoadRegion r = this.loadPartial(x, z);
     if (!r.isFullyGenerated()) {
       this.generateRegion(r, sampler);
@@ -137,6 +133,12 @@ public class RoadMap {
     Arrays.fill(this.regionCache, null);
     this.networks.clear();
     log.debug("Cleaned region cache for level: {}", this.level);
+  }
+
+  public static void clearAll(final MinecraftServer server) {
+    for (final ServerLevel level : server.getAllLevels()) {
+      LevelExtras.getRoadMap(level).clearCache();
+    }
   }
 
   public void addNetwork(final int x, final int z, final RoadNetwork n) {

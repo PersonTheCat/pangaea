@@ -2,6 +2,7 @@ package personthecat.pangaea;
 
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Holder;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
@@ -14,13 +15,17 @@ import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.registry.CommonRegistries;
 import personthecat.catlib.registry.DynamicRegistries;
+import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.catlib.versioning.Version;
 import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
+import personthecat.pangaea.serialization.codec.NoiseCodecs;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
+import personthecat.pangaea.world.road.RoadMap;
+import xjs.data.Json;
 
 import java.util.List;
 
@@ -50,6 +55,7 @@ public abstract class Pangaea {
     }
 
     protected final void commonSetup() {
+        NoiseCodecs.NOISE_CODEC.parse(XjsOps.INSTANCE, Json.object());
         CommandRegistrationContext.forMod(MOD).addAllCommands(CommandPg.class).addLibCommands().registerAll();
         GameReadyEvent.COMMON.register(() -> {
             if (VERSION_TRACKER.isUpgraded()) {
@@ -89,5 +95,9 @@ public abstract class Pangaea {
         DynamicRegistries.PLACED_FEATURE.deferredRegister(MOD.id("placed_road"), PLACED_ROAD);
 
         FeatureModificationEvent.global().register(ctx -> ctx.addFeature(Decoration.RAW_GENERATION, PLACED_ROAD));
+    }
+
+    protected final void shutdown(final MinecraftServer server) {
+        RoadMap.clearAll(server);
     }
 }
