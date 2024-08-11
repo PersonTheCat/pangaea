@@ -1,27 +1,45 @@
 package personthecat.pangaea.command;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.DensityFunction;
+import personthecat.catlib.client.gui.SimpleTextPage;
 import personthecat.catlib.command.CommandContextWrapper;
-import personthecat.catlib.command.CommandSide;
 import personthecat.catlib.command.annotations.ModCommand;
+import personthecat.catlib.exception.CommandExecutionException;
+import personthecat.catlib.registry.DynamicRegistries;
+import personthecat.catlib.serialization.codec.XjsOps;
+import personthecat.catlib.serialization.json.JsonTransformer;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.util.Utils;
 import personthecat.pangaea.world.level.LevelExtras;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.road.TmpRoadUtils;
+import xjs.data.JsonContainer;
+import xjs.data.JsonFormat;
+import xjs.data.JsonObject;
+import xjs.data.JsonValue;
 
+import java.util.List;
+import java.util.Optional;
+
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class CommandPg {
 
     @ModCommand(description = "Demo command for testing Pangaea")
     void welcome(final CommandContextWrapper ctx) {
         ctx.sendMessage("Welcome to Pangaea!");
     }
-    
-    @ModCommand(
-        side = CommandSide.CLIENT,
-        description = "Prints the road weight at this location")
+
+    @Environment(EnvType.CLIENT)
+    @ModCommand(description = "Prints the road weight at this location")
     void sample(final CommandContextWrapper ctx) {
         final var sampler = ((ServerLevel) ctx.getLevel()).getChunkSource().randomState().sampler();
         final var graph = LevelExtras.getNoiseGraph(ctx.getLevel());
@@ -29,6 +47,7 @@ public class CommandPg {
         ctx.sendMessage("weight: {}", TmpRoadUtils.getWeight(graph, sampler, pos));
     }
 
+    @Environment(EnvType.CLIENT)
     @ModCommand(description = "Testing possible ways to smooth terrain around roads")
     void sphere(final CommandContextWrapper ctx, int radius, boolean showTop) {
         var pos = ctx.assertPlayer().getOnPos().mutable().below((radius / 2) + 1);
@@ -59,5 +78,63 @@ public class CommandPg {
     void cacheClear(final CommandContextWrapper ctx) {
         RoadMap.clearAll(ctx.getServer());
         ctx.sendMessage("Successfully cleared road cache.");
+    }
+
+    @Environment(EnvType.CLIENT)
+    @ModCommand(description = "Outputs the simplified final density function ")
+    void printDensity(final CommandContextWrapper ctx, Optional<DensityFunction> f) {
+        final var ops = RegistryOps.create(XjsOps.INSTANCE, ctx.getServer().registryAccess());
+        DensityFunction.HOLDER_HELPER_CODEC.encodeStart(ops, f.orElseGet(CommandPg::getFinalDensity))
+            .ifSuccess(json -> {
+                if (json.isObject()) {
+                    json = formatDensity(json.asObject());
+                }
+                renderJson(ctx, json);
+            })
+            .ifError(error -> ctx.sendError(error.message()));
+    }
+
+    private static DensityFunction getFinalDensity() {
+        final var settings =
+            DynamicRegistries.get(Registries.NOISE_SETTINGS).lookup(new ResourceLocation("overworld"));
+        if (settings == null) {
+            throw new CommandExecutionException("Couldn't find noise settings for current dim");
+        }
+        return settings.noiseRouter().finalDensity();
+    }
+
+    @Environment(EnvType.CLIENT)
+    private static void renderJson(final CommandContextWrapper ctx, final JsonValue json) {
+        final var text = json.toString(JsonFormat.DJS_FORMATTED).replace("\r", "");
+        if (text.length() > 30_000) {
+            ctx.sendError("I ain't reading all that");
+            return;
+        }
+        final var component = text.length() < 15_000 ? ctx.lintMessage(text) : Component.literal(text);
+        ctx.setScreen(new SimpleTextPage(null, Component.literal("Final Density"), component));
+    }
+
+    private static JsonObject formatDensity(final JsonObject json) {
+        return JsonTransformer.all()
+            .reorder(List.of("type"))
+            .ifPresent("clamp", CommandPg::condensePrimitiveArrays)
+            .ifPresent("cache", CommandPg::condensePrimitiveArrays)
+            .ifPresent("amplitudes", CommandPg::condensePrimitiveArrays)
+            .getUpdated(json);
+    }
+
+    private static void condensePrimitiveArrays(final JsonObject parent, final JsonValue value) {
+        if (value instanceof JsonContainer c && c.size() < 3) {
+            boolean primitives = true;
+            for (final var v : c.values()) {
+                if (!v.isPrimitive()) {
+                    primitives = false;
+                    break;
+                }
+            }
+            if (primitives) {
+                c.condense();
+            }
+        }
     }
 }

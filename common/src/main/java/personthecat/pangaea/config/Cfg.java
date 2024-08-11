@@ -1,11 +1,14 @@
 package personthecat.pangaea.config;
 
+import personthecat.catlib.config.Config;
 import personthecat.catlib.config.Config.Comment;
+import personthecat.catlib.config.Config.NeedsWorldRestart;
 import personthecat.catlib.config.ConfigEvaluator;
 import personthecat.pangaea.Pangaea;
+import personthecat.pangaea.world.density.DensityFunctionBuilder;
 import personthecat.pangaea.world.road.Road;
 
-public final class Cfg {
+public final class Cfg implements Config.Listener {
     private static final Cfg INSTANCE =
         ConfigEvaluator.getAndRegister(Pangaea.MOD, Cfg.class);
 
@@ -14,6 +17,18 @@ public final class Cfg {
 
     @Comment("Temporary settings until we get presets")
     Temporary temporary = new Temporary();
+
+    @Comment("Settings to configure data functions and codecs")
+    Data data = new Data();
+
+    @Override
+    public void onConfigUpdated() {
+        if (this.data.enableDensityBuilders) {
+            DensityFunctionBuilder.install(this.data.encodeDensityBuilders);
+        } else {
+            DensityFunctionBuilder.uninstall();
+        }
+    }
 
     public static void register() {
         // run class init
@@ -94,5 +109,12 @@ public final class Cfg {
         int maxBranches = 15;
         int minRoadLength = Road.MAX_DISTANCE / 4;
         int maxRoadLength = Road.MAX_DISTANCE;
+    }
+
+    static class Data {
+        @NeedsWorldRestart
+        boolean enableDensityBuilders = true;
+        @NeedsWorldRestart
+        boolean encodeDensityBuilders = true;
     }
 }

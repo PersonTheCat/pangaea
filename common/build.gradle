@@ -6,6 +6,11 @@ architectury {
     }
 }
 
+loom {
+//    forge { accessTransformer 'src/main/resources/accesstransformer.cfg' }
+    accessWidenerPath.set file("src/main/resources/pangaea.accesswidener")
+}
+
 dependencies {
     // Only needed for suppressing Fabric build spam
     modImplementation "net.fabricmc:fabric-loader:$loader_version"
