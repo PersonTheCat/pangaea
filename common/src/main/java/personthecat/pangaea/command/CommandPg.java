@@ -13,6 +13,7 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import personthecat.catlib.client.gui.SimpleTextPage;
 import personthecat.catlib.command.CommandContextWrapper;
 import personthecat.catlib.command.annotations.ModCommand;
+import personthecat.catlib.command.annotations.Nullable;
 import personthecat.catlib.exception.CommandExecutionException;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.serialization.codec.XjsOps;
@@ -22,15 +23,11 @@ import personthecat.pangaea.util.Utils;
 import personthecat.pangaea.world.level.LevelExtras;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.road.TmpRoadUtils;
-import xjs.data.JsonContainer;
 import xjs.data.JsonFormat;
-import xjs.data.JsonObject;
 import xjs.data.JsonValue;
 
 import java.util.List;
-import java.util.Optional;
 
-@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class CommandPg {
 
     @ModCommand(description = "Demo command for testing Pangaea")
@@ -82,15 +79,10 @@ public class CommandPg {
 
     @Environment(EnvType.CLIENT)
     @ModCommand(description = "Outputs the simplified final density function ")
-    void printDensity(final CommandContextWrapper ctx, Optional<DensityFunction> f) {
+    void printDensity(final CommandContextWrapper ctx, final @Nullable DensityFunction f) {
         final var ops = RegistryOps.create(XjsOps.INSTANCE, ctx.getServer().registryAccess());
-        DensityFunction.HOLDER_HELPER_CODEC.encodeStart(ops, f.orElseGet(CommandPg::getFinalDensity))
-            .ifSuccess(json -> {
-                if (json.isObject()) {
-                    json = formatDensity(json.asObject());
-                }
-                renderJson(ctx, json);
-            })
+        DensityFunction.HOLDER_HELPER_CODEC.encodeStart(ops, f != null ? f : getFinalDensity())
+            .ifSuccess(json -> renderJson(ctx, formatDensity(json)))
             .ifError(error -> ctx.sendError(error.message()));
     }
 
@@ -114,27 +106,13 @@ public class CommandPg {
         ctx.setScreen(new SimpleTextPage(null, Component.literal("Final Density"), component));
     }
 
-    private static JsonObject formatDensity(final JsonObject json) {
+    private static JsonValue formatDensity(final JsonValue json) {
+        if (!json.isObject()) return json;
         return JsonTransformer.all()
             .reorder(List.of("type"))
-            .ifPresent("clamp", CommandPg::condensePrimitiveArrays)
-            .ifPresent("cache", CommandPg::condensePrimitiveArrays)
-            .ifPresent("amplitudes", CommandPg::condensePrimitiveArrays)
-            .getUpdated(json);
-    }
-
-    private static void condensePrimitiveArrays(final JsonObject parent, final JsonValue value) {
-        if (value instanceof JsonContainer c && c.size() < 3) {
-            boolean primitives = true;
-            for (final var v : c.values()) {
-                if (!v.isPrimitive()) {
-                    primitives = false;
-                    break;
-                }
-            }
-            if (primitives) {
-                c.condense();
-            }
-        }
+            .collapseArrays("clamp", a -> true)
+            .collapseArrays("cache", a -> true)
+            .collapseArrays("amplitudes", a -> a.size() <= 5)
+            .getUpdated(json.asObject());
     }
 }
