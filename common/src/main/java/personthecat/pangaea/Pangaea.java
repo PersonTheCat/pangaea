@@ -20,7 +20,7 @@ import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.world.density.DensityList;
-import personthecat.pangaea.world.density.StructuralDensityCodec;
+import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;

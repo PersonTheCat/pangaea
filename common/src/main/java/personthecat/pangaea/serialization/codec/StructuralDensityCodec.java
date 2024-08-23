@@ -1,4 +1,4 @@
-package personthecat.pangaea.world.density;
+package personthecat.pangaea.serialization.codec;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -10,7 +10,8 @@ import lombok.extern.log4j.Log4j2;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import personthecat.pangaea.config.Cfg;
-import personthecat.pangaea.serialization.codec.KeyDispatchCodecExtras;
+import personthecat.pangaea.world.density.DensityList;
+import personthecat.pangaea.world.density.DensityModificationHook;
 
 import java.util.List;
 import java.util.stream.Stream;

@@ -1,4 +1,4 @@
-package personthecat.pangaea.world.density;
+package personthecat.pangaea.serialization.codec;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.CompressorHolder;
@@ -14,6 +14,7 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import personthecat.catlib.data.FloatRange;
 import personthecat.pangaea.config.Cfg;
+import personthecat.pangaea.world.density.DensityModificationHook;
 
 import java.util.ArrayList;
 import java.util.List;

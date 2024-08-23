@@ -13,6 +13,8 @@ import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.mixin.DensityFunctionsAccessor;
 import personthecat.pangaea.mixin.KeyDispatchCodecAccessor;
+import personthecat.pangaea.serialization.codec.DensityFunctionBuilder;
+import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
