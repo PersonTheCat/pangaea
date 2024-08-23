@@ -50,6 +50,7 @@ public final class DensityModificationHook {
     private static void restoreCodec() {
         if (BACKUP.get() != null) {
             resetValues(resolveInjector());
+            BACKUP.set(null);
             log.info("Density codec has been restored");
         }
     }

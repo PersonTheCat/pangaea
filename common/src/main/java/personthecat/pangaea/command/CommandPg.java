@@ -13,7 +13,6 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import personthecat.catlib.client.gui.SimpleTextPage;
 import personthecat.catlib.command.CommandContextWrapper;
 import personthecat.catlib.command.annotations.ModCommand;
-import personthecat.catlib.command.annotations.Nullable;
 import personthecat.catlib.exception.CommandExecutionException;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.serialization.codec.XjsOps;
@@ -27,7 +26,9 @@ import xjs.data.JsonFormat;
 import xjs.data.JsonValue;
 
 import java.util.List;
+import java.util.Optional;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class CommandPg {
 
     @ModCommand(description = "Demo command for testing Pangaea")
@@ -79,9 +80,9 @@ public class CommandPg {
 
     @Environment(EnvType.CLIENT)
     @ModCommand(description = "Outputs the simplified final density function ")
-    void printDensity(final CommandContextWrapper ctx, final @Nullable DensityFunction f) {
+    void printDensity(final CommandContextWrapper ctx, final Optional<DensityFunction> f) {
         final var ops = RegistryOps.create(XjsOps.INSTANCE, ctx.getServer().registryAccess());
-        DensityFunction.HOLDER_HELPER_CODEC.encodeStart(ops, f != null ? f : getFinalDensity())
+        DensityFunction.HOLDER_HELPER_CODEC.encodeStart(ops, f.orElseGet(CommandPg::getFinalDensity))
             .ifSuccess(json -> renderJson(ctx, formatDensity(json)))
             .ifError(error -> ctx.sendError(error.message()));
     }
@@ -109,7 +110,7 @@ public class CommandPg {
     private static JsonValue formatDensity(final JsonValue json) {
         if (!json.isObject()) return json;
         return JsonTransformer.all()
-            .reorder(List.of("type"))
+            .reorder(List.of("type", "input", "min_inclusive", "max_exclusive"))
             .collapseArrays("clamp", a -> true)
             .collapseArrays("cache", a -> true)
             .collapseArrays("amplitudes", a -> a.size() <= 5)
