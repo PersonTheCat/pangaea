@@ -19,6 +19,7 @@ import personthecat.catlib.versioning.Version;
 import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
+import personthecat.pangaea.world.density.DensityController;
 import personthecat.pangaea.world.density.DensityList;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
@@ -97,6 +98,7 @@ public abstract class Pangaea {
     }
 
     private static void registerCodecs() {
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("controller"), DensityController.CODEC);
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("structural"), StructuralDensityCodec.INSTANCE);
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("min"), DensityList.Min.CODEC);
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("max"), DensityList.Max.CODEC);

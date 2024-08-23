@@ -23,7 +23,6 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 
 public abstract class DensityList implements SimpleFunction {
     protected static final double MAX_REASONABLE = 1000000.0;
-
     protected final List<DensityFunction> list;
     protected final double target;
     protected final double minValue;
@@ -92,6 +91,9 @@ public abstract class DensityList implements SimpleFunction {
             defaulted(Codec.DOUBLE, "target", MAX_REASONABLE, l -> l.target),
             Min::new
         );
+        public static final Codec<DensityFunction> LIST_CODEC =
+            easyList(DensityFunction.HOLDER_HELPER_CODEC)
+                .xmap(l -> min(l, MAX_REASONABLE), Min::unwrapMinList);
         public static final MapDecoder<DensityFunction> OPTIMIZED_DECODER =
             CODEC.map(l -> min(l.list, l.target));
 
@@ -101,6 +103,18 @@ public abstract class DensityList implements SimpleFunction {
 
         public static Min from(TwoArgumentSimpleFunction twoArg) {
             return new Min(List.of(twoArg.argument1(), twoArg.argument2()), MAX_REASONABLE);
+        }
+
+        private static List<DensityFunction> unwrapMinList(DensityFunction f) {
+            if (f == DensityFunctions.zero()) {
+                return List.of();
+            } else if (f instanceof TwoArgumentSimpleFunction twoArg
+                    && twoArg.type() == TwoArgumentSimpleFunction.Type.MIN) {
+                return List.of(twoArg.argument1(), twoArg.argument2());
+            } else if (f instanceof Min min) {
+                return min.list;
+            }
+            return List.of(f);
         }
 
         @Override
@@ -155,6 +169,9 @@ public abstract class DensityList implements SimpleFunction {
             defaulted(Codec.DOUBLE, "target", -MAX_REASONABLE, l -> l.target),
             Max::new
         );
+        public static final Codec<DensityFunction> LIST_CODEC =
+            easyList(DensityFunction.HOLDER_HELPER_CODEC)
+                .xmap(l -> max(l, -MAX_REASONABLE), Max::unwrapMaxList);
         public static final MapDecoder<DensityFunction> OPTIMIZED_DECODER =
             CODEC.map(l -> max(l.list, l.target));
 
@@ -164,6 +181,18 @@ public abstract class DensityList implements SimpleFunction {
 
         public static Max from(TwoArgumentSimpleFunction twoArg) {
             return new Max(List.of(twoArg.argument1(), twoArg.argument2()), -MAX_REASONABLE);
+        }
+
+        private static List<DensityFunction> unwrapMaxList(DensityFunction f) {
+            if (f == DensityFunctions.zero()) {
+                return List.of();
+            } else if (f instanceof TwoArgumentSimpleFunction twoArg
+                    && twoArg.type() == TwoArgumentSimpleFunction.Type.MAX) {
+                return List.of(twoArg.argument1(), twoArg.argument2());
+            } else if (f instanceof Max max) {
+                return max.list;
+            }
+            return List.of(f);
         }
 
         @Override
