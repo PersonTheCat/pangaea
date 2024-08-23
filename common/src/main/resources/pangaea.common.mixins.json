@@ -5,6 +5,7 @@
   "mixins": [
     "DensityFunctionsAccessor",
     "KeyDispatchCodecAccessor",
+    "KeyDispatchCodecMixin",
     "MinecraftServerAccessor",
     "ServerLevelMixin"
   ],

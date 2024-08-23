@@ -5,12 +5,11 @@ import personthecat.catlib.config.Config.Comment;
 import personthecat.catlib.config.Config.NeedsWorldRestart;
 import personthecat.catlib.config.ConfigEvaluator;
 import personthecat.pangaea.Pangaea;
-import personthecat.pangaea.world.density.DensityFunctionBuilder;
+import personthecat.pangaea.world.density.DensityModificationHook;
 import personthecat.pangaea.world.road.Road;
 
 public final class Cfg implements Config.Listener {
-    private static final Cfg INSTANCE =
-        ConfigEvaluator.getAndRegister(Pangaea.MOD, Cfg.class);
+    private static final Cfg INSTANCE = new Cfg();
 
     @Comment("Settings to configure road generation")
     Roads roads = new Roads();
@@ -23,15 +22,11 @@ public final class Cfg implements Config.Listener {
 
     @Override
     public void onConfigUpdated() {
-        if (this.data.enableDensityBuilders) {
-            DensityFunctionBuilder.install(this.data.encodeDensityBuilders);
-        } else {
-            DensityFunctionBuilder.uninstall();
-        }
+        DensityModificationHook.onConfigUpdated();
     }
 
     public static void register() {
-        // run class init
+        ConfigEvaluator.loadAndRegister(Pangaea.MOD, INSTANCE);
     }
 
     public static boolean debugPregenShape() {
@@ -90,6 +85,22 @@ public final class Cfg implements Config.Listener {
         return INSTANCE.temporary.maxRoadLength;
     }
 
+    public static boolean enableDensityBuilders() {
+        return INSTANCE.data.enableDensityBuilders;
+    }
+
+    public static boolean encodeDensityBuilders() {
+        return INSTANCE.data.encodeDensityBuilders;
+    }
+
+    public static boolean enableStructuralDensity() {
+        return INSTANCE.data.enableStructuralDensity;
+    }
+
+    public static boolean encodeStructuralDensity() {
+        return INSTANCE.data.encodeStructuralDensity;
+    }
+
     static class Roads {
         boolean pregenRoads = false;
         boolean debugPregenShape = false;
@@ -116,5 +127,9 @@ public final class Cfg implements Config.Listener {
         boolean enableDensityBuilders = true;
         @NeedsWorldRestart
         boolean encodeDensityBuilders = true;
+        @NeedsWorldRestart
+        boolean enableStructuralDensity = true;
+        @NeedsWorldRestart
+        boolean encodeStructuralDensity = true;
     }
 }

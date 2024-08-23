@@ -19,6 +19,8 @@ import personthecat.catlib.versioning.Version;
 import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
+import personthecat.pangaea.world.density.DensityList;
+import personthecat.pangaea.world.density.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
@@ -67,6 +69,7 @@ public abstract class Pangaea {
         if (Cfg.enableRoads()) {
             enableRoads();
         }
+        registerCodecs();
     }
 
     private static void removeAllFeatures() {
@@ -91,6 +94,13 @@ public abstract class Pangaea {
         DynamicRegistries.PLACED_FEATURE.deferredRegister(MOD.id("placed_road"), PLACED_ROAD);
 
         FeatureModificationEvent.global().register(ctx -> ctx.addFeature(Decoration.RAW_GENERATION, PLACED_ROAD));
+    }
+
+    private static void registerCodecs() {
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("structural"), StructuralDensityCodec.INSTANCE);
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("min"), DensityList.Min.CODEC);
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("max"), DensityList.Max.CODEC);
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("sum"), DensityList.Sum.CODEC);
     }
 
     protected final void shutdown(final MinecraftServer server) {
