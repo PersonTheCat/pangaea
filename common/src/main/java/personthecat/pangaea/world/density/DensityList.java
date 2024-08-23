@@ -2,6 +2,7 @@ package personthecat.pangaea.world.density;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapDecoder;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import net.minecraft.util.KeyDispatchDataCodec;
@@ -17,28 +18,11 @@ import java.util.function.BiFunction;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
-import static personthecat.catlib.serialization.codec.CodecUtils.simpleAny;
-import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 
 public abstract class DensityList implements SimpleFunction {
     protected static final double MAX_REASONABLE = 1000000.0;
-    protected static final Codec<DensityFunction> DIRECT_CODEC = Codec.lazyInitialized(() ->
-        simpleAny(Min.OPTIMIZED_CODEC, Max.OPTIMIZED_CODEC, Sum.OPTIMIZED_CODEC)
-            .withEncoder(l -> l.codec().codec().codec()));
-    protected static final Codec<DensityFunction> ENTRY_CODEC =
-        simpleEither(DIRECT_CODEC, DensityFunction.HOLDER_HELPER_CODEC)
-            .withEncoder(f -> f instanceof DensityList ? DIRECT_CODEC : DensityFunction.HOLDER_HELPER_CODEC);
-    protected static final Codec<DensityFunction> DEFAULT_CODEC = Codec.lazyInitialized(() ->
-        easyList(ENTRY_CODEC).xmap(l -> min(l, MAX_REASONABLE), DensityList::unwrap));
-    public static final Codec<DensityFunction> CODEC =
-        simpleEither(DIRECT_CODEC, DEFAULT_CODEC).withEncoder(f -> {
-            if (f instanceof DensityList l) {
-                return l instanceof Min ? DEFAULT_CODEC : DIRECT_CODEC;
-            }
-            return DensityFunction.HOLDER_HELPER_CODEC;
-        });
 
     protected final List<DensityFunction> list;
     protected final double target;
@@ -70,16 +54,14 @@ public abstract class DensityList implements SimpleFunction {
     protected static Optional<DensityFunction> apply(
             List<DensityFunction> list, BiFunction<DensityFunction, DensityFunction, DensityFunction> f) {
         if (list.isEmpty()) return Optional.of(DensityFunctions.zero());
-        if (list.size() == 1) return Optional.of(list.getFirst());
+        if (list.size() == 1) return Optional.of(unwrapHolder(list.getFirst()));
         if (list.size() == 2) return Optional.of(f.apply(list.getFirst(), list.get(1)));
         return Optional.empty();
     }
 
-    protected static List<DensityFunction> unwrap(DensityFunction f) {
-        if (f == DensityFunctions.zero()) return List.of();
-        if (f instanceof TwoArgumentSimpleFunction t) return List.of(t.argument1(), t.argument2());
-        if (f instanceof DensityList l) return l.list;
-        return List.of(f);
+    // prevent functions from getting doubly-wrapped
+    private static DensityFunction unwrapHolder(DensityFunction f) {
+        return f instanceof DensityFunctions.HolderHolder h ? h.function().value() : f;
     }
 
     protected static boolean isReasonable(double max, double d) {
@@ -106,17 +88,19 @@ public abstract class DensityList implements SimpleFunction {
 
     public static class Min extends DensityList {
         public static final MapCodec<Min> CODEC = codecOf(
-            field(easyList(DensityList.ENTRY_CODEC), "min", l -> l.list),
+            field(easyList(DensityFunction.HOLDER_HELPER_CODEC), "min", l -> l.list),
             defaulted(Codec.DOUBLE, "target", MAX_REASONABLE, l -> l.target),
             Min::new
         );
-        protected static final Codec<DensityFunction> OPTIMIZED_CODEC = CODEC.codec().xmap(
-            l -> min(l.list, l.target),
-            f -> new Min(unwrap(f), MAX_REASONABLE)
-        );
+        public static final MapDecoder<DensityFunction> OPTIMIZED_DECODER =
+            CODEC.map(l -> min(l.list, l.target));
 
         public Min(List<DensityFunction> list, double target) {
             super(list, target);
+        }
+
+        public static Min from(TwoArgumentSimpleFunction twoArg) {
+            return new Min(List.of(twoArg.argument1(), twoArg.argument2()), MAX_REASONABLE);
         }
 
         @Override
@@ -167,17 +151,19 @@ public abstract class DensityList implements SimpleFunction {
 
     public static class Max extends DensityList {
         public static final MapCodec<Max> CODEC = codecOf(
-            field(easyList(DensityList.ENTRY_CODEC), "max", l -> l.list),
+            field(easyList(HOLDER_HELPER_CODEC), "max", l -> l.list),
             defaulted(Codec.DOUBLE, "target", -MAX_REASONABLE, l -> l.target),
             Max::new
         );
-        protected static final Codec<DensityFunction> OPTIMIZED_CODEC = CODEC.codec().xmap(
-            l -> max(l.list, l.target),
-            f -> new Max(unwrap(f), -MAX_REASONABLE)
-        );
+        public static final MapDecoder<DensityFunction> OPTIMIZED_DECODER =
+            CODEC.map(l -> max(l.list, l.target));
 
         public Max(List<DensityFunction> list, double target) {
             super(list, target);
+        }
+
+        public static Max from(TwoArgumentSimpleFunction twoArg) {
+            return new Max(List.of(twoArg.argument1(), twoArg.argument2()), -MAX_REASONABLE);
         }
 
         @Override
@@ -228,14 +214,12 @@ public abstract class DensityList implements SimpleFunction {
 
     public static class Sum extends DensityList {
         public static final MapCodec<Sum> CODEC = codecOf(
-            field(easyList(DensityList.ENTRY_CODEC), "sum", l -> l.list),
+            field(easyList(DensityFunction.HOLDER_HELPER_CODEC), "sum", l -> l.list),
             defaulted(Codec.DOUBLE, "target", MAX_REASONABLE / 2, l -> l.target),
             Sum::new
         );
-        protected static final Codec<DensityFunction> OPTIMIZED_CODEC = CODEC.codec().xmap(
-            l -> sum(l.list, l.target),
-            f -> new Sum(unwrap(f), MAX_REASONABLE / 2)
-        );
+        public static final MapDecoder<DensityFunction> OPTIMIZED_DECODER =
+            CODEC.map(l -> sum(l.list, l.target));
 
         public Sum(List<DensityFunction> list, double target) {
             super(list, target);
