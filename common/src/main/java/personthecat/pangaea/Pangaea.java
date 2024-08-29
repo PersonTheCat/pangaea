@@ -24,6 +24,7 @@ import personthecat.pangaea.world.density.DensityList;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
+import personthecat.pangaea.world.injector.DataInjectionHook;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.road.RoadMap;
 
@@ -61,6 +62,7 @@ public abstract class Pangaea {
                 log.info("Upgrade detected. Welcome to Pangaea {}", VERSION);
             }
         });
+        DataInjectionHook.setup();
         if (Cfg.removeAllFeatures()) {
             removeAllFeatures();
         }
