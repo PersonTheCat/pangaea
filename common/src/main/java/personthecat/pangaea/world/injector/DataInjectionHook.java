@@ -2,6 +2,7 @@ package personthecat.pangaea.world.injector;
 
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.ApiStatus;
 import personthecat.catlib.event.registry.DataRegistryEvent;
@@ -23,6 +24,9 @@ public final class DataInjectionHook {
             return;
         }
         DataRegistryEvent.POST.register(source -> {
+            if (source.getRegistry(Registries.LEVEL_STEM) == null) {
+                return; // only run once all registries have loaded
+            }
             final var registry = source.getRegistry(PgRegistries.Keys.CONFIGURED_INJECTOR);
             if (registry != null) {
                 final var ctx = new InjectionContext(source.asRegistryAccess());

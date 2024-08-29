@@ -1,14 +1,18 @@
 package personthecat.pangaea.world.injector;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DynamicOps;
 import net.minecraft.resources.ResourceLocation;
+import personthecat.pangaea.serialization.codec.RegistryOpsExtras;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
+import static personthecat.catlib.serialization.codec.CodecUtils.xmapWithOps;
 
 public class InjectionMap<E> extends HashMap<ResourceLocation, E> {
 
@@ -24,14 +28,21 @@ public class InjectionMap<E> extends HashMap<ResourceLocation, E> {
     }
 
     public static <E> Codec<InjectionMap<E>> codecOfList(Codec<E> elementCodec) {
-        return elementCodec.listOf().xmap(InjectionMap::withRandomIds, map -> List.copyOf(map.values()));
+        return xmapWithOps(elementCodec.listOf(), InjectionMap::withRandomIds, (ops, map) -> List.copyOf(map.values()));
     }
 
     public static <E> Codec<InjectionMap<E>> codecOfMapOrList(Codec<E> elementCodec) {
         return simpleEither(codecOfMap(elementCodec), codecOfList(elementCodec));
     }
 
-    public static <E> InjectionMap<E> withRandomIds(List<E> list) {
-        return new InjectionMap<>();
+    public static <E> InjectionMap<E> withRandomIds(DynamicOps<?> ops, List<E> list) {
+        final var map = new InjectionMap<E>();
+        final var namespace = RegistryOpsExtras.getActiveNamespace(ops);
+        for (int i = 0; i < list.size(); i++) {
+            final var e = list.get(i);
+            final var id = String.valueOf(Objects.hash(e, i));
+            map.put(new ResourceLocation(namespace, id), e);
+        }
+        return map;
     }
 }
