@@ -19,6 +19,7 @@ import personthecat.catlib.versioning.Version;
 import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
+import personthecat.pangaea.registry.PgRegistries;
 import personthecat.pangaea.world.density.DensityController;
 import personthecat.pangaea.world.density.DensityList;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
@@ -62,6 +63,7 @@ public abstract class Pangaea {
                 log.info("Upgrade detected. Welcome to Pangaea {}", VERSION);
             }
         });
+        PgRegistries.init();
         DataInjectionHook.setup();
         if (Cfg.removeAllFeatures()) {
             removeAllFeatures();
