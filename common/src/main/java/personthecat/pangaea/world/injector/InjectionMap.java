@@ -28,16 +28,17 @@ public class InjectionMap<E> extends HashMap<ResourceLocation, E> {
     }
 
     public static <E> Codec<InjectionMap<E>> codecOfList(Codec<E> elementCodec) {
-        return xmapWithOps(elementCodec.listOf(), InjectionMap::withRandomIds, (ops, map) -> List.copyOf(map.values()));
+        return xmapWithOps(elementCodec.listOf(),
+            (ops, list) -> withRandomIds(PgCodecs.getActiveNamespace(ops), list),
+            (ops, map) -> List.copyOf(map.values()));
     }
 
     public static <E> Codec<InjectionMap<E>> codecOfMapOrList(Codec<E> elementCodec) {
         return simpleEither(codecOfMap(elementCodec), codecOfList(elementCodec));
     }
 
-    public static <E> InjectionMap<E> withRandomIds(DynamicOps<?> ops, List<E> list) {
+    public static <E> InjectionMap<E> withRandomIds(String namespace, List<E> list) {
         final var map = new InjectionMap<E>();
-        final var namespace = PgCodecs.getActiveNamespace(ops);
         for (int i = 0; i < list.size(); i++) {
             final var e = list.get(i);
             final var id = String.valueOf(Objects.hash(e, i));
