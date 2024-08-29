@@ -1,18 +1,16 @@
 package personthecat.pangaea.world.injector;
 
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
+import personthecat.pangaea.registry.PgRegistries;
+import personthecat.pangaea.serialization.codec.PgCodecs;
 import personthecat.pangaea.world.injector.configurations.InjectorConfiguration;
 
-public abstract class Injector<C extends InjectorConfiguration> {
-    private final MapCodec<ConfiguredInjector<C, Injector<C>>> configuredCodec;
+public record Injector<C extends InjectorConfiguration, I extends InjectorType<C>>(I injector, C config) {
+    public static final Codec<Injector<?, ?>> DIRECT_CODEC =
+        PgCodecs.inferredDispatch(PgRegistries.INJECTOR_TYPE, PgRegistries.Keys.INJECTOR)
+            .apply(ci -> ci.injector, InjectorType::injectorCodec);
 
-    protected Injector(MapCodec<C> codec) {
-        this.configuredCodec = codec.xmap(c -> new ConfiguredInjector<>(this, c), ConfiguredInjector::config);
-    }
-
-    public abstract void inject(InjectionContext ctx, C config);
-
-    public MapCodec<ConfiguredInjector<C, Injector<C>>> configuredCodec() {
-        return this.configuredCodec;
+    public void inject(InjectionContext ctx) {
+        this.injector.inject(ctx, this.config);
     }
 }

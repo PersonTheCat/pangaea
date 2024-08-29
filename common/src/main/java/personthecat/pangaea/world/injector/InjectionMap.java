@@ -3,7 +3,7 @@ package personthecat.pangaea.world.injector;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
 import net.minecraft.resources.ResourceLocation;
-import personthecat.pangaea.serialization.codec.RegistryOpsExtras;
+import personthecat.pangaea.serialization.codec.PgCodecs;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +37,7 @@ public class InjectionMap<E> extends HashMap<ResourceLocation, E> {
 
     public static <E> InjectionMap<E> withRandomIds(DynamicOps<?> ops, List<E> list) {
         final var map = new InjectionMap<E>();
-        final var namespace = RegistryOpsExtras.getActiveNamespace(ops);
+        final var namespace = PgCodecs.getActiveNamespace(ops);
         for (int i = 0; i < list.size(); i++) {
             final var e = list.get(i);
             final var id = String.valueOf(Objects.hash(e, i));

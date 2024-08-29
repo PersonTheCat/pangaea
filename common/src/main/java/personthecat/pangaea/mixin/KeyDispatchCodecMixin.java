@@ -18,11 +18,12 @@ import personthecat.catlib.command.annotations.Nullable;
 import personthecat.pangaea.serialization.codec.KeyDispatchCodecExtras;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 @Mixin(KeyDispatchCodec.class)
 public class KeyDispatchCodecMixin<K, V> implements KeyDispatchCodecExtras {
     @Unique
-    private String pg$defaultType;
+    private Function<DynamicOps<?>, String> pg$defaultType;
 
     @Final
     @Shadow(remap = false)
@@ -41,7 +42,7 @@ public class KeyDispatchCodecMixin<K, V> implements KeyDispatchCodecExtras {
             MapLike<T> instance, String arg, Operation<T> original, @Local(argsOnly = true) DynamicOps<T> ops) {
         final T t = original.call(instance, arg);
         if (t == null && this.pg$defaultType != null) {
-            return ops.createString(this.pg$defaultType);
+            return ops.createString(this.pg$defaultType.apply(ops));
         }
         return t;
     }
@@ -55,7 +56,7 @@ public class KeyDispatchCodecMixin<K, V> implements KeyDispatchCodecExtras {
             @Local(argsOnly = true) DynamicOps<T> ops) {
         if (this.pg$defaultType != null && typeArg.equals(this.typeKey) && valueArg.isSuccess()) {
             final T value = valueArg.getOrThrow();
-            if (Objects.equals(value, ops.createString(this.pg$defaultType))) {
+            if (Objects.equals(value, ops.createString(this.pg$defaultType.apply(ops)))) {
                 return instance;
             }
         }
@@ -63,7 +64,7 @@ public class KeyDispatchCodecMixin<K, V> implements KeyDispatchCodecExtras {
     }
 
     @Override
-    public void pg$setDefaultType(String type) {
+    public void pg$setDefaultType(Function<DynamicOps<?>, String> type) {
         this.pg$defaultType = type;
     }
 }

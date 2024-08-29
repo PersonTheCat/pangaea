@@ -27,7 +27,7 @@ public final class DataInjectionHook {
             if (source.getRegistry(Registries.LEVEL_STEM) == null) {
                 return; // only run once all registries have loaded
             }
-            final var registry = source.getRegistry(PgRegistries.Keys.CONFIGURED_INJECTOR);
+            final var registry = source.getRegistry(PgRegistries.Keys.INJECTOR);
             if (registry != null) {
                 final var ctx = new InjectionContext(source.asRegistryAccess());
                 INJECTIONS.set(ctx);

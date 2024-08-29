@@ -28,7 +28,7 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
 
     public static void install(DensityModificationHook.Injector injector) {
         final var codec = injector.codec();
-        KeyDispatchCodecExtras.setDefaultType(codec, "pangaea:structural");
+        KeyDispatchCodecExtras.setDefaultType(codec, ops -> "pangaea:structural");
         if (Cfg.encodeStructuralDensity()) {
             final var originalEncoder = codec.getEncoder();
             codec.setEncoder(f -> canBeStructural(f) ? DataResult.success(INSTANCE) : originalEncoder.apply(f));
