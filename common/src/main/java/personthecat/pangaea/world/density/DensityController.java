@@ -81,7 +81,7 @@ public class DensityController implements SimpleFunction {
     }
 
     private double computeMaxValue() {
-        return Math.max(this.globalCaverns.maxValue(), squeeze(this.primaryScale * this.main.maxValue()));
+        return Math.min(this.globalCaverns.maxValue(), squeeze(this.primaryScale * this.main.maxValue()));
     }
 
     @Override
@@ -153,12 +153,12 @@ public class DensityController implements SimpleFunction {
         public double compute(FunctionContext ctx) {
             double d = this.surface.compute(ctx);
             if (d < this.surfaceThreshold) {
-                if (d > this.entrances.minValue()) {
+                if (d >= this.entrances.minValue()) {
                     d = Math.min(d, this.entrances.compute(ctx));
                 }
             } else {
                 d = this.undergroundCaverns.compute(ctx);
-                if (d < this.undergroundFiller.maxValue()) {
+                if (d <= this.undergroundFiller.maxValue()) {
                     final double f = this.undergroundFiller.maxValue();
                     if (f >= this.fillerThreshold) {
                         d = Math.max(d, f);
@@ -171,11 +171,33 @@ public class DensityController implements SimpleFunction {
         }
 
         private double computeMinValue() {
-            return -1000000; // todo
+            final double surfaceEntrance =
+                Math.min(this.surface.minValue(), this.entrances.minValue());
+            final double cavernsFiller =
+                Math.max(this.undergroundCaverns.minValue(), this.undergroundFiller.minValue());
+            final double d = Math.min(surfaceEntrance, cavernsFiller);
+            return Math.min(0, d);
+            // original formula for this step is Math.min(min1 * max2, max1 * min2)
+            // since max2 == 1 && min2 == 0
+            // = Math.min(min1 * 0, max1 * 1)
+            // = Math.min(0, max1)
+            // since max1 = d (everything before transformUpper)
+            // = Math.min(0, d)
         }
 
         private double computeMaxValue() {
-            return 1000000; // todo
+            final double surfaceEntrance =
+                Math.min(this.surface.maxValue(), this.entrances.maxValue());
+            final double cavernsFiller =
+                Math.max(this.undergroundCaverns.maxValue(), this.undergroundFiller.maxValue());
+            final double d = Math.max(surfaceEntrance, cavernsFiller);
+            return Math.max(0, d);
+            // original formula for this step is Math.max(min1 * min2, max1 * max2)
+            // since max2 == 1 && min2 == 0
+            // = Math.max(min1 * 0, max1 * 1)
+            // = Math.max(0, max1)
+            // since max1 = d (everything before transformUpper)
+            // = Math.max(0, d)
         }
 
         @Override
@@ -186,6 +208,19 @@ public class DensityController implements SimpleFunction {
         @Override
         public double maxValue() {
             return this.maxValue;
+        }
+
+        @Override
+        public @NotNull DensityFunction mapAll(Visitor visitor) {
+            return new MainFunction(
+                this.surface.mapAll(visitor),
+                this.entrances.mapAll(visitor),
+                this.upperCutoff,
+                this.lowerCutoff,
+                this.undergroundCaverns.mapAll(visitor),
+                this.undergroundFiller.mapAll(visitor),
+                this.surfaceThreshold,
+                this.fillerThreshold);
         }
 
         @Override

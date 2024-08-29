@@ -70,7 +70,7 @@ public record DensityCutoff(double min, double max, double harshness) {
 
         @Override
         public double minValue() {
-            return 0;
+            return Math.min(0, this.input.minValue());
         }
 
         @Override
@@ -108,7 +108,7 @@ public record DensityCutoff(double min, double max, double harshness) {
 
         @Override
         public double minValue() {
-            return 0;
+            return Math.min(0, this.input.minValue());
         }
 
         @Override
