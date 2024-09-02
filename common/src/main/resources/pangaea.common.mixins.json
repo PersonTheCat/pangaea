@@ -3,12 +3,11 @@
   "package": "personthecat.pangaea.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "DensityFunctionsAccessor",
-    "KeyDispatchCodecAccessor",
-    "KeyDispatchCodecMixin",
+    "DensityFunctionsMixin",
     "MinecraftServerAccessor",
     "RegistryDataLoaderMixin",
     "RegistryOpsMixin",
+    "RuleTestMixin",
     "ServerLevelMixin"
   ],
   "injectors": {

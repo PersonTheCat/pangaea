@@ -6,17 +6,17 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
-import lombok.extern.log4j.Log4j2;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
+import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.world.density.DensityList;
-import personthecat.pangaea.world.density.DensityModificationHook;
 
 import java.util.List;
 import java.util.stream.Stream;
 
-@Log4j2
+import static personthecat.catlib.serialization.codec.CodecUtils.asMapCodec;
+
 public class StructuralDensityCodec extends MapCodec<DensityFunction> {
     public static final StructuralDensityCodec INSTANCE = new StructuralDensityCodec();
     private static final Codec<DensityFunction> MAIN = DensityFunction.HOLDER_HELPER_CODEC;
@@ -26,15 +26,9 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
 
     private StructuralDensityCodec() {}
 
-    public static void install(DensityModificationHook.Injector injector) {
-        final var codec = injector.codec();
-        KeyDispatchCodecExtras.setDefaultType(codec, ops -> "pangaea:structural");
-        if (Cfg.encodeStructuralDensity()) {
-            final var originalEncoder = codec.getEncoder();
-            codec.setEncoder(f -> canBeStructural(f) ? DataResult.success(INSTANCE) : originalEncoder.apply(f));
-            final var originalType = codec.getType();
-            codec.setType(f -> canBeStructural(f) ? DataResult.success(INSTANCE) : originalType.apply(f));
-        }
+    public static Codec<DensityFunction> wrap(Codec<DensityFunction> codec) {
+        return new DefaultTypeCodec<>(asMapCodec(codec), INSTANCE,
+            (f, ops) -> Cfg.encodeStructuralDensity() && canBeStructural(f)).codec();
     }
 
     private static boolean canBeStructural(DensityFunction f) {
