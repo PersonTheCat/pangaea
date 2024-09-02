@@ -11,13 +11,20 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public class InjectionContext {
-    private final List<Modification> removals = new ArrayList<>();
-    private final List<Modification> additions = new ArrayList<>();
+public final class InjectionContext {
+    private final List<Modification> removals;
+    private final List<Modification> additions;
     private final RegistryAccess registries;
 
     public InjectionContext(RegistryAccess registries) {
+        this(registries, new ArrayList<>(), new ArrayList<>());
+    }
+
+    private InjectionContext(
+            RegistryAccess registries, List<Modification> removals, List<Modification> additions) {
         this.registries = registries;
+        this.removals = removals;
+        this.additions = additions;
     }
 
     public RegistryAccess registries() {
@@ -32,6 +39,10 @@ public class InjectionContext {
         this.additions.add(new Modification(biomes, listener));
     }
 
+    public InjectionContext withRegistries(RegistryAccess registries) {
+        return new InjectionContext(registries, this.removals, this.additions);
+    }
+
     public boolean hasChanges(Holder<Biome> biome) {
         return Stream.concat(this.removals.stream(), this.additions.stream())
             .map(Modification::biomes)
@@ -39,9 +50,15 @@ public class InjectionContext {
     }
 
     public void applyChanges(FeatureModificationContext ctx) {
-        this.removals.forEach(m -> m.listener.accept(ctx));
-        this.additions.forEach(m -> m.listener.accept(ctx));
+        this.removals.forEach(m -> m.apply(ctx));
+        this.additions.forEach(m -> m.apply(ctx));
     }
 
-    public record Modification(BiomePredicate biomes, Consumer<FeatureModificationContext> listener) {}
+    public record Modification(BiomePredicate biomes, Consumer<FeatureModificationContext> listener) {
+        void apply(FeatureModificationContext ctx) {
+            if (this.biomes.test(ctx.getBiome())) {
+                this.listener.accept(ctx);
+            }
+        }
+    }
 }

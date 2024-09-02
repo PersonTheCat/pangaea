@@ -1,7 +1,6 @@
 package personthecat.pangaea.world.injector;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DynamicOps;
 import net.minecraft.resources.ResourceLocation;
 import personthecat.pangaea.serialization.codec.PgCodecs;
 
