@@ -3,12 +3,15 @@
   "package": "personthecat.pangaea.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BlockMatchTestAccessor",
+    "BlockStateMatchTestAccessor",
     "DensityFunctionsMixin",
     "MinecraftServerAccessor",
     "RegistryDataLoaderMixin",
     "RegistryOpsMixin",
     "RuleTestMixin",
-    "ServerLevelMixin"
+    "ServerLevelMixin",
+    "TagMatchTestAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

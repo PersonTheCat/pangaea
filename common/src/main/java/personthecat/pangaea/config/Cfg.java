@@ -1,14 +1,11 @@
 package personthecat.pangaea.config;
 
-import personthecat.catlib.config.Config;
 import personthecat.catlib.config.Config.Comment;
-import personthecat.catlib.config.Config.NeedsWorldRestart;
 import personthecat.catlib.config.ConfigEvaluator;
 import personthecat.pangaea.Pangaea;
-import personthecat.pangaea.world.density.DensityModificationHook;
 import personthecat.pangaea.world.road.Road;
 
-public final class Cfg implements Config.Listener {
+public final class Cfg {
     private static final Cfg INSTANCE = new Cfg();
 
     @Comment("Settings to configure road generation")
@@ -19,11 +16,6 @@ public final class Cfg implements Config.Listener {
 
     @Comment("Settings to configure data functions and codecs")
     Data data = new Data();
-
-    @Override
-    public void onConfigUpdated() {
-        DensityModificationHook.onConfigUpdated();
-    }
 
     public static void register() {
         ConfigEvaluator.loadAndRegister(Pangaea.MOD, INSTANCE);
@@ -85,20 +77,16 @@ public final class Cfg implements Config.Listener {
         return INSTANCE.temporary.maxRoadLength;
     }
 
-    public static boolean enableDensityBuilders() {
-        return INSTANCE.data.enableDensityBuilders;
-    }
-
     public static boolean encodeDensityBuilders() {
         return INSTANCE.data.encodeDensityBuilders;
     }
 
-    public static boolean enableStructuralDensity() {
-        return INSTANCE.data.enableStructuralDensity;
-    }
-
     public static boolean encodeStructuralDensity() {
         return INSTANCE.data.encodeStructuralDensity;
+    }
+
+    public static boolean encodePatternRuleTestCodec() {
+        return INSTANCE.data.encodePatternRuleTestCodec;
     }
 
     static class Roads {
@@ -123,13 +111,8 @@ public final class Cfg implements Config.Listener {
     }
 
     static class Data {
-        @NeedsWorldRestart
-        boolean enableDensityBuilders = true;
-        @NeedsWorldRestart
         boolean encodeDensityBuilders = true;
-        @NeedsWorldRestart
-        boolean enableStructuralDensity = true;
-        @NeedsWorldRestart
         boolean encodeStructuralDensity = true;
+        boolean encodePatternRuleTestCodec = true;
     }
 }
