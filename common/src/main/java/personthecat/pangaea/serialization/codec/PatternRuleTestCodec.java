@@ -53,7 +53,7 @@ public class PatternRuleTestCodec implements Codec<RuleTest> {
 
     private static class Pattern {
         private static final Codec<RuleTest> TAG =
-            TagKey.codec(Registries.BLOCK).xmap(TagMatchTest::new, test -> ((TagMatchTestAccessor) test).getTag());
+            TagKey.hashedCodec(Registries.BLOCK).xmap(TagMatchTest::new, test -> ((TagMatchTestAccessor) test).getTag());
         private static final Codec<RuleTest> BLOCK =
             BuiltInRegistries.BLOCK.byNameCodec().xmap(BlockMatchTest::new, test -> ((BlockMatchTestAccessor) test).getBlock());
         private static final Codec<RuleTest> STATE =

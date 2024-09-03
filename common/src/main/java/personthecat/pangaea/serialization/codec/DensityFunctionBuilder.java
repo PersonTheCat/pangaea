@@ -20,14 +20,15 @@ import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
 import static personthecat.catlib.serialization.codec.CodecUtils.ofEnum;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.nullable;
 
 public class DensityFunctionBuilder {
     private static final Codec<List<CacheType>> CACHE_CODEC = easyList(ofEnum(CacheType.class));
     private static final MapCodec<DensityFunctionBuilder> CODEC = codecOf(
         defaulted(Codec.BOOL, "interpolate", false, b -> b.interpolate),
         defaulted(Codec.BOOL, "blend", false, b -> b.blend),
-        defaulted(CACHE_CODEC, "cache", null, b -> b.cache),
-        defaulted(FloatRange.CODEC, "clamp", null, b -> b.clamp),
+        nullable(CACHE_CODEC, "cache", b -> b.cache),
+        nullable(FloatRange.CODEC, "clamp", b -> b.clamp),
         DensityFunctionBuilder::new
     );
 
@@ -49,16 +50,16 @@ public class DensityFunctionBuilder {
     }
 
     public static Codec<DensityFunction> wrap(Codec<DensityFunction> codec) {
-        return UnionCodec.builder(asMapCodec(codec), CODEC)
+        return UnionCodec.builder(CODEC, asMapCodec(codec))
             .create(DensityFunctionBuilder::split, DensityFunctionBuilder::combine)
-            .reduceError(Function.identity(), builder -> DataResult.error(builder.messageSupplier()))
+            .reduceError(builder -> DataResult.error(builder.messageSupplier()), Function.identity())
             .codec();
     }
 
-    private static DataResult<Pair<DensityFunction, DensityFunctionBuilder>> split(DensityFunction f) {
+    private static DataResult<Pair<DensityFunctionBuilder, DensityFunction>> split(DensityFunction f) {
         final DensityFunctionBuilder builder = new DensityFunctionBuilder();
         if (!Cfg.encodeDensityBuilders()) {
-            return DataResult.success(Pair.of(f, builder));
+            return DataResult.success(Pair.of(builder, f));
         }
         final List<CacheType> cacheTypes = new ArrayList<>();
         while (true) {
@@ -89,11 +90,11 @@ public class DensityFunctionBuilder {
         if (f == null) {
             return DataResult.error(() -> "Cannot encode null element from wrapper");
         }
-        return DataResult.success(Pair.of(f, builder));
+        return DataResult.success(Pair.of(builder, f));
     }
 
-    private static DataResult<DensityFunction> combine(Pair<DensityFunction, DensityFunctionBuilder> p) {
-        return DataResult.success(p.getSecond().wrap(p.getFirst()).build());
+    private static DataResult<DensityFunction> combine(Pair<DensityFunctionBuilder, DensityFunction> p) {
+        return DataResult.success(p.getFirst().wrap(p.getSecond()).build());
     }
 
     public void interpolate(boolean interpolate) {

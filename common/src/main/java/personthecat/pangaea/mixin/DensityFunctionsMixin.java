@@ -9,7 +9,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import personthecat.pangaea.serialization.codec.DensityFunctionBuilder;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 
-@Mixin(DensityFunctions.class)
+// priority: in case another mod doesn't replace original with a MapCodecCodec
+@Mixin(value = DensityFunctions.class, priority = 500)
 public class DensityFunctionsMixin {
 
     @ModifyExpressionValue(

@@ -16,10 +16,10 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.asMapCodec;
+import static net.minecraft.world.level.levelgen.DensityFunction.HOLDER_HELPER_CODEC;
 
 public class StructuralDensityCodec extends MapCodec<DensityFunction> {
     public static final StructuralDensityCodec INSTANCE = new StructuralDensityCodec();
-    private static final Codec<DensityFunction> MAIN = DensityFunction.HOLDER_HELPER_CODEC;
     private static final List<String> KEYS = List.of(
         "mul", "times", "add", "plus", "min", "max", "sum", "abs",
         "square", "cube", "half_negative", "quarter_negative", "squeeze");
@@ -65,40 +65,40 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
         }
         arg1 = input.get("abs");
         if (arg1 != null) {
-            return MAIN.parse(ops, arg1).map(DensityFunction::abs);
+            return HOLDER_HELPER_CODEC.parse(ops, arg1).map(DensityFunction::abs);
         }
         arg1 = input.get("square");
         if (arg1 != null) {
-            return MAIN.parse(ops, arg1).map(DensityFunction::square);
+            return HOLDER_HELPER_CODEC.parse(ops, arg1).map(DensityFunction::square);
         }
         arg1 = input.get("cube");
         if (arg1 != null) {
-            return MAIN.parse(ops, arg1).map(DensityFunction::cube);
+            return HOLDER_HELPER_CODEC.parse(ops, arg1).map(DensityFunction::cube);
         }
         arg1 = input.get("half_negative");
         if (arg1 != null) {
-            return MAIN.parse(ops, arg1).map(DensityFunction::halfNegative);
+            return HOLDER_HELPER_CODEC.parse(ops, arg1).map(DensityFunction::halfNegative);
         }
         arg1 = input.get("quarter_negative");
         if (arg1 != null) {
-            return MAIN.parse(ops, arg1).map(DensityFunction::quarterNegative);
+            return HOLDER_HELPER_CODEC.parse(ops, arg1).map(DensityFunction::quarterNegative);
         }
         arg1 = input.get("squeeze");
         if (arg1 != null) {
-            return MAIN.parse(ops, arg1).map(DensityFunction::squeeze);
+            return HOLDER_HELPER_CODEC.parse(ops, arg1).map(DensityFunction::squeeze);
         }
         return DataResult.error(() -> "no structural fields or type present");
     }
 
     private <T> DataResult<DensityFunction> decodeMulTimes(DynamicOps<T> ops, T mul, T times) {
-        return MAIN.parse(ops, mul)
-            .flatMap(arg1 -> MAIN.parse(ops, times)
+        return HOLDER_HELPER_CODEC.parse(ops, mul)
+            .flatMap(arg1 -> HOLDER_HELPER_CODEC.parse(ops, times)
                 .map(arg2 -> DensityFunctions.mul(arg1, arg2)));
     }
 
     private <T> DataResult<DensityFunction> decodeAddPlus(DynamicOps<T> ops, T add, T plus) {
-        return MAIN.parse(ops, add)
-            .flatMap(arg1 -> MAIN.parse(ops, plus)
+        return HOLDER_HELPER_CODEC.parse(ops, add)
+            .flatMap(arg1 -> HOLDER_HELPER_CODEC.parse(ops, plus)
                 .map(arg2 -> DensityFunctions.add(arg1, arg2)));
     }
 
@@ -115,20 +115,20 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
         } else if (input instanceof DensityList) {
             return ((MapCodec<DensityFunction>) input.codec().codec()).encode(input, ops, prefix);
         } else if (input instanceof DensityFunctions.Mapped mapped) {
-            return prefix.add(mapped.type().getSerializedName(), MAIN.encodeStart(ops, mapped.input()));
+            return prefix.add(mapped.type().getSerializedName(), HOLDER_HELPER_CODEC.encodeStart(ops, mapped.input()));
         }
         return prefix.withErrorsFrom(DataResult.error(() -> "not a structural type: " + input));
     }
 
     private <T> RecordBuilder<T> encodeMulTimes(
             DensityFunctions.TwoArgumentSimpleFunction input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
-        return prefix.add("mul", MAIN.encodeStart(ops, input.argument1()))
-            .add("times", MAIN.encodeStart(ops, input.argument2()));
+        return prefix.add("mul", HOLDER_HELPER_CODEC.encodeStart(ops, input.argument1()))
+            .add("times", HOLDER_HELPER_CODEC.encodeStart(ops, input.argument2()));
     }
 
     private <T> RecordBuilder<T> encodeAddPlus(
             DensityFunctions.TwoArgumentSimpleFunction input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
-        return prefix.add("add", MAIN.encodeStart(ops, input.argument1()))
-            .add("plus", MAIN.encodeStart(ops, input.argument2()));
+        return prefix.add("add", HOLDER_HELPER_CODEC.encodeStart(ops, input.argument1()))
+            .add("plus", HOLDER_HELPER_CODEC.encodeStart(ops, input.argument2()));
     }
 }
