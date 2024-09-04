@@ -15,10 +15,6 @@ public final class PgRegistries {
 
     private PgRegistries() {}
 
-    public static void init() {
-        // run class init
-    }
-
     public static final class Keys {
         public static final ResourceKey<Registry<MapCodec<? extends Injector>>> INJECTOR_TYPE =
             ResourceKey.createRegistryKey(Pangaea.MOD.id("injector_type"));

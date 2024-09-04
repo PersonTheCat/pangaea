@@ -4,14 +4,20 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BlockMatchTestAccessor",
-    "BlockStateMatchTestAccessor",
+    "BlockStateMatchTestAccessor", ,
+    "BlockStateMixin",
     "DensityFunctionsMixin",
+    "HeightProviderMixin",
+    "IntProviderMixin",
     "MinecraftServerAccessor",
+    "OreConfigurationAccessor",
     "RegistryDataLoaderMixin",
     "RegistryOpsMixin",
     "RuleTestMixin",
     "ServerLevelMixin",
-    "TagMatchTestAccessor"
+    "TagMatchTestAccessor",
+    "TrapezoidHeightAccessor",
+    "UniformHeightAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

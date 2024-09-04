@@ -47,7 +47,7 @@ public class IntervalPlacementModifier extends PlacementModifier {
     }
 
     @Override
-    public PlacementModifierType<?> type() {
+    public @NotNull PlacementModifierType<?> type() {
         return TYPE;
     }
 }

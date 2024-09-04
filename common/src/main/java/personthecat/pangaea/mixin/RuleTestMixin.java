@@ -7,7 +7,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import personthecat.pangaea.serialization.codec.PatternRuleTestCodec;
 
-@Mixin(value = RuleTest.class)
+// priority: lower in case another mod still needs original as a MapCodecCodec
+@Mixin(value = RuleTest.class, priority = 1500)
 public class RuleTestMixin {
 
     @ModifyExpressionValue(

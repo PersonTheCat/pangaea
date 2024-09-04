@@ -15,7 +15,6 @@ import personthecat.pangaea.world.density.DensityList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static personthecat.catlib.serialization.codec.CodecUtils.asMapCodec;
 import static net.minecraft.world.level.levelgen.DensityFunction.HOLDER_HELPER_CODEC;
 
 public class StructuralDensityCodec extends MapCodec<DensityFunction> {
@@ -27,8 +26,8 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
     private StructuralDensityCodec() {}
 
     public static Codec<DensityFunction> wrap(Codec<DensityFunction> codec) {
-        return new DefaultTypeCodec<>(asMapCodec(codec), INSTANCE,
-            (f, ops) -> Cfg.encodeStructuralDensity() && canBeStructural(f)).codec();
+        return new DefaultTypeCodec<>(codec, INSTANCE.codec(),
+            (f, ops) -> Cfg.encodeStructuralDensity() && canBeStructural(f));
     }
 
     private static boolean canBeStructural(DensityFunction f) {

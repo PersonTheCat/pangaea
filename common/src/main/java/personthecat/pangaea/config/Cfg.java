@@ -89,6 +89,22 @@ public final class Cfg {
         return INSTANCE.data.encodePatternRuleTestCodec;
     }
 
+    public static boolean encodeRangeIntProvider() {
+        return INSTANCE.data.encodeRangeIntProvider;
+    }
+
+    public static boolean encodePatternHeightProvider() {
+        return INSTANCE.data.encodePatternHeightProvider;
+    }
+
+    public static boolean encodeDefaultStateAsBlock() {
+        return INSTANCE.data.encodeDefaultStateAsBlock;
+    }
+
+    public static boolean encodeStatePropertiesAsList() {
+        return INSTANCE.data.encodeStatePropertiesAsList;
+    }
+
     static class Roads {
         boolean pregenRoads = false;
         boolean debugPregenShape = false;
@@ -114,5 +130,9 @@ public final class Cfg {
         boolean encodeDensityBuilders = true;
         boolean encodeStructuralDensity = true;
         boolean encodePatternRuleTestCodec = true;
+        boolean encodeRangeIntProvider = true;
+        boolean encodePatternHeightProvider = true;
+        boolean encodeDefaultStateAsBlock = true;
+        boolean encodeStatePropertiesAsList = true;
     }
 }

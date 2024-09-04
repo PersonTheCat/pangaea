@@ -26,7 +26,10 @@ import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.injector.DataInjectionHook;
+import personthecat.pangaea.world.injector.OreInjector;
+import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
+import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
 import personthecat.pangaea.world.road.RoadMap;
 
 import java.util.List;
@@ -63,8 +66,23 @@ public abstract class Pangaea {
                 log.info("Upgrade detected. Welcome to Pangaea {}", VERSION);
             }
         });
-        PgRegistries.init();
         DataInjectionHook.setup();
+        updateRegistries();
+        enableDebugFeatures();
+    }
+
+    private static void updateRegistries() {
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("controller"), DensityController.CODEC);
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("structural"), StructuralDensityCodec.INSTANCE);
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("min"), DensityList.Min.CODEC);
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("max"), DensityList.Max.CODEC);
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("sum"), DensityList.Sum.CODEC);
+        CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("simple"), SimplePlacementModifier.TYPE);
+        CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("surface_biome"), SurfaceBiomeFilter.TYPE);
+        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("ore"), OreInjector.CODEC);
+    }
+
+    private static void enableDebugFeatures() {
         if (Cfg.removeAllFeatures()) {
             removeAllFeatures();
         }
@@ -74,7 +92,6 @@ public abstract class Pangaea {
         if (Cfg.enableRoads()) {
             enableRoads();
         }
-        registerCodecs();
     }
 
     private static void removeAllFeatures() {
@@ -99,14 +116,6 @@ public abstract class Pangaea {
         DynamicRegistries.PLACED_FEATURE.deferredRegister(MOD.id("placed_road"), PLACED_ROAD);
 
         FeatureModificationEvent.global().register(ctx -> ctx.addFeature(Decoration.RAW_GENERATION, PLACED_ROAD));
-    }
-
-    private static void registerCodecs() {
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("controller"), DensityController.CODEC);
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("structural"), StructuralDensityCodec.INSTANCE);
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("min"), DensityList.Min.CODEC);
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("max"), DensityList.Max.CODEC);
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("sum"), DensityList.Sum.CODEC);
     }
 
     protected final void shutdown(final MinecraftServer server) {

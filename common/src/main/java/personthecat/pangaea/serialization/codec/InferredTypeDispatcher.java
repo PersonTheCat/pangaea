@@ -14,8 +14,6 @@ import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static personthecat.catlib.serialization.codec.CodecUtils.asMapCodec;
-
 public class InferredTypeDispatcher<K, V> extends MapCodec<V> {
     private final RegistryHandle<K> handle;
     private final ResourceKey<Registry<V>> type;
@@ -33,8 +31,8 @@ public class InferredTypeDispatcher<K, V> extends MapCodec<V> {
     public static <K, V> Builder<K, V> builder(RegistryHandle<K> handle, ResourceKey<Registry<V>> type) {
         return (typeGetter, codecGetter) ->
             new DefaultTypeCodec<>(
-                asMapCodec(handle.codec().dispatch(typeGetter, codecGetter)),
-                new InferredTypeDispatcher<>(handle, type, codecGetter),
+                handle.codec().dispatch(typeGetter, codecGetter),
+                new InferredTypeDispatcher<>(handle, type, codecGetter).codec(),
                 (a, ops) -> PgCodecs.inferFromPath(handle, type, ops) != null);
     }
 
@@ -62,10 +60,6 @@ public class InferredTypeDispatcher<K, V> extends MapCodec<V> {
     }
 
     public interface Builder<K, V> {
-        MapCodec<V> buildMap(Function<? super V, ? extends K> type, Function<? super K, ? extends MapCodec<? extends V>> codec);
-
-        default Codec<V> build(Function<? super V, ? extends K> type, Function<? super K, ? extends MapCodec<? extends V>> codec) {
-            return this.buildMap(type, codec).codec();
-        }
+        Codec<V> build(Function<? super V, ? extends K> type, Function<? super K, ? extends MapCodec<? extends V>> codec);
     }
 }
