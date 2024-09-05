@@ -1,0 +1,30 @@
+{
+  "biomes": [
+    "#is_forest"
+  ],
+  "remove": {
+    "all": true
+  },
+  "inject": [
+    {
+      "size": 10,
+      "targets": [
+        { "state": "bedrock" , "target": "#stone_ore_replaceables" },
+        { "state": "smooth_quartz", "target": "#deepslate_ore_replaceables" }
+      ],
+      "placement": [
+        {
+          "count": 10,
+          "height": [ 0, 64 ]
+        },
+        {
+          "count": 4,
+          "height": [ 16, 48 ]
+        }
+      ],
+      "placement_filter": {
+        "type": "pangaea:surface_biome"
+      }
+    }
+  ]
+}
