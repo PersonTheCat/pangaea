@@ -81,6 +81,8 @@ public class NoiseCodecs {
                 return DataResult.error(() -> "Must provide a reference for wrapper type: " + b.type(), b);
             } else if (isWrapperType(b, null) && containsUpdatedFrequency(b.references())) {
                 return DataResult.error(() -> "Non-default frequency in reference will get ignored, move it up");
+            } else if (b.type() == NoiseType.MULTI && isWrappedAutomatically(b)) {
+                return DataResult.error(() -> "Multi noise cannot be warped or have a fractal effect (yet)", b);
             } else if (b.type() == NoiseType.MULTI && b.references().length == 0) {
                 return DataResult.error(() -> "Must provided references for multi type", b);
             } else if (b.cellularReturn() == ReturnType.NOISE_LOOKUP && b.noiseLookup() == null) {
@@ -143,6 +145,10 @@ public class NoiseCodecs {
 
     private static <T> boolean isWrapperType(final NoiseBuilder b, final T any) {
         return b.type() == NoiseType.FRACTAL || b.type() == NoiseType.WARPED;
+    }
+
+    private static boolean isWrappedAutomatically(final NoiseBuilder b) {
+        return b.fractal() != FractalType.NONE || b.warp() != WarpType.NONE;
     }
 
     private static <T> boolean isFractal(final NoiseBuilder b, final T any) {

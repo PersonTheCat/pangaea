@@ -23,7 +23,7 @@ public class DensityController implements SimpleFunction {
     private static final DensityCutoff DEFAULT_LOWER_CUTOFF = new DensityCutoff(-64, -64, 0.1);
     public static final MapCodec<DensityController> CODEC = codecOf(
         defaulted(DensityFunction.HOLDER_HELPER_CODEC, "surface", DEFAULT_SURFACE, c -> c.unwrapMain().surface),
-        defaulted(DensityFunction.HOLDER_HELPER_CODEC, "entrances", DEFAULT_ENTRANCES, c -> c.unwrapMain().entrances),
+        defaulted(DensityList.Min.LIST_CODEC, "entrances", DEFAULT_ENTRANCES, c -> c.unwrapMain().entrances),
         defaulted(DensityCutoff.CODEC.codec(), "upper_cutoff", DEFAULT_UPPER_CUTOFF, c -> c.unwrapMain().upperCutoff),
         defaulted(DensityCutoff.CODEC.codec(), "lower_cutoff", DEFAULT_LOWER_CUTOFF, c -> c.unwrapMain().lowerCutoff),
         defaulted(DensityList.Min.LIST_CODEC, "underground_caverns", DEFAULT_CAVES, c -> c.unwrapMain().undergroundCaverns),
