@@ -23,6 +23,9 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 
 public abstract class DensityList implements SimpleFunction {
     protected static final double MAX_REASONABLE = 1000000.0;
+    protected static final DensityFunction DEFAULT_MIN = DensityFunctions.constant(1);
+    protected static final DensityFunction DEFAULT_MAX = DensityFunctions.constant(-1);
+    protected static final DensityFunction DEFAULT_SUM = DensityFunctions.zero();
     protected final List<DensityFunction> list;
     protected final double target;
     protected final double minValue;
@@ -39,20 +42,34 @@ public abstract class DensityList implements SimpleFunction {
     }
 
     public static DensityFunction min(List<DensityFunction> list, double target) {
-        return apply(list, DensityFunctions::min).orElseGet(() -> new Min(list, target));
+        return min(list, target, DEFAULT_MIN);
+    }
+
+    public static DensityFunction min(List<DensityFunction> list, double target, DensityFunction ifEmpty) {
+        return apply(list, DensityFunctions::min, ifEmpty).orElseGet(() -> new Min(list, target));
     }
 
     public static DensityFunction max(List<DensityFunction> list, double target) {
-        return apply(list, DensityFunctions::max).orElseGet(() -> new Max(list, target));
+        return max(list, target, DEFAULT_MAX);
+    }
+
+    public static DensityFunction max(List<DensityFunction> list, double target, DensityFunction ifEmpty) {
+        return apply(list, DensityFunctions::max, ifEmpty).orElseGet(() -> new Max(list, target));
     }
 
     public static DensityFunction sum(List<DensityFunction> list, double target) {
-        return apply(list, DensityFunctions::add).orElseGet(() -> new Sum(list, target));
+        return sum(list, target, DEFAULT_SUM);
+    }
+
+    public static DensityFunction sum(List<DensityFunction> list, double target, DensityFunction ifEmpty) {
+        return apply(list, DensityFunctions::add, ifEmpty).orElseGet(() -> new Sum(list, target));
     }
 
     protected static Optional<DensityFunction> apply(
-            List<DensityFunction> list, BiFunction<DensityFunction, DensityFunction, DensityFunction> f) {
-        if (list.isEmpty()) return Optional.of(DensityFunctions.zero());
+            List<DensityFunction> list,
+            BiFunction<DensityFunction, DensityFunction, DensityFunction> f,
+            DensityFunction ifEmpty) {
+        if (list.isEmpty()) return Optional.of(ifEmpty);
         if (list.size() == 1) return Optional.of(unwrapHolder(list.getFirst()));
         if (list.size() == 2) return Optional.of(f.apply(list.getFirst(), list.get(1)));
         return Optional.empty();

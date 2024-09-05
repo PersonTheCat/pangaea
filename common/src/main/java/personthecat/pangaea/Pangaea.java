@@ -23,6 +23,7 @@ import personthecat.pangaea.registry.PgRegistries;
 import personthecat.pangaea.world.density.DensityController;
 import personthecat.pangaea.world.density.DensityList;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
+import personthecat.pangaea.world.density.FastNoiseDensity;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.injector.CavernInjector;
@@ -75,6 +76,7 @@ public abstract class Pangaea {
     private static void updateRegistries() {
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("controller"), DensityController.CODEC);
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("structural"), StructuralDensityCodec.INSTANCE);
+        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("noise"), FastNoiseDensity.CODEC);
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("min"), DensityList.Min.CODEC);
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("max"), DensityList.Max.CODEC);
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("sum"), DensityList.Sum.CODEC);
