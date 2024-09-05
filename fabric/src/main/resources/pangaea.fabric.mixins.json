@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "personthecat.pangaea.mixin.fabric",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MappedRegistryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

@@ -24,6 +24,7 @@
     "catlib": ">=${catlib_min_version}"
   },
   "mixins": [
-    "pangaea.common.mixins.json"
+    "pangaea.common.mixins.json",
+    "pangaea.fabric.mixins.json"
   ]
 }
