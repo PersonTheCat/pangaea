@@ -25,6 +25,7 @@ import personthecat.pangaea.world.density.DensityList;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
+import personthecat.pangaea.world.injector.CavernInjector;
 import personthecat.pangaea.world.injector.DataInjectionHook;
 import personthecat.pangaea.world.injector.OreInjector;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
@@ -80,6 +81,7 @@ public abstract class Pangaea {
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("simple"), SimplePlacementModifier.TYPE);
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("surface_biome"), SurfaceBiomeFilter.TYPE);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("ore"), OreInjector.CODEC);
+        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("cavern"), CavernInjector.CODEC);
     }
 
     private static void enableDebugFeatures() {

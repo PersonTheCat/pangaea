@@ -29,7 +29,7 @@ public class DensityController implements SimpleFunction {
         defaulted(DensityList.Min.LIST_CODEC, "underground_caverns", DEFAULT_CAVES, c -> c.unwrapMain().undergroundCaverns),
         defaulted(DensityList.Max.LIST_CODEC, "underground_filler", DEFAULT_FILLER, c -> c.unwrapMain().undergroundFiller),
         defaulted(Codec.DOUBLE, "surface_threshold", 1.5625, c -> c.unwrapMain().surfaceThreshold),
-        defaulted(Codec.DOUBLE, "filler_threshold", 0.3, c -> c.unwrapMain().fillerThreshold),
+        defaulted(Codec.DOUBLE, "filler_threshold", 0.03, c -> c.unwrapMain().fillerThreshold),
         defaulted(DensityList.Min.LIST_CODEC, "global_caverns", DEFAULT_CAVES, c -> c.globalCaverns),
         defaulted(Codec.DOUBLE, "primary_scale", 0.64, c -> c.primaryScale),
         DensityController::new
@@ -159,7 +159,7 @@ public class DensityController implements SimpleFunction {
             } else {
                 d = this.undergroundCaverns.compute(ctx);
                 if (d <= this.undergroundFiller.maxValue()) {
-                    final double f = this.undergroundFiller.maxValue();
+                    final double f = this.undergroundFiller.compute(ctx);
                     if (f >= this.fillerThreshold) {
                         d = Math.max(d, f);
                     }

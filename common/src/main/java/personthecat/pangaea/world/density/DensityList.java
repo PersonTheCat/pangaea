@@ -124,7 +124,7 @@ public abstract class DensityList implements SimpleFunction {
                 final DensityFunction f = this.list.get(i);
                 final double d = f.compute(ctx);
                 if (d < min) min = d;
-                if (this.bounds.test(i, d)) break;
+                if (this.bounds.test(i, min)) break;
             }
             return min;
         }
@@ -155,6 +155,11 @@ public abstract class DensityList implements SimpleFunction {
         @Override
         protected boolean isTarget(double d) {
             return d <= this.target;
+        }
+
+        @Override
+        public @NotNull DensityFunction mapAll(Visitor visitor) {
+            return new Min(this.list.stream().map(f -> f.mapAll(visitor)).toList(), this.target);
         }
 
         @Override
@@ -202,7 +207,7 @@ public abstract class DensityList implements SimpleFunction {
                 final DensityFunction f = this.list.get(i);
                 final double d = f.compute(ctx);
                 if (d > max) max = d;
-                if (this.bounds.test(i, d)) break;
+                if (this.bounds.test(i, max)) break;
             }
             return max;
         }
@@ -236,6 +241,11 @@ public abstract class DensityList implements SimpleFunction {
         }
 
         @Override
+        public @NotNull DensityFunction mapAll(Visitor visitor) {
+            return new Max(this.list.stream().map(f -> f.mapAll(visitor)).toList(), this.target);
+        }
+
+        @Override
         public @NotNull KeyDispatchDataCodec<Max> codec() {
             return KeyDispatchDataCodec.of(CODEC);
         }
@@ -261,7 +271,7 @@ public abstract class DensityList implements SimpleFunction {
                 final DensityFunction f = this.list.get(i);
                 final double d = f.compute(ctx);
                 sum += d;
-                if (this.bounds.test(i, d)) break;
+                if (this.bounds.test(i, sum)) break;
             }
             return sum;
         }
@@ -284,6 +294,11 @@ public abstract class DensityList implements SimpleFunction {
         @Override
         protected boolean isTarget(double d) {
             return !isReasonable(this.target, d);
+        }
+
+        @Override
+        public @NotNull DensityFunction mapAll(Visitor visitor) {
+            return new Sum(this.list.stream().map(f -> f.mapAll(visitor)).toList(), this.target);
         }
 
         @Override
