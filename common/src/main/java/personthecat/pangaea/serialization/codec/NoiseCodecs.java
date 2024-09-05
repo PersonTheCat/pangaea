@@ -2,6 +2,7 @@ package personthecat.pangaea.serialization.codec;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
 import personthecat.catlib.data.FloatRange;
 import personthecat.fastnoise.FastNoise;
 import personthecat.fastnoise.data.DistanceType;
@@ -19,7 +20,6 @@ import java.util.function.BiPredicate;
 import static personthecat.catlib.serialization.codec.CodecUtils.dynamic;
 import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
 import static personthecat.catlib.serialization.codec.CodecUtils.ofEnum;
-import static personthecat.catlib.serialization.codec.CodecUtils.typed;
 import static personthecat.catlib.serialization.codec.DynamicField.field;
 
 public class NoiseCodecs {
@@ -29,48 +29,49 @@ public class NoiseCodecs {
     public static final Codec<DistanceType> DISTANCE = ofEnum(DistanceType.class);
     public static final Codec<ReturnType> RETURN = ofEnum(ReturnType.class);
     public static final Codec<MultiType> MULTI = ofEnum(MultiType.class);
-    private static final Codec<NoiseBuilder> BUILDER_CODEC = createNoiseBuilderCodec();
-    public static final Codec<FastNoise> NOISE_CODEC = typed(BUILDER_CODEC.xmap(NoiseBuilder::build, FastNoise::toBuilder));
+    private static final MapCodec<NoiseBuilder> BUILDER_CODEC = createNoiseBuilderCodec();
+    public static final MapCodec<FastNoise> NOISE_CODEC =
+        BUILDER_CODEC.xmap(NoiseBuilder::build, FastNoise::toBuilder);
 
-    private static Codec<NoiseBuilder> createNoiseBuilderCodec() {
-        final Codec<NoiseBuilder> recursive = Codec.recursive("NoiseBuilder", n -> BUILDER_CODEC);
+    private static MapCodec<NoiseBuilder> createNoiseBuilderCodec() {
+        final Codec<NoiseBuilder> recursive = Codec.recursive("NoiseBuilder", n -> BUILDER_CODEC.codec());
         return dynamic(FastNoise::builder).create(
-            field(TYPE, "type", NoiseBuilder::type, NoiseBuilder::type),
+            field(TYPE, "noise", NoiseBuilder::type, NoiseBuilder::type),
             field(FRACTAL, "fractal", NoiseBuilder::fractal, NoiseBuilder::fractal),
             field(WARP, "warp", NoiseBuilder::warp, NoiseBuilder::warp),
             field(DISTANCE, "distance", NoiseBuilder::distance, NoiseBuilder::distance),
             field(RETURN, "return", NoiseBuilder::cellularReturn, NoiseBuilder::cellularReturn),
             field(MULTI, "multi", NoiseBuilder::multi, NoiseBuilder::multi),
-            field(recursive, "noiseLookup", NoiseBuilder::noiseLookup, NoiseBuilder::noiseLookup),
+            field(recursive, "noise_lookup", NoiseBuilder::noiseLookup, NoiseBuilder::noiseLookup),
             field(easyList(recursive), "reference", b -> List.of(b.references()), NoiseBuilder::references),
             field(Codec.INT, "seed", NoiseBuilder::seed, NoiseBuilder::seed),
             field(Codec.FLOAT, "frequency", NoiseBuilder::frequencyX, NoiseBuilder::frequency),
-            field(Codec.FLOAT, "frequencyX", NoiseBuilder::frequencyX, NoiseBuilder::frequencyX),
-            field(Codec.FLOAT, "frequencyY", NoiseBuilder::frequencyY, NoiseBuilder::frequencyY),
-            field(Codec.FLOAT, "frequencyZ", NoiseBuilder::frequencyZ, NoiseBuilder::frequencyZ),
+            field(Codec.FLOAT, "frequency_x", NoiseBuilder::frequencyX, NoiseBuilder::frequencyX),
+            field(Codec.FLOAT, "frequency_y", NoiseBuilder::frequencyY, NoiseBuilder::frequencyY),
+            field(Codec.FLOAT, "frequency_z", NoiseBuilder::frequencyZ, NoiseBuilder::frequencyZ),
             field(Codec.INT, "octaves", NoiseBuilder::octaves, NoiseBuilder::octaves),
             field(Codec.FLOAT, "lacunarity", NoiseBuilder::lacunarityX, NoiseBuilder::lacunarity),
-            field(Codec.FLOAT, "lacunarityX", NoiseBuilder::lacunarityX, NoiseBuilder::lacunarityX),
-            field(Codec.FLOAT, "lacunarityY", NoiseBuilder::lacunarityY, NoiseBuilder::lacunarityY),
-            field(Codec.FLOAT, "lacunarityZ", NoiseBuilder::lacunarityZ, NoiseBuilder::lacunarityZ),
+            field(Codec.FLOAT, "lacunarity_x", NoiseBuilder::lacunarityX, NoiseBuilder::lacunarityX),
+            field(Codec.FLOAT, "lacunarity_y", NoiseBuilder::lacunarityY, NoiseBuilder::lacunarityY),
+            field(Codec.FLOAT, "lacunarity_z", NoiseBuilder::lacunarityZ, NoiseBuilder::lacunarityZ),
             field(Codec.FLOAT, "gain", NoiseBuilder::gain, NoiseBuilder::gain),
-            field(Codec.FLOAT, "pingPongStrength", NoiseBuilder::pingPongStrength, NoiseBuilder::pingPongStrength),
+            field(Codec.FLOAT, "ping_pong_strength", NoiseBuilder::pingPongStrength, NoiseBuilder::pingPongStrength),
             field(Codec.FLOAT, "jitter", NoiseBuilder::lacunarityX, NoiseBuilder::jitter),
-            field(Codec.FLOAT, "jitterX", NoiseBuilder::lacunarityX, NoiseBuilder::jitterX),
-            field(Codec.FLOAT, "jitterY", NoiseBuilder::lacunarityY, NoiseBuilder::jitterY),
-            field(Codec.FLOAT, "jitterZ", NoiseBuilder::lacunarityZ, NoiseBuilder::jitterZ),
-            field(Codec.FLOAT, "warpAmplitude", NoiseBuilder::warpAmplitudeX, NoiseBuilder::warpAmplitude),
-            field(Codec.FLOAT, "warpAmplitudeX", NoiseBuilder::warpAmplitudeX, NoiseBuilder::warpAmplitudeX),
-            field(Codec.FLOAT, "warpAmplitudeY", NoiseBuilder::warpAmplitudeY, NoiseBuilder::warpAmplitudeY),
-            field(Codec.FLOAT, "warpAmplitudeZ", NoiseBuilder::warpAmplitudeZ, NoiseBuilder::warpAmplitudeZ),
-            field(Codec.FLOAT, "warpFrequency", NoiseBuilder::warpFrequencyX, NoiseBuilder::warpFrequency),
-            field(Codec.FLOAT, "warpFrequencyX", NoiseBuilder::warpFrequencyX, NoiseBuilder::warpFrequencyX),
-            field(Codec.FLOAT, "warpFrequencyY", NoiseBuilder::warpFrequencyY, NoiseBuilder::warpFrequencyY),
-            field(Codec.FLOAT, "warpFrequencyZ", NoiseBuilder::warpFrequencyZ, NoiseBuilder::warpFrequencyZ),
+            field(Codec.FLOAT, "jitter_x", NoiseBuilder::lacunarityX, NoiseBuilder::jitterX),
+            field(Codec.FLOAT, "jitter_y", NoiseBuilder::lacunarityY, NoiseBuilder::jitterY),
+            field(Codec.FLOAT, "jitter_z", NoiseBuilder::lacunarityZ, NoiseBuilder::jitterZ),
+            field(Codec.FLOAT, "warp_amplitude", NoiseBuilder::warpAmplitudeX, NoiseBuilder::warpAmplitude),
+            field(Codec.FLOAT, "warp_amplitude_x", NoiseBuilder::warpAmplitudeX, NoiseBuilder::warpAmplitudeX),
+            field(Codec.FLOAT, "warp_amplitude_y", NoiseBuilder::warpAmplitudeY, NoiseBuilder::warpAmplitudeY),
+            field(Codec.FLOAT, "warp_amplitude_z", NoiseBuilder::warpAmplitudeZ, NoiseBuilder::warpAmplitudeZ),
+            field(Codec.FLOAT, "warp_frequency", NoiseBuilder::warpFrequencyX, NoiseBuilder::warpFrequency),
+            field(Codec.FLOAT, "warp_frequency_x", NoiseBuilder::warpFrequencyX, NoiseBuilder::warpFrequencyX),
+            field(Codec.FLOAT, "warp_frequency_y", NoiseBuilder::warpFrequencyY, NoiseBuilder::warpFrequencyY),
+            field(Codec.FLOAT, "warp_frequency_z", NoiseBuilder::warpFrequencyZ, NoiseBuilder::warpFrequencyZ),
             field(Codec.FLOAT, "offset", NoiseBuilder::offsetY, NoiseBuilder::offset),
-            field(Codec.FLOAT, "offsetX", NoiseBuilder::offsetX, NoiseBuilder::offsetX),
-            field(Codec.FLOAT, "offsetY", NoiseBuilder::offsetY, NoiseBuilder::offsetY),
-            field(Codec.FLOAT, "offsetZ", NoiseBuilder::offsetZ, NoiseBuilder::offsetZ),
+            field(Codec.FLOAT, "offset_x", NoiseBuilder::offsetX, NoiseBuilder::offsetX),
+            field(Codec.FLOAT, "offset_y", NoiseBuilder::offsetY, NoiseBuilder::offsetY),
+            field(Codec.FLOAT, "offset_z", NoiseBuilder::offsetZ, NoiseBuilder::offsetZ),
             field(Codec.BOOL, "invert", NoiseBuilder::invert, NoiseBuilder::invert),
             field(FloatRange.CODEC, "range", NoiseCodecs::getRange, NoiseCodecs::setRange),
             field(FloatRange.CODEC, "threshold", NoiseCodecs::getThreshold, NoiseCodecs::setThreshold)
@@ -78,18 +79,18 @@ public class NoiseCodecs {
             case "reference" -> NoiseCodecs::isWrapperType;
             case "octaves", "gain" -> NoiseCodecs::isFractal;
             case "frequency" -> NoiseCodecs::isSingleFrequency;
-            case "frequencyX", "frequencyY", "frequencyZ" -> not(NoiseCodecs::isSingleFrequency);
+            case "frequency_x", "frequency_y", "frequency_z" -> not(NoiseCodecs::isSingleFrequency);
             case "lacunarity" -> both(NoiseCodecs::isFractal, NoiseCodecs::isSingleLacunarity);
-            case "lacunarityX", "lacunarityY", "lacunarityZ" -> both(NoiseCodecs::isFractal, not(NoiseCodecs::isSingleLacunarity));
-            case "pingPongStrength" -> NoiseCodecs::isPingPong;
+            case "lacunarity_x", "lacunarity_y", "lacunarity_z" -> both(NoiseCodecs::isFractal, not(NoiseCodecs::isSingleLacunarity));
+            case "ping_pong_strength" -> NoiseCodecs::isPingPong;
             case "jitter" -> both(NoiseCodecs::isCellular, NoiseCodecs::isSingleJitter);
-            case "jitterX", "jitterY", "jitterZ" -> both(NoiseCodecs::isCellular, not(NoiseCodecs::isSingleJitter));
-            case "warpAmplitude" -> both(NoiseCodecs::isWarped, NoiseCodecs::isSingleWarpAmplitude);
-            case "warpAmplitudeX", "warpAmplitudeY", "warpAmplitudeZ" -> both(NoiseCodecs::isWarped, not(NoiseCodecs::isSingleWarpAmplitude));
-            case "warpFrequency" -> both(NoiseCodecs::isWarped, NoiseCodecs::isSingleWarpFrequency);
-            case "warpFrequencyX", "warpFrequencyY", "warpFrequencyZ" -> both(NoiseCodecs::isWarped, not(NoiseCodecs::isSingleWarpFrequency));
+            case "jitter_x", "jitter_y", "jitter_z" -> both(NoiseCodecs::isCellular, not(NoiseCodecs::isSingleJitter));
+            case "warp_amplitude" -> both(NoiseCodecs::isWarped, NoiseCodecs::isSingleWarpAmplitude);
+            case "warp_amplitude_x", "warp_amplitude_y", "warp_amplitude_z" -> both(NoiseCodecs::isWarped, not(NoiseCodecs::isSingleWarpAmplitude));
+            case "warp_frequency" -> both(NoiseCodecs::isWarped, NoiseCodecs::isSingleWarpFrequency);
+            case "warp_frequency_x", "warp_frequency_y", "warp_frequency_z" -> both(NoiseCodecs::isWarped, not(NoiseCodecs::isSingleWarpFrequency));
             case "offset" -> NoiseCodecs::isSingleOffset;
-            case "offsetX", "offsetY", "offsetZ" -> not(NoiseCodecs::isSingleOffset);
+            case "offset_x", "offset_y", "offset_z" -> not(NoiseCodecs::isSingleOffset);
             default -> null;
         }).validate(b -> {
             if (isWrapperType(b, null) && b.references().length == 0) {
