@@ -172,7 +172,7 @@ public class NoiseCodecs {
     }
 
     private static void setRange(final NoiseBuilder b, final FloatRange r) {
-        b.range(r.min, r.max);
+        b.range(r.min(), r.max());
     }
 
     private static FloatRange getThreshold(final NoiseBuilder b) {
@@ -180,7 +180,7 @@ public class NoiseCodecs {
     }
 
     private static void setThreshold(final NoiseBuilder b, final FloatRange r) {
-        b.threshold(r.min, r.max);
+        b.threshold(r.min(), r.max());
     }
 
     private static boolean containsUpdatedFrequency(final NoiseBuilder[] references) {

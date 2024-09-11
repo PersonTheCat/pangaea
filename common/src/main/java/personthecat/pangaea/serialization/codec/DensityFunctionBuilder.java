@@ -120,7 +120,7 @@ public class DensityFunctionBuilder {
 
     public DensityFunction build() {
         DensityFunction f = Objects.requireNonNull(this.wrapped);
-        if (this.clamp != null) f = f.clamp(this.clamp.min, this.clamp.max);
+        if (this.clamp != null) f = f.clamp(this.clamp.min(), this.clamp.max());
         if (this.blend) f = DensityFunctions.blendDensity(f);
         if (this.interpolate) f = DensityFunctions.interpolated(f);
         if (this.cache != null) {

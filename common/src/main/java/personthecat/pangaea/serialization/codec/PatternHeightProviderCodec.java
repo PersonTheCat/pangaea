@@ -97,7 +97,7 @@ public final class PatternHeightProviderCodec {
             if (this.lower.equals(this.upper)) {
                 return List.of(this.lower);
             } else if (this.lower.type == this.upper.type) {
-                return List.of(new NamedOffset(this.lower.type, Range.of(this.lower.y.min, this.upper.y.max)));
+                return List.of(new NamedOffset(this.lower.type, Range.of(this.lower.y.min(), this.upper.y.max())));
             }
             return List.of(this.lower, this.upper);
         }
@@ -113,15 +113,15 @@ public final class PatternHeightProviderCodec {
         }
 
         private boolean isConstant() {
-            return this.lower.type == this.upper.type && this.lower.y.min == this.upper.y.max;
+            return this.lower.type == this.upper.type && this.lower.y.min() == this.upper.y.max();
         }
 
         private VerticalAnchor upperBound() {
-            return bound(this.upper.type, this.upper.y.max);
+            return bound(this.upper.type, this.upper.y.max());
         }
 
         private VerticalAnchor lowerBound() {
-            return bound(this.lower.type, this.lower.y.min);
+            return bound(this.lower.type, this.lower.y.min());
         }
 
         private static VerticalAnchor bound(Type type, int y) {

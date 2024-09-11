@@ -90,6 +90,9 @@ public abstract class Pangaea {
         if (Cfg.removeAllFeatures()) {
             removeAllFeatures();
         }
+        if (Cfg.removeAllCarvers()) {
+            removeAllCarvers();
+        }
         if (Cfg.generateDebugPillars()) {
             generateDebugPillars();
         }
@@ -101,8 +104,14 @@ public abstract class Pangaea {
     private static void removeAllFeatures() {
         FeatureModificationEvent.global().register(ctx -> {
             log.info("Clearing features from biome: {}", ctx.getName());
-            ctx.removeCarver(carver -> true);
             ctx.removeFeature(feature -> true);
+        });
+    }
+
+    private static void removeAllCarvers() {
+        FeatureModificationEvent.global().register(ctx -> {
+            log.info("Clearing carvers from biome: {}", ctx.getName());
+            ctx.removeCarver(carver -> true);
         });
     }
 

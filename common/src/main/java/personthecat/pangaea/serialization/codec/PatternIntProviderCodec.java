@@ -14,7 +14,7 @@ public final class PatternIntProviderCodec {
 
     public static Codec<IntProvider> wrap(Codec<IntProvider> codec) {
         return Codec.either(Range.CODEC, codec).xmap(
-            either -> either.map(range -> UniformInt.of(range.min, range.max), Function.identity()),
+            either -> either.map(range -> UniformInt.of(range.min(), range.max()), Function.identity()),
             i -> i instanceof UniformInt u && Cfg.encodeRangeIntProvider()
                 ? Either.left(Range.of(u.getMinValue(), u.getMaxValue())) : Either.right(i));
     }

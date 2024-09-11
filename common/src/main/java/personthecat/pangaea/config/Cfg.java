@@ -53,6 +53,10 @@ public final class Cfg {
         return INSTANCE.temporary.removeAllFeatures;
     }
 
+    public static boolean removeAllCarvers() {
+        return INSTANCE.temporary.removeAllCarvers;
+    }
+
     public static boolean generateDebugPillars() {
         return INSTANCE.temporary.generateDebugPillars;
     }
@@ -118,6 +122,7 @@ public final class Cfg {
 
     static class Temporary {
         boolean removeAllFeatures = false;
+        boolean removeAllCarvers = false;
         boolean generateDebugPillars = false;
         boolean enableRoads = true;
         float roadChance = 1.0F / 4000F;

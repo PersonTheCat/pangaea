@@ -15,18 +15,21 @@ import static personthecat.catlib.serialization.codec.CodecUtils.ofEnum;
 
 public record FastNoiseDensity(
         FastNoise noise, Mode mode, double minValue, double maxValue) implements SimpleFunction {
-    private static final MapCodec<Mode> MODE_CODEC =
-        ofEnum(Mode.class).optionalFieldOf("mode", Mode.SCALED);
-    public static final MapCodec<FastNoiseDensity> CODEC =
-        UnionCodec.builder(NoiseCodecs.NOISE_CODEC, MODE_CODEC).create(
-            d -> DataResult.success(Pair.of(d.noise, d.mode)),
-            p -> DataResult.success(create(p.getFirst(), p.getSecond())));
+    public static final MapCodec<FastNoiseDensity> CODEC = createCodec(Mode.SCALED);
+    public static final MapCodec<FastNoiseDensity> CODEC_2D = createCodec(Mode.SCALED_2D);
 
     public static FastNoiseDensity create(FastNoise noise, Mode mode) {
         final var builder = noise.toBuilder();
         final var min = builder.scaleAmplitude() + builder.scaleOffset();
         final var max = -builder.scaleAmplitude() + builder.scaleOffset();
         return new FastNoiseDensity(noise, mode, min, max);
+    }
+
+    public static MapCodec<FastNoiseDensity> createCodec(Mode defaultMode) {
+        final var modeCodec = ofEnum(Mode.class).optionalFieldOf("mode", defaultMode);
+        return UnionCodec.builder(NoiseCodecs.NOISE_CODEC, modeCodec).create(
+            d -> DataResult.success(Pair.of(d.noise, d.mode)),
+            p -> DataResult.success(create(p.getFirst(), p.getSecond())));
     }
 
     @Override

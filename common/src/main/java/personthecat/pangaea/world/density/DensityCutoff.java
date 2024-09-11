@@ -21,7 +21,7 @@ public record DensityCutoff(double min, double max, double harshness) {
     );
 
     public DensityCutoff(final FloatRange range, final double harshness) {
-        this(range.min, range.max, harshness);
+        this(range.min(), range.max(), harshness);
     }
 
     public double transformUpper(double d, double y) {
