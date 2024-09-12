@@ -30,7 +30,7 @@ public class FunctionCodec {
     private static final Decoder<Map<String, Object>> ARGUMENT_DECODER = mapOf(ExtraCodecs.JAVA);
 
     public static <A> Codec<A> wrap(Codec<A> codec, ResourceKey<Registry<Template<A>>> key) {
-        return CodecUtils.simpleEither(codec, new Dispatcher<>(codec, key));
+        return CodecUtils.simpleEither(codec, new Dispatcher<>(key));
     }
 
     public static <A> Codec<Template<A>> create(Codec<A> type) {
@@ -135,7 +135,7 @@ public class FunctionCodec {
 
     private record Parameter(String name, @Nullable Object defaultValue) {}
 
-    private record Dispatcher<A>(Codec<A> original, ResourceKey<Registry<Template<A>>> key) implements Codec<A> {
+    private record Dispatcher<A>(ResourceKey<Registry<Template<A>>> key) implements Decoder<A> {
 
         @Override
         public <T> DataResult<Pair<A, T>> decode(DynamicOps<T> ops, T input) {
@@ -151,12 +151,7 @@ public class FunctionCodec {
                     }
                 }
             }
-            return this.original.decode(ops, input);
-        }
-
-        @Override
-        public <T> DataResult<T> encode(A input, DynamicOps<T> ops, T prefix) {
-            return this.original.encode(input, ops, prefix);
+            return DataResult.error(() -> "Not a template");
         }
     }
 }
