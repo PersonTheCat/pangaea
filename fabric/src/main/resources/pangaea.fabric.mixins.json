@@ -3,7 +3,8 @@
   "package": "personthecat.pangaea.mixin.fabric",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "MappedRegistryMixin"
+    "MappedRegistryMixin",
+    "RegistryDataLoaderMixin"
   ],
   "injectors": {
     "defaultRequire": 1
