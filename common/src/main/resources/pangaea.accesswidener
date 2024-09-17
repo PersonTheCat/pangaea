@@ -9,3 +9,7 @@ accessible class net/minecraft/world/level/levelgen/DensityFunctions$Marker
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$Marker$Type
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$PureTransformer
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$TwoArgumentSimpleFunction
+
+# Biome Codecs
+accessible method net/minecraft/world/level/biome/BiomeSpecialEffects <init> (IIIILjava/util/Optional;Ljava/util/Optional;Lnet/minecraft/world/level/biome/BiomeSpecialEffects$GrassColorModifier;Ljava/util/Optional;Ljava/util/Optional;Ljava/util/Optional;Ljava/util/Optional;Ljava/util/Optional;)V
+accessible method net/minecraft/world/level/biome/BiomeGenerationSettings <init> (Ljava/util/Map;Ljava/util/List;)V

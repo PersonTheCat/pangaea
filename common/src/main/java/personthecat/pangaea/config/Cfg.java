@@ -109,6 +109,14 @@ public final class Cfg {
         return INSTANCE.data.encodeStatePropertiesAsList;
     }
 
+    public static boolean encodeReadableColors() {
+        return INSTANCE.data.encodeReadableColors;
+    }
+
+    public static boolean encodeFeatureCategories() {
+        return INSTANCE.data.encodeFeatureCategories;
+    }
+
     static class Roads {
         boolean pregenRoads = false;
         boolean debugPregenShape = false;
@@ -139,5 +147,7 @@ public final class Cfg {
         boolean encodePatternHeightProvider = true;
         boolean encodeDefaultStateAsBlock = true;
         boolean encodeStatePropertiesAsList = true;
+        boolean encodeReadableColors = true;
+        boolean encodeFeatureCategories = true;
     }
 }

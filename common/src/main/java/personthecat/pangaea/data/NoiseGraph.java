@@ -95,24 +95,24 @@ public class NoiseGraph {
     }
 
     /**
-     * <h1>
+     * <h2>
      *   Samples
-     * </h1>
+     * </h2>
      * <p>
      *   A record of various interpolated noise samples. These
      *   samples are taken at an interval which matches their
      *   default frequencies, thus how likely they are to
      *   significantly change from block to block.
      * </p>
-     * <h2>
+     * <h3>
      *   sd
-     * </h2>
+     * </h3>
      * <p>
      *   SD of D noise in every other block.
      * </p>
-     * <h3>
+     * <h4>
      *   Structure
-     * </h3>
+     * </h4>
      * <p>
      *   This field captures a SD value at every other coordinate.
      *   Values are stored sequentially by row. Values are
@@ -130,9 +130,9 @@ public class NoiseGraph {
      * <pre>
      *   i = floor(rx / 2) * 8 + floor(rz / 2)
      * </pre>
-     * <h3>
+     * <h4>
      *   Visualization
-     * </h3>
+     * </h4>
      * <p>
      *   Each x in the following grid represents a coordinate
      *   captured by this array.
@@ -156,15 +156,15 @@ public class NoiseGraph {
      *   0 X - X - X - X - X - X - X - X -
      *     0 1 2 3 4 5 6 7 8 9 A B C D E F
      * </pre>
-     * <h2>
+     * <h3>
      *   d
-     * </h2>
+     * </h3>
      * <p>
      *   Raw depth noise calculated at every 4th block.
      * </p>
-     * <h3>
+     * <h4>
      *   Structure
-     * </h3>
+     * </h4>
      * <p>
      *   This field captures raw D noise at every 4th block. This
      *   interval is chosen for 2 reasons:
@@ -187,9 +187,9 @@ public class NoiseGraph {
      * <pre>
      *   i = round((rx + 4) / 4) * 7 + round((rz + 4) / 4)
      * </pre>
-     * <h3>
+     * <h4>
      *   Visualization
-     * </h3>
+     * </h4>
      * <pre>
      *   4         X       x       x       x       X
      *   3         |                               |
@@ -218,15 +218,15 @@ public class NoiseGraph {
      *   C         X       x       x       x       X
      *     C D E F 0 1 2 3 4 5 6 7 8 9 A B C D E F 0 1 2 3 4
      * </pre>
-     * <h2>
+     * <h3>
      *   pv
-     * </h2>
+     * </h3>
      * <p>
      *   Raw Peeks-and-Valley noise calculated at every 3rd block.
      * </p>
-     * <h3>
+     * <h4>
      *   Structure
-     * </h3>
+     * </h4>
      * <p>
      *   This field captures the raw PV noise at every 4th block. This
      *   interval is higher than that of PV primarily because we need
@@ -241,9 +241,9 @@ public class NoiseGraph {
      * <pre>
      *   i = round(rx / 3) * 6 + round(rz / 3)
      * </pre>
-     * <h3>
+     * <h4>
      *   Visualization
-     * </h3>
+     * </h4>
      * <pre>
      *   F X     x     x     x     x     x
      *   E |

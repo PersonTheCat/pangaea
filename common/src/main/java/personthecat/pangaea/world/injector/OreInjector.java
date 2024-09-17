@@ -64,7 +64,7 @@ public record OreInjector(
         final var configuredRegistry = ctx.registries().registryOrThrow(Registries.CONFIGURED_FEATURE);
         final var placedRegistry = ctx.registries().registryOrThrow(Registries.PLACED_FEATURE);
         final var removalsByCfId = new ArrayList<ResourceLocation>();
-        final var addedPlacements = new ArrayList<PlacedFeature>();
+        final var addedPlacements = new ArrayList<Holder<PlacedFeature>>();
         this.modifications.forEach((id, mod) -> {
             final var original = configuredRegistry.getHolder(id).orElse(null);
             if (original == null) {
@@ -73,16 +73,14 @@ public record OreInjector(
             }
             mod.updateConfig(id, original);
             if (mod.placement != null) {
-                mod.createPlacedFeatures(original).forEach((placedId, placed) -> {
-                   Registry.register(placedRegistry, placedId, placed);
-                   addedPlacements.add(placed);
-                });
+                mod.createPlacedFeatures(original).forEach((placedId, placed) ->
+                    addedPlacements.add(Registry.registerForHolder(placedRegistry, placedId, placed)));
                 removalsByCfId.add(id);
             }
         });
         if (!removalsByCfId.isEmpty()) {
             ctx.addRemovals(this.biomes, mods -> removalsByCfId.forEach(id ->
-                mods.removeFeature(placed -> placed.feature().is(id))));
+                mods.removeFeature(placed -> placed.is(id))));
         }
         if (!addedPlacements.isEmpty()) {
             ctx.addAdditions(this.biomes, mods -> addedPlacements.forEach(placed ->
@@ -96,15 +94,13 @@ public record OreInjector(
         }
         final var configuredRegistry = ctx.registries().registryOrThrow(Registries.CONFIGURED_FEATURE);
         final var placedRegistry = ctx.registries().registryOrThrow(Registries.PLACED_FEATURE);
-        final var addedPlacements = new ArrayList<PlacedFeature>();
+        final var addedPlacements = new ArrayList<Holder<PlacedFeature>>();
         this.injections.forEach((id, mod) -> {
             final var configured = new ConfiguredFeature<>(Feature.ORE, mod.toOreConfiguration());
             final var holder = Registry.registerForHolder(configuredRegistry, id, configured);
             if (mod.placement != null) {
-                mod.createPlacedFeatures(holder).forEach((placedId, placed) -> {
-                    Registry.register(placedRegistry, placedId, placed);
-                    addedPlacements.add(placed);
-                });
+                mod.createPlacedFeatures(holder).forEach((placedId, placed) ->
+                    addedPlacements.add(Registry.registerForHolder(placedRegistry, placedId, placed)));
             }
         });
         ctx.addAdditions(this.biomes, mods -> addedPlacements.forEach(feature ->
@@ -117,10 +113,10 @@ public record OreInjector(
         }
         if (this.removals.isExplicitAll()) {
             ctx.addRemovals(this.biomes,
-                mods -> mods.removeFeature(placed -> placed.feature().value().config() instanceof OreConfiguration));
+                mods -> mods.removeFeature(placed -> placed.value().feature().value().config() instanceof OreConfiguration));
         } else {
             ctx.addRemovals(this.biomes,
-                mods -> mods.removeFeature(placed -> this.removals.test(placed.feature())));
+                mods -> mods.removeFeature(placed -> this.removals.test(placed.value().feature())));
         }
     }
 

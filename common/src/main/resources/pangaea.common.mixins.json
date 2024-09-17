@@ -3,8 +3,11 @@
   "package": "personthecat.pangaea.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BiomeGenerationSettingsAccessor",
+    "BiomeGenerationSettingsMixin",
+    "BiomeSpecialEffectsMixin",
     "BlockMatchTestAccessor",
-    "BlockStateMatchTestAccessor", ,
+    "BlockStateMatchTestAccessor",
     "BlockStateMixin",
     "DensityFunctionsMixin",
     "HeightProviderMixin",
