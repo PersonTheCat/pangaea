@@ -14,10 +14,11 @@ import personthecat.pangaea.registry.PgRegistries;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
 public final class DataInjectionHook {
-    private static final ThreadLocal<InjectionContext> INJECTIONS = new ThreadLocal<>();
+    private static final AtomicReference<InjectionContext> INJECTIONS = new AtomicReference<>();
     private static final AtomicBoolean IS_SETUP = new AtomicBoolean(false);
 
     @ApiStatus.Internal
@@ -71,6 +72,6 @@ public final class DataInjectionHook {
     }
 
     private static void cleanup() {
-        INJECTIONS.remove();
+        INJECTIONS.set(null);
     }
 }

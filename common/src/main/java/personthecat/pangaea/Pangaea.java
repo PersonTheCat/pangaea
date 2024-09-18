@@ -60,6 +60,7 @@ public abstract class Pangaea {
 
     protected final void init() {
         Cfg.register();
+        updateRegistries();
     }
 
     protected final void commonSetup() {
@@ -70,7 +71,6 @@ public abstract class Pangaea {
             }
         });
         DataInjectionHook.setup();
-        updateRegistries();
         enableDebugFeatures();
     }
 
