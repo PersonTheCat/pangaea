@@ -6,8 +6,8 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.ApiStatus;
+import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.event.registry.DataRegistryEvent;
-import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.FeatureModificationContext;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.pangaea.registry.PgRegistries;
@@ -29,7 +29,7 @@ public final class DataInjectionHook {
         }
         DataRegistryEvent.POST.register(source -> runInjections(source.asRegistryAccess()));
         FeatureModificationEvent.forBiomes(DataInjectionHook::hasChanges).register(DataInjectionHook::applyChanges);
-        CommonWorldEvent.LOAD.register(level -> cleanup()); // not ideal due to multiple recurrence
+        CommonPlayerEvent.LOGIN.register((player, server) -> cleanup());
     }
 
     private static void runInjections(RegistryAccess registries) {

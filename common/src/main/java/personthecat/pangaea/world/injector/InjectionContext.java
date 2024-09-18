@@ -5,6 +5,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.level.biome.Biome;
 import personthecat.catlib.data.BiomePredicate;
 import personthecat.catlib.event.world.FeatureModificationContext;
+import personthecat.catlib.registry.DynamicRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +46,7 @@ public final class InjectionContext {
 
     public boolean hasChanges(Holder<Biome> biome) {
         return Stream.concat(this.removals.stream(), this.additions.stream())
-            .map(Modification::biomes)
-            .anyMatch(biomes -> biomes.test(biome));
+            .anyMatch(m -> m.matches(biome));
     }
 
     public void applyChanges(FeatureModificationContext ctx) {
@@ -56,9 +56,15 @@ public final class InjectionContext {
 
     public record Modification(BiomePredicate biomes, Consumer<FeatureModificationContext> listener) {
         void apply(FeatureModificationContext ctx) {
-            if (this.biomes.test(ctx.getBiome())) {
+            if (this.matches(ctx.getBiome())) {
                 this.listener.accept(ctx);
             }
+        }
+
+        boolean matches(Holder<Biome> biome) {
+            return biome.unwrapKey()
+                .map(key -> this.biomes.test(DynamicRegistries.BIOME.getHolder(key.location())))
+                .orElse(false);
         }
     }
 }
