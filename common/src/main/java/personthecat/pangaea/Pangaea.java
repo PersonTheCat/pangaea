@@ -105,19 +105,15 @@ public abstract class Pangaea {
 
     private static void removeAllFeatures() {
         FeatureModificationEvent.global().register(ctx -> {
-            if (ctx.isServerSide()) {
-                log.info("Clearing features from biome: {}", ctx.getName());
-                ctx.removeFeature(feature -> true);
-            }
+            log.info("Clearing features from biome: {}", ctx.getName());
+            ctx.removeFeature(feature -> true);
         });
     }
 
     private static void removeAllCarvers() {
         FeatureModificationEvent.global().register(ctx -> {
-            if (ctx.isServerSide()) {
-                log.info("Clearing carvers from biome: {}", ctx.getName());
-                ctx.removeCarver(carver -> true);
-            }
+            log.info("Clearing carvers from biome: {}", ctx.getName());
+            ctx.removeCarver(carver -> true);
         });
     }
 
