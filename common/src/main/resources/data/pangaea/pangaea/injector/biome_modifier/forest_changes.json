@@ -1,0 +1,15 @@
+{
+  "biomes": [
+    "#is_forest"
+  ],
+  "effects": {
+    "sky_color": "green",
+    "water_color": { "red": 20, "green": 50, "blue": 60 },
+    "foliage_color": [ 245, 59, 189 ]
+  },
+  "add_features": {
+    "vegetal_decoration": [
+      "warped_fungi"
+    ]
+  }
+}
