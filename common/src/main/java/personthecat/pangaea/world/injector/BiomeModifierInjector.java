@@ -1,6 +1,7 @@
 package personthecat.pangaea.world.injector;
 
 import com.mojang.serialization.MapCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import personthecat.catlib.data.BiomePredicate;
 import personthecat.catlib.event.world.FeatureModificationContext;
@@ -26,7 +27,7 @@ public record BiomeModifierInjector(BiomePredicate biomes, BiomeChanges changes)
     );
 
     @Override
-    public void inject(InjectionContext ctx) {
+    public void inject(ResourceKey<Injector> key, InjectionContext ctx) {
         if (this.changes.hasRemovals()) {
             ctx.addRemovals(this.biomes, this::doRemovals);
         }

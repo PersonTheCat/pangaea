@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
@@ -51,7 +52,7 @@ public record OreInjector(
     );
 
     @Override
-    public void inject(InjectionContext ctx) {
+    public void inject(ResourceKey<Injector> key, InjectionContext ctx) {
         this.applyModifications(ctx);
         this.applyInjections(ctx);
         this.applyRemovals(ctx);

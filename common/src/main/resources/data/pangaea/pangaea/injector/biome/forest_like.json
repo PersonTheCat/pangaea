@@ -1,0 +1,16 @@
+{
+  "parent": "minecraft:forest",
+  "downfall": 0.9,
+  "effects": {
+    "fog_color": "light_purple",
+    "sky_color": "dark_green"
+  },
+  "remove_features": [
+    "minecraft:trees_birch_and_oak"
+  ],
+  "add_features": {
+    "vegetal_decoration": [
+      "minecraft:dark_forest_vegetation"
+    ]
+  }
+}

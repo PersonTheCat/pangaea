@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 import personthecat.pangaea.world.density.DensityController;
@@ -24,7 +25,7 @@ public record CavernInjector(InjectionMap<DensityFunction> modifications) implem
             .xmap(CavernInjector::new, i -> i.modifications);
 
     @Override
-    public void inject(InjectionContext ctx) {
+    public void inject(ResourceKey<Injector> key, InjectionContext ctx) {
         final var registry = ctx.registries().registryOrThrow(Registries.NOISE_SETTINGS);
         this.modifications.forEach((id, f) -> {
             var settings = registry.get(id);

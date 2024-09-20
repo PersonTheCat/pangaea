@@ -37,7 +37,7 @@ public final class PgCodecs {
         final var typePath = type.location().getNamespace() + '/' + type.location().getPath();
         for (final var entry : handle.entrySet()) {
             final var entryPath = entry.getKey().location().getPath();
-            if (resource.isInDirectory(typePath + '/' + entryPath)) {
+            if (resource.isInDirectory(typePath + '/' + entryPath + "/")) {
                 return entry.getValue();
             }
         }

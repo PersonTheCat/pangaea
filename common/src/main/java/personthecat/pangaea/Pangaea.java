@@ -26,6 +26,7 @@ import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.density.FastNoiseDensity;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
+import personthecat.pangaea.world.injector.BiomeInjector;
 import personthecat.pangaea.world.injector.BiomeModifierInjector;
 import personthecat.pangaea.world.injector.CavernInjector;
 import personthecat.pangaea.world.injector.DataInjectionHook;
@@ -41,7 +42,8 @@ import java.util.List;
 public abstract class Pangaea {
     public static final String ID = "@MOD_ID@";
     public static final String NAME = "@MOD_NAME@";
-    public static final Version VERSION = Version.parse("@MOD_VERSION@");
+    public static final String RAW_VERSION = "@MOD_VERSION@";
+    public static final Version VERSION = Version.parse(RAW_VERSION);
     public static final ModDescriptor MOD =
         ModDescriptor.builder().modId(ID).name(NAME).commandPrefix("pg").version(VERSION).build();
     public static final VersionTracker VERSION_TRACKER = VersionTracker.trackModVersion(MOD);
@@ -86,6 +88,7 @@ public abstract class Pangaea {
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("ore"), OreInjector.CODEC);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("cavern"), CavernInjector.CODEC);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome_modifier"), BiomeModifierInjector.CODEC);
+        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome"), BiomeInjector.CODEC);
     }
 
     private static void enableDebugFeatures() {
