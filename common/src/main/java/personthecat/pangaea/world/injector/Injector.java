@@ -25,12 +25,20 @@ public interface Injector {
         return Phase.WORLD_GEN;
     }
 
+    default int priority() {
+        return 1000;
+    }
+
     default Stream<Holder<?>> getDependencies() {
         return Stream.empty();
     }
 
     default Stream<Holder<?>> getUnmetDependencies() {
         return this.getDependencies().filter(Predicate.not(Holder::isBound));
+    }
+
+    default int getUnmetDependencyCount() {
+        return this.hasUnmetDependencies() ? 0 : (int) this.getUnmetDependencies().count();
     }
 
     default boolean hasUnmetDependencies() {

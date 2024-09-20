@@ -255,6 +255,11 @@ public record BiomeInjector(@Nullable Holder<Biome> parent, BiomeChanges changes
     }
 
     @Override
+    public int priority() {
+        return 500;
+    }
+
+    @Override
     public Stream<Holder<?>> getDependencies() {
         return Stream.ofNullable(this.parent);
     }

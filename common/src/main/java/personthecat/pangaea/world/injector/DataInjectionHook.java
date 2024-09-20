@@ -18,6 +18,7 @@ import personthecat.pangaea.registry.PgRegistries;
 import personthecat.pangaea.world.injector.Injector.Phase;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -98,7 +99,12 @@ public final class DataInjectionHook {
     }
 
     private static Collection<Entry<ResourceKey<Injector>, Injector>> getInjectorsForPhase(Phase phase) {
-        return PgRegistries.INJECTOR.entrySet().stream().filter(e -> e.getValue().phase() == phase).toList();
+        return PgRegistries.INJECTOR.entrySet().stream()
+            .filter(e -> e.getValue().phase() == phase)
+            .sorted(Comparator.comparingInt((Entry<?, Injector> e) -> e.getValue().priority())
+                .thenComparing((Entry<?, Injector> e) -> PgRegistries.INJECTOR_TYPE.getKey(e.getValue().codec()))
+                .thenComparingInt((Entry<?, Injector> e) -> e.getValue().getUnmetDependencyCount()))
+            .toList();
     }
 
     private static Map<ResourceLocation, List<ResourceLocation>> mapDependencies(
