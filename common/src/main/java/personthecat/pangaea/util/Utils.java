@@ -3,8 +3,13 @@ package personthecat.pangaea.util;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.levelgen.DensityFunction.FunctionContext;
 import net.minecraft.world.level.levelgen.NoiseRouterData;
+import personthecat.pangaea.data.Rectangle;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 
 public final class Utils {
 
@@ -64,5 +69,63 @@ public final class Utils {
   public static boolean rectanglesOverlap(
       int x1a, int y1a, int x2a, int y2a, int x1b, int y1b, int x2b, int y2b) {
     return !(x1a < x2b && x2a > x1b && y1a > y2b && y2a < y1b);
+  }
+
+  public static <T> Set<Rectangle> findRectangles(List<List<T>> matrix) {
+    final var rectangles = new HashSet<Rectangle>();
+    for (int y = 0; y < matrix.size(); y++) {
+      for (int x = 0; x < matrix.getFirst().size(); x++) {
+        if (rectanglesContainPoint(rectangles, x, y)) {
+          continue;
+        }
+        final var width = getWidth(matrix, x, y);
+        final var height = getHeight(matrix, x, y, width);
+        if (width > 1 || height > 1) {
+          rectangles.add(new Rectangle(x, y, x + width - 1, y + height - 1));
+          x += width - 1;
+        }
+      }
+    }
+    return rectangles;
+  }
+
+  public static boolean rectanglesContainPoint(Set<Rectangle> rectangles, int x, int y) {
+    for (final var rectangle : rectangles) {
+      if (rectangle.containsPoint(x, y)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static <T> int getWidth(List<List<T>> matrix, int x, int y) {
+    final T value = matrix.get(y).get(x);
+    int x2 = x + 1;
+    for (; x2 < matrix.getFirst().size(); x2++) {
+      if (!Objects.equals(matrix.get(y).get(x2), value)) {
+        break;
+      }
+    }
+    return x2 - x;
+  }
+
+  private static <T> int getHeight(List<List<T>> matrix, int x, int y, int width) {
+    final T value = matrix.get(y).get(x);
+    int y2 = y + 1;
+    for (; y2 < matrix.size(); y2++) {
+      if (!rowMatches(matrix, x, y2, value, width)) {
+        break;
+      }
+    }
+    return y2 - y;
+  }
+
+  private static <T> boolean rowMatches(List<List<T>> matrix, int x, int y, T value, int width) {
+    for (int x2 = x; x2 < x + width; x2++) {
+      if (!Objects.equals(matrix.get(y).get(x2), value)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

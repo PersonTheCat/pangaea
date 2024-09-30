@@ -1,4 +1,4 @@
-package personthecat.pangaea.world.injector;
+package personthecat.pangaea.world.biome;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Keyable;

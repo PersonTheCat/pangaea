@@ -10,6 +10,7 @@ import net.minecraft.core.WritableRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.RegistryFileCodec;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.repository.KnownPack;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.mixin.BiomeGenerationSettingsAccessor;
 import personthecat.pangaea.mixin.MobSpawnSettingsAccessor;
+import personthecat.pangaea.world.biome.BiomeChanges;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -63,7 +65,7 @@ public record BiomeInjector(@Nullable Holder<Biome> parent, BiomeChanges changes
             .generationSettings(this.createGeneration(reference))
             .mobSpawnSettings(this.createMobs(reference))
             .build();
-        final var biomeKey = ResourceKey.create(Registries.BIOME, key.location());
+        final var biomeKey = ResourceKey.create(Registries.BIOME, removePrefix(key.location()));
         biomes.register(biomeKey, biome, SYNCHRONIZED_INFO);
     }
 
@@ -304,5 +306,12 @@ public record BiomeInjector(@Nullable Holder<Biome> parent, BiomeChanges changes
             return Optional.empty();
         }
         return defaultValue;
+    }
+
+    private static ResourceLocation removePrefix(ResourceLocation id) {
+        if (id.getPath().startsWith("biome/")) {
+            return new ResourceLocation(id.getNamespace(), id.getPath().substring("biome/".length()));
+        }
+        return id;
     }
 }

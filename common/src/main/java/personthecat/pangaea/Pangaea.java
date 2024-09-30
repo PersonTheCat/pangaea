@@ -28,8 +28,10 @@ import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.injector.BiomeInjector;
 import personthecat.pangaea.world.injector.BiomeModifierInjector;
+import personthecat.pangaea.world.injector.BiomeSourceInjector;
 import personthecat.pangaea.world.injector.CavernInjector;
 import personthecat.pangaea.world.injector.DataInjectionHook;
+import personthecat.pangaea.world.injector.DimensionInjector;
 import personthecat.pangaea.world.injector.OreInjector;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
@@ -87,8 +89,10 @@ public abstract class Pangaea {
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("surface_biome"), SurfaceBiomeFilter.TYPE);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("ore"), OreInjector.CODEC);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("cavern"), CavernInjector.CODEC);
-        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome_modifier"), BiomeModifierInjector.CODEC);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome"), BiomeInjector.CODEC);
+        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome_modifier"), BiomeModifierInjector.CODEC);
+        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome_source"), BiomeSourceInjector.CODEC);
+        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("dimension"), DimensionInjector.CODEC);
     }
 
     private static void enableDebugFeatures() {

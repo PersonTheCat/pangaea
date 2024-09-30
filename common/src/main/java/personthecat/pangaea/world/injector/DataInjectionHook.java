@@ -11,6 +11,7 @@ import org.jetbrains.annotations.ApiStatus;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.event.registry.DataRegistryEvent;
+import personthecat.catlib.event.world.DimensionBakeEvent;
 import personthecat.catlib.event.world.FeatureModificationContext;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.pangaea.Pangaea;
@@ -40,13 +41,20 @@ public final class DataInjectionHook {
             log.warn("Tried to setup injection hook multiple times. Ignoring...");
             return;
         }
-        DataRegistryEvent.POST.register(source -> runInjections(source.asRegistryAccess()));
+        DataRegistryEvent.POST.register(source -> {
+            if (isWorldGenPhase(source)) {
+                runInjections(Phase.WORLD_GEN, source.asRegistryAccess());
+            }
+        });
+        DimensionBakeEvent.EVENT.register(registry -> {
+            final var access = new RegistryAccess.ImmutableRegistryAccess(List.of(registry));
+            runInjections(Phase.DIMENSION, access);
+        });
         FeatureModificationEvent.forBiomes(DataInjectionHook::hasChanges).register(DataInjectionHook::applyChanges);
         CommonPlayerEvent.LOGIN.register((player, server) -> cleanup());
     }
 
-    private static void runInjections(RegistryAccess registries) {
-        final var phase = getCurrentPhase(registries);
+    private static void runInjections(Phase phase, RegistryAccess registries) {
         final var ctx = createContext(registries, phase);
         final var injectors = new HashSet<>(getInjectorsForPhase(phase));
 
@@ -80,11 +88,8 @@ public final class DataInjectionHook {
         }
     }
 
-    private static Injector.Phase getCurrentPhase(RegistryAccess registries) {
-        if (registries.registry(Registries.LEVEL_STEM).isPresent()) {
-            return Injector.Phase.DIMENSION;
-        }
-        return Injector.Phase.WORLD_GEN;
+    private static boolean isWorldGenPhase(DataRegistryEvent.Source source) {
+        return source.getRegistry(Registries.BIOME) != null;
     }
 
     private static InjectionContext createContext(RegistryAccess registries, Injector.Phase phase) {
