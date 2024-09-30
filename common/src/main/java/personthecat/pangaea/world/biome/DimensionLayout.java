@@ -13,7 +13,7 @@ import personthecat.pangaea.registry.PgRegistries;
 
 import java.util.List;
 
-public record DimensionLayout(ParameterMatrix<BiomeSlice> slices) {
+public record DimensionLayout(ParameterMatrix<Holder<BiomeSlice>> slices) {
     private static final List<Parameter> DEFAULT_DEPTH = List.of(
         Parameter.span(0.0F, 0.0F),
         Parameter.span(0.0F, 0.2F),
@@ -38,8 +38,8 @@ public record DimensionLayout(ParameterMatrix<BiomeSlice> slices) {
         Parameter.span(0.767F, 0.933F),
         Parameter.span(0.933F, 1.0F)
     );
-    private static final MapCodec<ParameterMatrix<BiomeSlice>> SLICE_MATRIX_CODEC =
-        ParameterMatrix.codecBuilder(PgRegistries.BIOME_SLICE.codec())
+    private static final MapCodec<ParameterMatrix<Holder<BiomeSlice>>> SLICE_MATRIX_CODEC =
+        ParameterMatrix.codecBuilder(PgRegistries.BIOME_SLICE.holderCodec())
             .withKeys("depth", "weirdness", "slices")
             .withDefaultAxes(DEFAULT_DEPTH, DEFAULT_WEIRDNESS)
             .build();
@@ -49,11 +49,11 @@ public record DimensionLayout(ParameterMatrix<BiomeSlice> slices) {
     public ParameterList<Holder<Biome>> compileBiomes(Registry<Biome> biomes) {
         final var list = ImmutableList.<Pair<ParameterPoint, Holder<Biome>>>builder();
         this.slices.forEach((depth, weirdness, slice) ->
-            slice.layouts().forEach((erosion, continentalness, layout) ->
-                layout.biomes().forEach((temperature, humidity, choice) -> {
+            slice.value().layouts().forEach((erosion, continentalness, layout) ->
+                layout.value().biomes().forEach((temperature, humidity, choice) -> {
                     final var point = new ParameterPoint(
                         temperature, humidity, continentalness, erosion, depth, weirdness, 0);
-                    final var biome = choice.resolve(layout, point);
+                    final var biome = choice.resolve(layout.value(), point);
                     list.add(Pair.of(point, biomes.getHolderOrThrow(biome)));
                 })));
         return new ParameterList<>(list.build());

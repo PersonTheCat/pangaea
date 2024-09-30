@@ -4,6 +4,7 @@ import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
+import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.biome.Climate.Parameter;
 import org.apache.commons.lang3.function.TriConsumer;
 import personthecat.pangaea.data.Rectangle;
@@ -11,17 +12,19 @@ import personthecat.pangaea.util.Utils;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
+import static personthecat.catlib.serialization.codec.CodecUtils.optionalCodec;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 
 public record ParameterMatrix<T>(
-        List<Parameter> x, List<Parameter> y, List<List<T>> matrix, Supplier<Set<Rectangle>> rectangles) {
+        List<Parameter> x, List<Parameter> y, List<List<Optional<T>>> matrix, Supplier<Set<Rectangle>> rectangles) {
 
-    public ParameterMatrix(List<Parameter> x, List<Parameter> y, List<List<T>> matrix) {
+    public ParameterMatrix(List<Parameter> x, List<Parameter> y, List<List<Optional<T>>> matrix) {
         this(x, y, matrix, Suppliers.memoize(() -> Utils.findRectangles(matrix)));
     }
 
@@ -34,13 +37,17 @@ public record ParameterMatrix<T>(
         for (final var rectangle : rectangles) {
             final var x = Parameter.span(this.interpolateX(rectangle.minX()), this.interpolateX(rectangle.maxX()));
             final var y = Parameter.span(this.interpolateY(rectangle.minY()), this.interpolateY(rectangle.maxY()));
-            fn.accept(x, y, this.matrix.get(rectangle.minY()).get(rectangle.minX()));
+            final var t = this.matrix.get(rectangle.minY()).get(rectangle.minX());
+            t.ifPresent(value -> fn.accept(x, y, value));
         }
         for (int y = 0; y < this.matrix.size(); y++) {
             final var row = this.matrix.get(y);
             for (int x = 0; x < row.size(); x++) {
                 if (!Utils.rectanglesContainPoint(rectangles, x, y)) {
-                    fn.accept(this.interpolateX(x), this.interpolateY(y), row.get(x));
+                    final var t = row.get(x);
+                    if (t.isPresent()) {
+                        fn.accept(this.interpolateX(x), this.interpolateY(y), t.get());
+                    }
                 }
             }
         }
@@ -81,7 +88,7 @@ public record ParameterMatrix<T>(
     }
 
     private static float getValueInCurve(List<Parameter> values, int idx) {
-        return idx >= values.size() ? values.getLast().max() : values.get(idx).min();
+        return Climate.unquantizeCoord(idx >= values.size() ? values.getLast().max() : values.get(idx).min());
     }
 
     @Override
@@ -139,8 +146,8 @@ public record ParameterMatrix<T>(
             );
         }
 
-        private static <T> Codec<List<List<T>>> matrixCodec(Codec<T> elementCodec) {
-            return elementCodec.listOf().listOf().validate(matrix -> {
+        private static <T> Codec<List<List<Optional<T>>>> matrixCodec(Codec<T> elementCodec) {
+            return optionalCodec(elementCodec).listOf().listOf().validate(matrix -> {
                 if (matrix.isEmpty()) {
                     return DataResult.success(matrix);
                 }

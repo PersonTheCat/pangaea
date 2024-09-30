@@ -56,7 +56,7 @@ public record BiomeLayout(Map<String, VariantResolver> variants, ParameterMatrix
     private DataResult<BiomeLayout> validate() {
         for (final var row : this.biomes.matrix()) {
             for (final var col : row) {
-                if (col instanceof BiomeChoice.VariantName name && ! this.variants.containsKey(name.key)) {
+                if (col.isPresent() && col.get() instanceof BiomeChoice.VariantName name && ! this.variants.containsKey(name.key)) {
                     return DataResult.error(() -> "No variant for key: " + name.key);
                 }
             }
@@ -113,13 +113,17 @@ public record BiomeLayout(Map<String, VariantResolver> variants, ParameterMatrix
 
         record VariantName(String key) implements BiomeChoice {
             public static final Codec<VariantName> CODEC =
-                Codec.STRING.comapFlatMap(VariantName::fromHashString, VariantName::key);
+                Codec.STRING.comapFlatMap(VariantName::fromHashString, VariantName::hashedKey);
 
             private static DataResult<VariantName> fromHashString(String s) {
                 if (s.startsWith("#")) {
                     return DataResult.success(new VariantName(s.substring(1)));
                 }
                 return DataResult.error(() -> "Not a hashed variant name: " + s);
+            }
+
+            public String hashedKey() {
+                return "#" + this.key;
             }
 
             @Override
