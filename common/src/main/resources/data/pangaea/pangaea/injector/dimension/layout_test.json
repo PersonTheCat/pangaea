@@ -1,0 +1,13 @@
+{
+  "dimensions": "overworld",
+  "is_temporary_debug": true,
+  "slices": [
+    [ "pangaea:land" ],
+    [ null ],
+    [ "pangaea:underground" ],
+    [ null ],
+    [ "pangaea:land" ],
+    [ null ],
+    [ null ]
+  ]
+}

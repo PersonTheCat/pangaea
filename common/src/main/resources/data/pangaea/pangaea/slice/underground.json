@@ -1,0 +1,11 @@
+{
+  "layouts": [
+    [ "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves" ],
+    [ "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves" ],
+    [ "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves" ],
+    [ "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves" ],
+    [ "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves" ],
+    [ "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves", "pangaea:caves" ],
+    [ "pangaea:dripstone_caves", "pangaea:dripstone_caves", "pangaea:dripstone_caves", "pangaea:dripstone_caves", "pangaea:dripstone_caves" ]
+  ]
+}
