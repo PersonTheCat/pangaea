@@ -1,0 +1,12 @@
+{
+  "dimensions": [
+    "overworld"
+  ],
+  "replace_biomes": [
+    {
+      "biomes": "minecraft:forest",
+      "replacement": "pangaea:forest_like",
+      "weirdness": [ 0.2, 1 ]
+    }
+  ]
+}
