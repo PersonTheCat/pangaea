@@ -43,8 +43,8 @@ public record BiomeLayout(Map<String, VariantResolver> variants, ParameterMatrix
         Codec.unboundedMap(Codec.STRING, VariantResolver.CODEC);
     private static final MapCodec<ParameterMatrix<BiomeChoice>> BIOME_MATRIX_CODEC =
         ParameterMatrix.codecBuilder(BiomeChoice.CODEC)
-            .withKeys("temperature", "humidity", "biomes")
-            .withDefaultAxes(DEFAULT_TEMPERATURE, DEFAULT_HUMIDITY)
+            .withKeys("humidity", "temperature", "biomes")
+            .withDefaultAxes(DEFAULT_HUMIDITY, DEFAULT_TEMPERATURE)
             .build();
 
     public static final MapCodec<BiomeLayout> CODEC = codecOf(

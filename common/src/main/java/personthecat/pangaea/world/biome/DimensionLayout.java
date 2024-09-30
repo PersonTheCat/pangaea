@@ -40,17 +40,17 @@ public record DimensionLayout(ParameterMatrix<Holder<BiomeSlice>> slices) {
     );
     private static final MapCodec<ParameterMatrix<Holder<BiomeSlice>>> SLICE_MATRIX_CODEC =
         ParameterMatrix.codecBuilder(PgRegistries.BIOME_SLICE.holderCodec())
-            .withKeys("depth", "weirdness", "slices")
-            .withDefaultAxes(DEFAULT_DEPTH, DEFAULT_WEIRDNESS)
+            .withKeys("weirdness", "depth", "slices")
+            .withDefaultAxes(DEFAULT_WEIRDNESS, DEFAULT_DEPTH)
             .build();
     public static final MapCodec<DimensionLayout> CODEC =
         SLICE_MATRIX_CODEC.xmap(DimensionLayout::new, DimensionLayout::slices);
 
     public ParameterList<Holder<Biome>> compileBiomes(Registry<Biome> biomes) {
         final var list = ImmutableList.<Pair<ParameterPoint, Holder<Biome>>>builder();
-        this.slices.forEach((depth, weirdness, slice) ->
+        this.slices.forEach((weirdness, depth, slice) ->
             slice.value().layouts().forEach((erosion, continentalness, layout) ->
-                layout.value().biomes().forEach((temperature, humidity, choice) -> {
+                layout.value().biomes().forEach((humidity, temperature, choice) -> {
                     final var point = new ParameterPoint(
                         temperature, humidity, continentalness, erosion, depth, weirdness, 0);
                     final var biome = choice.resolve(layout.value(), point);
