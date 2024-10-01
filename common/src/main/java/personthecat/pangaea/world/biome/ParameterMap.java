@@ -42,6 +42,15 @@ public record ParameterMap(
         ParameterMap::new
     ).validate(ParameterMap::validate);
 
+    public static ParameterPoint partial(Parameter depth, Parameter weirdness) {
+        return new ParameterMap(null, null, null, null, depth, weirdness, null).toPoint();
+    }
+
+    public static ParameterPoint partial(
+            Parameter continentalness, Parameter erosion, Parameter depth, Parameter weirdness) {
+        return new ParameterMap(null, null, continentalness, erosion, depth, weirdness, null).toPoint();
+    }
+
     public static ParameterMap flatten(List<ParameterMap> maps) {
         var out = EMPTY;
         for (final var map : maps) {

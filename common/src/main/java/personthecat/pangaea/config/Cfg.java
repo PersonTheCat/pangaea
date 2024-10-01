@@ -69,6 +69,10 @@ public final class Cfg {
         return INSTANCE.temporary.enableTemporaryDebugFeatures;
     }
 
+    public static boolean optimizeBiomeLayouts() {
+        return INSTANCE.temporary.optimizeBiomeLayouts;
+    }
+
     public static float roadChance() {
         return INSTANCE.temporary.roadChance;
     }
@@ -138,6 +142,7 @@ public final class Cfg {
         boolean generateDebugPillars = false;
         boolean enableRoads = true;
         boolean enableTemporaryDebugFeatures = true;
+        boolean optimizeBiomeLayouts = true;
         float roadChance = 1.0F / 4000F;
         int maxBranches = 15;
         int minRoadLength = Road.MAX_DISTANCE / 4;

@@ -9,7 +9,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.dimension.LevelStem;
 import personthecat.catlib.data.DimensionPredicate;
 import personthecat.catlib.event.error.LibErrorContext;
-import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.mixin.MultiNoiseBiomeSourceAccessor;
@@ -47,8 +46,7 @@ public record DimensionInjector(
             LibErrorContext.warn(Pangaea.MOD, InjectionWarningException.incompatibleBiomeSource(key));
             return;
         }
-        final var biomes = DynamicRegistries.BIOME.asRegistry();
-        source.setParameters(Either.left(this.slices.compileBiomes(biomes)));
+        source.setParameters(Either.left(this.slices.compileBiomes()));
     }
 
     @Override
