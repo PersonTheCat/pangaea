@@ -12,7 +12,7 @@ import java.util.function.Function;
 public sealed interface Choice<T> {
 
     static <T> Codec<Choice<T>> createCodec(Codec<Holder<T>> holderCodec) {
-        return Codec.either(Literal.createCodec(holderCodec ), VariantName.<T>createCodec()).xmap(
+        return Codec.either(Literal.createCodec(holderCodec), VariantName.<T>createCodec()).xmap(
             either -> either.map(Function.identity(), Function.identity()),
             choice -> choice instanceof Literal<T> l ? Either.left(l) : Either.right((VariantName<T>) choice));
     }

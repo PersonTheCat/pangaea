@@ -59,7 +59,7 @@ public record VariantMap<T>(Map<String, VariantResolver<T>> map) {
     public record Variant<T>(Holder<T> holder, ParameterMap conditions) {
 
         public static <T> Codec<Variant<T>> createCodec(Codec<Holder<T>> holderCodec, String keyName) {
-            final var holderOnly = holderCodec.xmap(key -> new Variant<>(key, ParameterMap.WHEN_WEIRD), Variant::holder);
+            final var holderOnly = holderCodec.xmap(holder -> new Variant<>(holder, ParameterMap.WHEN_WEIRD), Variant::holder);
             final var direct = directCodec(holderCodec, keyName).codec();
             return simpleEither(holderOnly, direct)
                 .withEncoder(v -> v.conditions == ParameterMap.WHEN_WEIRD ? holderOnly : direct);

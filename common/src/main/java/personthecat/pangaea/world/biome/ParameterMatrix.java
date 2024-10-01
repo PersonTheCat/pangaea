@@ -122,6 +122,7 @@ public record ParameterMatrix<T>(
     public boolean equals(Object o) {
         if (this == o) return true;
         return o instanceof ParameterMatrix<?> m
+            && Objects.equals(this.variants, m.variants)
             && Objects.equals(this.x, m.x)
             && Objects.equals(this.y, m.y)
             && Objects.equals(this.matrix, m.matrix);
@@ -129,7 +130,7 @@ public record ParameterMatrix<T>(
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.x, this.y, this.matrix);
+        return Objects.hash(this.variants, this.x, this.y, this.matrix);
     }
 
     public static class CodecBuilder<T> {
