@@ -9,6 +9,9 @@
     "BlockMatchTestAccessor",
     "BlockStateMatchTestAccessor",
     "BlockStateMixin",
+    "ChunkAccessAccessor",
+    "ChunkGeneratorMixin",
+    "ChunkStatusTasksMixin",
     "DensityFunctionsMixin",
     "HeightProviderMixin",
     "IntProviderMixin",
@@ -16,14 +19,19 @@
     "MobSpawnSettingsAccessor",
     "MultiNoiseBiomeSourceAccessor",
     "MultiNoiseBiomeSourceMixin",
+    "NoiseBasedChunkGeneratorMixin",
+    "NoiseChunkAccessor",
     "OreConfigurationAccessor",
+    "PlacedFeatureMixin",
     "RegistryDataLoaderMixin",
     "RegistryOpsMixin",
     "RuleTestMixin",
     "ServerLevelMixin",
+    "StructureManagerAccessor",
     "TagMatchTestAccessor",
     "TrapezoidHeightAccessor",
-    "UniformHeightAccessor"
+    "UniformHeightAccessor",
+    "WorldGenRegionMixin"
   ],
   "injectors": {
     "defaultRequire": 1

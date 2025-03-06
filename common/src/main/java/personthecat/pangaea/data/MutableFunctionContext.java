@@ -1,6 +1,7 @@
 package personthecat.pangaea.data;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.DensityFunction.FunctionContext;
 import net.minecraft.world.phys.Vec3;
 
@@ -30,8 +31,27 @@ public class MutableFunctionContext implements FunctionContext {
         return new MutableFunctionContext(pos.getX(), pos.getY(), pos.getZ());
     }
 
+    public static MutableFunctionContext from(ChunkPos pos) {
+        return new MutableFunctionContext(pos.getMiddleBlockX(), 0, pos.getMiddleBlockZ());
+    }
+
     public static MutableFunctionContext from(Vec3 vec) {
         return new MutableFunctionContext((int) vec.x, (int) vec.y, (int) vec.z);
+    }
+
+    public MutableFunctionContext set(BlockPos pos) {
+        return this.at(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public MutableFunctionContext set(ChunkPos pos) {
+        return this.at(pos.getMiddleBlockX(), pos.getMiddleBlockZ());
+    }
+
+    public MutableFunctionContext at(int x, int y, int z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        return this;
     }
 
     public MutableFunctionContext at(int x, int z) {
