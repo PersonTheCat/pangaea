@@ -34,6 +34,8 @@ import personthecat.pangaea.world.injector.OreInjector;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
+import personthecat.pangaea.world.provider.DensityFloatProvider;
+import personthecat.pangaea.world.provider.DensityIntProvider;
 import personthecat.pangaea.world.road.RoadMap;
 
 import java.util.List;
@@ -87,6 +89,8 @@ public abstract class Pangaea {
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("uniform"), UniformDensity.CODEC);
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("trapezoid"), TrapezoidDensity.CODEC);
         CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("weighted_list"), WeightedListDensity.CODEC);
+        CommonRegistries.FLOAT_PROVIDER_TYPE.deferredRegister(MOD.id("density"), DensityFloatProvider.TYPE);
+        CommonRegistries.INT_PROVIDER_TYPE.deferredRegister(MOD.id("density"), DensityIntProvider.TYPE);
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("simple"), SimplePlacementModifier.TYPE);
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("surface_biome"), SurfaceBiomeFilter.TYPE);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("ore"), OreInjector.CODEC);
