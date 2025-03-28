@@ -8,11 +8,8 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Climate.Parameter;
 import net.minecraft.world.level.biome.Climate.ParameterList;
 import net.minecraft.world.level.biome.Climate.ParameterPoint;
-import personthecat.catlib.event.error.LibErrorContext;
-import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.registry.PgRegistries;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public record DimensionLayout(ParameterMatrix<BiomeSlice> slices) {
@@ -50,7 +47,6 @@ public record DimensionLayout(ParameterMatrix<BiomeSlice> slices) {
 
     public ParameterList<Holder<Biome>> compileBiomes() {
         final var list = ImmutableList.<Pair<ParameterPoint, Holder<Biome>>>builder();
-        final var failures = new ArrayList<String>();
         this.slices.forEach((weirdness, depth, slice) -> {
             final var slicePoint = ParameterMap.partial(depth, weirdness);
 
@@ -59,18 +55,11 @@ public record DimensionLayout(ParameterMatrix<BiomeSlice> slices) {
 
                 layout.get(layoutPoint).biomes().forEach((humidity, temperature, biome) -> {
                     final var point = new ParameterPoint(temperature, humidity, continentalness, erosion, depth, weirdness, 0);
-                    final var holder = biome.getHolder(point);
-                    if (holder.isBound()) {
-                        list.add(Pair.of(point, holder));
-                    } else {
-                        failures.add(holder.getRegisteredName());
-                    }
+
+                    list.add(Pair.of(point, biome.getHolder(point)));
                 });
             });
         });
-        if (!failures.isEmpty()) {
-            LibErrorContext.error(Pangaea.MOD, new UnboundBiomesException(failures));
-        }
         return new ParameterList<>(list.build());
     }
 }
