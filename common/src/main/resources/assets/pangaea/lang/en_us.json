@@ -2,5 +2,9 @@
   "pangaea.errorMenu.injectors": "Data Injectors",
   "pangaea.errorText.unmetDependencies": "%s Unmet Dependencies",
   "pangaea.errorText.unmetDependencies.details": "The following dependencies are unmet: ",
-  "pangaea.errorText.injectionFailures": "%s Injection Failures"
+  "pangaea.errorText.injectionFailures": "%s Injection Failures",
+  "pangaea.errorMenu.biomes": "Biome Modifications",
+  "pangaea.errorText.unboundBiomes": "%s Unbound Biomes",
+  "pangaea.errorText.unboundBiomes.details1": "The following biomes were never bound: ",
+  "pangaea.errorText.unboundBiomes.details2": "This is usually caused by typos in your biome matrix."
 }

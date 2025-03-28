@@ -13,6 +13,7 @@
     "ChunkGeneratorMixin",
     "ChunkStatusTasksMixin",
     "DensityFunctionsMixin",
+    "FloatProviderMixin",
     "HeightProviderMixin",
     "IntProviderMixin",
     "MinecraftServerAccessor",
