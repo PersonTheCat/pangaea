@@ -15,16 +15,18 @@ import java.util.Map;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
 
-public final class BiomeCodecs {
+public final class FeaturesByStageCodec {
     private static final MapCodec<Map<Decoration, HolderSet<PlacedFeature>>> FEATURE_MAP =
         Codec.simpleMap(Decoration.CODEC, PlacedFeature.LIST_CODEC, StringRepresentable.keys(Decoration.values()));
     private static final Codec<List<HolderSet<PlacedFeature>>> FEATURES_FROM_MAP = FEATURE_MAP.codec()
-        .xmap(BiomeCodecs::sortDecorations, BiomeCodecs::categorize);
-    public static final Codec<List<HolderSet<PlacedFeature>>> SIMPLE_FEATURE_LIST =
-        simpleEither(FEATURES_FROM_MAP, PlacedFeature.LIST_OF_LISTS_CODEC)
-            .withEncoder(list -> Cfg.encodeFeatureCategories() ? FEATURES_FROM_MAP : PlacedFeature.LIST_OF_LISTS_CODEC);
+        .xmap(FeaturesByStageCodec::sortDecorations, FeaturesByStageCodec::categorize);
 
-    private BiomeCodecs() {}
+    private FeaturesByStageCodec() {}
+
+    public static Codec<List<HolderSet<PlacedFeature>>> wrap(Codec<List<HolderSet<PlacedFeature>>> codec) {
+        return simpleEither(codec, FEATURES_FROM_MAP)
+            .withEncoder(_ -> Cfg.encodeFeatureCategories() ? FEATURES_FROM_MAP : codec);
+    }
 
     private static List<HolderSet<PlacedFeature>> sortDecorations(Map<Decoration, HolderSet<PlacedFeature>> map) {
         final var builder = ImmutableList.<HolderSet<PlacedFeature>>builder();

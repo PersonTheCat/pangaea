@@ -25,7 +25,6 @@ import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.IdList;
-import personthecat.pangaea.serialization.codec.BiomeCodecs;
 import personthecat.pangaea.serialization.codec.ColorCodecs;
 
 import java.awt.Color;
@@ -227,7 +226,7 @@ public record BiomeChanges(
 
         public static final MapCodec<GenerationChanges> CODEC = codecOf(
             nullable(CARVER_CODEC.codec(), "carvers", GenerationChanges::carvers),
-            nullable(BiomeCodecs.SIMPLE_FEATURE_LIST, "features", GenerationChanges::features),
+            nullable(PlacedFeature.LIST_OF_LISTS_CODEC, "features", GenerationChanges::features),
             GenerationChanges::new
         );
 
@@ -242,7 +241,7 @@ public record BiomeChanges(
 
         public static final MapCodec<GenerationAdditions> CODEC = codecOf(
             nullable(CARVER_CODEC.codec(), "add_carvers", GenerationAdditions::addCarvers),
-            nullable(BiomeCodecs.SIMPLE_FEATURE_LIST, "add_features", GenerationAdditions::addFeatures),
+            nullable(PlacedFeature.LIST_OF_LISTS_CODEC, "add_features", GenerationAdditions::addFeatures),
             GenerationAdditions::new
         );
 
