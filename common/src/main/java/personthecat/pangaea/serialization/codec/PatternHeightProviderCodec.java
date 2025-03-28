@@ -10,8 +10,8 @@ import net.minecraft.world.level.levelgen.heightproviders.UniformHeight;
 import personthecat.catlib.data.Range;
 import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 import personthecat.pangaea.config.Cfg;
-import personthecat.pangaea.mixin.TrapezoidHeightAccessor;
-import personthecat.pangaea.mixin.UniformHeightAccessor;
+import personthecat.pangaea.mixin.accessor.TrapezoidHeightAccessor;
+import personthecat.pangaea.mixin.accessor.UniformHeightAccessor;
 
 import java.util.List;
 

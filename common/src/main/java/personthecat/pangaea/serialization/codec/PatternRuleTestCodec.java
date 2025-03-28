@@ -13,9 +13,9 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.BlockStateMat
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 import personthecat.pangaea.config.Cfg;
-import personthecat.pangaea.mixin.BlockMatchTestAccessor;
-import personthecat.pangaea.mixin.BlockStateMatchTestAccessor;
-import personthecat.pangaea.mixin.TagMatchTestAccessor;
+import personthecat.pangaea.mixin.accessor.BlockMatchTestAccessor;
+import personthecat.pangaea.mixin.accessor.BlockStateMatchTestAccessor;
+import personthecat.pangaea.mixin.accessor.TagMatchTestAccessor;
 
 public class PatternRuleTestCodec implements Codec<RuleTest> {
     private final Codec<RuleTest> wrapped;

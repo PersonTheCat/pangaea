@@ -20,8 +20,8 @@ import net.minecraft.world.level.levelgen.NoiseChunk;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import personthecat.pangaea.data.NoiseGraph;
-import personthecat.pangaea.mixin.ChunkAccessAccessor;
-import personthecat.pangaea.mixin.NoiseChunkAccessor;
+import personthecat.pangaea.mixin.accessor.ChunkAccessAccessor;
+import personthecat.pangaea.mixin.accessor.NoiseChunkAccessor;
 import personthecat.pangaea.util.CommonBlocks;
 import personthecat.pangaea.world.level.LevelExtras;
 
