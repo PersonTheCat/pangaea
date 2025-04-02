@@ -2,11 +2,29 @@ package personthecat.pangaea.data;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.Climate.Sampler;
+import net.minecraft.world.level.levelgen.DensityFunction.SinglePointContext;
 import net.minecraft.world.level.levelgen.DensityFunction.FunctionContext;
+import org.jetbrains.annotations.Nullable;
 import personthecat.pangaea.util.Utils;
+import personthecat.pangaea.world.feature.PositionalBiomePredicate;
 
 public class NoiseGraph {
+    public static final int BIOME_SAMPLE_DIMENSION = 3;
+    public static final int BIOME_SAMPLE_RADIUS = 16 / BIOME_SAMPLE_DIMENSION;
+    public static final int BIOME_SCAN_CHUNK_RADIUS = 2;
+    public static final int BIOME_SCAN_DIMENSION = BIOME_SAMPLE_DIMENSION * (BIOME_SCAN_CHUNK_RADIUS * 2 + 1);
+    private static final Point[] BIOME_CHECKS = {
+        new Point(3, 3),
+        new Point(3, 12),
+        new Point(8, 8),
+        new Point(12, 3),
+        new Point(12, 12),
+    };
+
     protected final Long2ObjectMap<Samples> graph = new Long2ObjectOpenHashMap<>();
 
     public float getSd(Sampler sampler, FunctionContext ctx) {
@@ -25,6 +43,92 @@ public class NoiseGraph {
             this.compute(sampler, data, cX, cZ, lX, lZ);
         }
         return data.getSd(rX, rZ);
+    }
+
+    public float getApproximateDepth(Sampler sampler, int x, int z) {
+        final int cX = x >> 4;
+        final int cZ = z >> 4;
+        final int rX = x & 15;
+        final int rZ = z & 15;
+        final int lX = lowerQuarter(rX);
+        final int lZ = lowerQuarter(rZ);
+        final Samples data = this.getData(cX, cZ);
+        return this.getOrComputeDepth(sampler, data, cX, cZ, lX, lZ);
+    }
+
+    public float getDepth(Sampler sampler, int x, int z) {
+        final int cX = x >> 4;
+        final int cZ = z >> 4;
+        final int rX = x & 15;
+        final int rZ = z & 15;
+        final int lX = lowerQuarter(rX);
+        final int lZ = lowerQuarter(rZ);
+        final Samples data = this.getData(cX, cZ);
+
+        final float lXlZ = this.getOrComputeDepth(sampler, data, cX, cZ, lX, lZ);
+        if (rX == lX && rZ == lZ) {
+            return lXlZ;
+        }
+        final float uXuZ = this.getOrComputeDepth(sampler, data, cX, cZ, lX + 4, lZ + 4);
+        final float lXuZ = this.getOrComputeDepth(sampler, data, cX, cZ, lX, lZ + 4);
+        final float uXlZ = this.getOrComputeDepth(sampler, data, cX, cZ, lX + 4, lZ);
+
+        final float tX = (rX - lX) / 3F;
+        final float tZ = (rZ - lZ) / 3F;
+
+        final float l = Utils.lerp(lXlZ, lXuZ, tX);
+        final float r = Utils.lerp(uXlZ, uXuZ, tX);
+
+        return Utils.lerp(l, r, tZ);
+    }
+
+    public Holder<Biome> getApproximateBiome(BiomeManager biomes, int x, int z) {
+        final int cX = x >> 4;
+        final int cZ = z >> 4;
+        final int rX = x & 15;
+        final int rZ = z & 15;
+        // get one of: (1,1),(1,14),(8,8),(14,1),(14,14)
+        final int sX = rX < 8 ? 1 : rX > 8 ? 14 : 8;
+        final int sZ = sX == 8 ? 8 : rZ < 8 ? 1 : rZ > 8 ? 14 : 8;
+        final Samples data = this.getData(cX, cZ);
+        return this.getOrComputeBiome(biomes, data, sX, sZ);
+    }
+
+    public SimpleNeighborGraph graphBiomes(BiomeManager biomes, PositionalBiomePredicate predicate, int cX, int cZ) {
+        final var graph = new SimpleNeighborGraph(BIOME_SCAN_DIMENSION, BIOME_SAMPLE_RADIUS);
+        for (int x = cX - BIOME_SCAN_CHUNK_RADIUS; x <= cX + BIOME_SCAN_CHUNK_RADIUS; x++) {
+            for (int z = cZ - BIOME_SCAN_CHUNK_RADIUS; z <= cZ + BIOME_SCAN_CHUNK_RADIUS; z++) {
+                this.graphBiomesForChunk(graph, biomes, predicate, x, z);
+            }
+        }
+        graph.endBatch();
+        return graph.withCacheEnabled();
+    }
+
+    private void graphBiomesForChunk(
+            SimpleNeighborGraph graph, BiomeManager biomes, PositionalBiomePredicate predicate, int cX, int cZ) {
+        final Samples data = this.getData(cX, cZ);
+        for (final var check : BIOME_CHECKS) {
+            final var biome = this.getOrComputeBiome(biomes, data, check.x, check.z);
+            final int aX = (cX << 4) + check.x;
+            final int aZ = (cZ << 4) + check.z;
+            if (!predicate.test(biome, aX, aZ)) {
+                graph.plot(aX, aZ);
+            }
+        }
+    }
+
+    public boolean chunkMatches(BiomeManager biomes, PositionalBiomePredicate predicate, int cX, int cZ) {
+        final Samples data = this.getData(cX, cZ);
+        for (final var check : BIOME_CHECKS) {
+            final var biome = this.getOrComputeBiome(biomes, data, check.x, check.z);
+            final int aX = (cX << 4) + check.x;
+            final int aZ = (cZ << 4) + check.z;
+            if (predicate.test(biome, aX, aZ)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected Samples getData(int cX, int cZ) {
@@ -71,14 +175,32 @@ public class NoiseGraph {
         if (uZ < 16) data.setSd(lX + 2, uZ, (lXuZ + uXuZ) / 2F);
     }
 
-    protected double computeSd(final Samples data, final int rX, final int rY) {
+    protected double computeSd(Samples data, int rX, int rZ) {
         return Utils.stdDev(
-            data.getD(rX, rY),
-            data.getD(rX, rY + 4),
-            data.getD(rX, rY - 4),
-            data.getD(rX + 4, rY),
-            data.getD(rX - 4, rY)
+            data.getD(rX, rZ),
+            data.getD(rX, rZ + 4),
+            data.getD(rX, rZ - 4),
+            data.getD(rX + 4, rZ),
+            data.getD(rX - 4, rZ)
         );
+    }
+
+    protected float getOrComputeDepth(Sampler sampler, Samples data, int cX, int cZ, int rX, int rZ) {
+        float d = data.getD(rX, rZ);
+        if (d == 0) {
+            d = (float) sampler.depth().compute(new SinglePointContext((cX << 4) + rX, 0, (cZ << 4) + rZ));
+            data.setD(rX, rZ, d);
+        }
+        return d;
+    }
+
+    protected Holder<Biome> getOrComputeBiome(BiomeManager biomes, Samples data, int rX, int rZ) {
+        var biome = data.getBiome(rX, rZ);
+        if (biome == null) {
+            biome = biomes.getNoiseBiomeAtPosition(rX, 63, rZ);
+            data.setBiome(rX, rZ, biome);
+        }
+        return biome;
     }
 
     public void drainOutside(int cX, int cZ, int r) {
@@ -264,9 +386,10 @@ public class NoiseGraph {
      *     0 1 2 3 4 5 6 7 8 9 A B C D E F
      * </pre>
      */
-    public record Samples(float[] sd, float[] d, float[] pv, float[] e) {
+    public record Samples(float[] sd, float[] d, float[] pv, float[] e, Holder<Biome>[] biomes) {
+        @SuppressWarnings("unchecked")
         public Samples() {
-            this(new float[64], new float[49], new float[36], new float[0]);
+            this(new float[64], new float[49], new float[36], new float[0], new Holder[5]);
         }
 
         public float getSd(int rX, int rZ) {
@@ -300,6 +423,14 @@ public class NoiseGraph {
         public void setE(int rX, int rZ, float e) {
             throw new UnsupportedOperationException("todo");
         }
+
+        public @Nullable Holder<Biome> getBiome(int rX, int rZ) {
+            return this.biomes[indexSpread5(rX, rZ)];
+        }
+
+        public void setBiome(int rX, int rZ, Holder<Biome> biome) {
+            this.biomes[indexSpread5(rX, rZ)] = biome;
+        }
     }
 
     protected static int lowerQuarter(int i) {
@@ -312,5 +443,14 @@ public class NoiseGraph {
 
     protected static int indexInterval4o4(int x, int z) {
         return ((x + 4) >> 2) * 7 + ((z + 4) >> 2);
+    }
+
+    protected static int indexSpread5(int x, int z) {
+        if (x == 8 || z == 8) {
+            return 2;
+        } else if (x < 8) {
+            return z < 8 ? 0 : 1;
+        }
+        return z < 8 ? 3 : 4;
     }
 }

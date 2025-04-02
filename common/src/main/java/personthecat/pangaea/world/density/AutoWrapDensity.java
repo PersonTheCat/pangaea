@@ -14,8 +14,12 @@ import java.util.function.Function;
 @SuppressWarnings("preview")
 public record AutoWrapDensity(DensityFunction density) implements DensityFunction {
     public static final Codec<DensityFunction> HELPER_CODEC =
-        DensityFunction.HOLDER_HELPER_CODEC
-            .xmap(AutoWrapDensity::create, Function.identity());
+        wrap(DensityFunction.HOLDER_HELPER_CODEC);
+
+    // does not replace the default density function codec
+    public static Codec<DensityFunction> wrap(Codec<DensityFunction> codec) {
+        return codec.xmap(AutoWrapDensity::create, Function.identity());
+    }
 
     public static DensityFunction create(DensityFunction density) {
         if (density instanceof AutoWrapDensity) {

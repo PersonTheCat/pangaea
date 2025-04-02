@@ -12,7 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 @SuppressWarnings("preview")
-@Mixin(value = PlacedFeature.class)
+@Mixin(PlacedFeature.class)
 public class PlacedFeatureMixin {
 
     // Wrapping lambdas to avoid having different mixins on each platform
