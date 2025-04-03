@@ -3,7 +3,7 @@ package personthecat.pangaea.world.feature;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
-import personthecat.pangaea.world.map.GenerationContext;
+import personthecat.pangaea.world.level.GenerationContext;
 
 public abstract class MapFeature<FC extends MapFeatureConfiguration> extends PangaeaFeature<FC> {
 

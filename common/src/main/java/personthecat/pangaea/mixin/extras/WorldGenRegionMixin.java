@@ -4,7 +4,7 @@ import net.minecraft.server.level.WorldGenRegion;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import personthecat.pangaea.world.level.WorldGenRegionExtras;
-import personthecat.pangaea.world.map.GenerationContext;
+import personthecat.pangaea.world.level.GenerationContext;
 
 @Mixin(WorldGenRegion.class)
 public class WorldGenRegionMixin implements WorldGenRegionExtras {

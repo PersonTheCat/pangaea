@@ -1,4 +1,4 @@
-package personthecat.pangaea.world.map;
+package personthecat.pangaea.world.level;
 
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -23,7 +23,6 @@ import personthecat.pangaea.data.NoiseGraph;
 import personthecat.pangaea.mixin.accessor.ChunkAccessAccessor;
 import personthecat.pangaea.mixin.accessor.NoiseChunkAccessor;
 import personthecat.pangaea.util.CommonBlocks;
-import personthecat.pangaea.world.level.LevelExtras;
 
 import java.util.Map;
 

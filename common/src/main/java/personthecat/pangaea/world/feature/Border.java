@@ -2,7 +2,7 @@ package personthecat.pangaea.world.feature;
 
 import personthecat.pangaea.util.Utils;
 import personthecat.pangaea.world.density.DensityCutoff;
-import personthecat.pangaea.world.map.GenerationContext;
+import personthecat.pangaea.world.level.GenerationContext;
 
 public interface Border {
     Border NONE = new Border() {
