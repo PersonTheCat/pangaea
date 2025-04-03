@@ -34,7 +34,8 @@ public abstract class PangaeaFeature<FC extends PangaeaFeatureConfiguration> ext
             }
         }
         final var r = cfg.conditions.distanceFromBounds();
-        final var border = Border.forPredicate(ctx, predicate, r, r + 10);
+        final var t = r + cfg.conditions.boundaryWidth();
+        final var border = Border.forPredicate(ctx, predicate, r, t);
         return this.place(ctx, cfg, pos, border);
     }
 
