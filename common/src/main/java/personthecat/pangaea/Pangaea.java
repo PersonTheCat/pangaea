@@ -47,6 +47,7 @@ import personthecat.pangaea.world.provider.DensityHeightProvider;
 import personthecat.pangaea.world.provider.DensityIntProvider;
 import personthecat.pangaea.world.provider.DensityOffsetHeightProvider;
 import personthecat.pangaea.world.road.RoadMap;
+import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 
 import java.util.List;
 
@@ -105,6 +106,7 @@ public abstract class Pangaea {
         CommonRegistries.HEIGHT_PROVIDER_TYPE.deferredRegister(MOD.id("density_offset"), DensityOffsetHeightProvider.TYPE);
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("simple"), SimplePlacementModifier.TYPE);
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("surface_biome"), SurfaceBiomeFilter.TYPE);
+        CommonRegistries.RULE_TEST_TYPE.deferredRegister(MOD.id("heterogeneous_list"), HeterogeneousListRuleTest.TYPE);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("ore"), OreInjector.CODEC);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("cavern"), CavernInjector.CODEC);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome"), BiomeInjector.CODEC);

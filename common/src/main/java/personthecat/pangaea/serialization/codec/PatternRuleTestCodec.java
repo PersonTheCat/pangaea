@@ -16,16 +16,18 @@ import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.mixin.accessor.BlockMatchTestAccessor;
 import personthecat.pangaea.mixin.accessor.BlockStateMatchTestAccessor;
 import personthecat.pangaea.mixin.accessor.TagMatchTestAccessor;
+import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
+
+import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
+import static personthecat.catlib.serialization.codec.CodecUtils.idList;
 
 public class PatternRuleTestCodec implements Codec<RuleTest> {
-    private final Codec<RuleTest> wrapped;
+    public static final Codec<RuleTest> INSTANCE = new PatternRuleTestCodec();
 
-    private PatternRuleTestCodec(Codec<RuleTest> wrapped) {
-        this.wrapped = wrapped;
-    }
+    private PatternRuleTestCodec() {}
 
     public static Codec<RuleTest> wrap(Codec<RuleTest> codec) {
-        return new PatternRuleTestCodec(codec);
+        return defaultType(codec, INSTANCE, (test, _) -> Pattern.hasMatcherForRule(test));
     }
 
     @Override
@@ -36,7 +38,7 @@ public class PatternRuleTestCodec implements Codec<RuleTest> {
                 return result;
             }
         }
-        return this.wrapped.decode(ops, input);
+        return DataResult.error(() -> "No matching pattern for input: " + input);
     }
 
     @Override
@@ -48,7 +50,7 @@ public class PatternRuleTestCodec implements Codec<RuleTest> {
                 }
             }
         }
-        return this.wrapped.encode(input, ops, prefix);
+        return DataResult.error(() -> "No matching pattern for input: " + input);
     }
 
     private static class Pattern {
@@ -58,13 +60,25 @@ public class PatternRuleTestCodec implements Codec<RuleTest> {
             BuiltInRegistries.BLOCK.byNameCodec().xmap(BlockMatchTest::new, test -> ((BlockMatchTestAccessor) test).getBlock());
         private static final Codec<RuleTest> STATE =
             BlockState.CODEC.xmap(BlockStateMatchTest::new, test -> ((BlockStateMatchTestAccessor) test).getBlockState());
+        private static final Codec<RuleTest> LIST =
+            idList(Registries.BLOCK).xmap(HeterogeneousListRuleTest::new, test -> ((HeterogeneousListRuleTest) test).list);
 
         private static final Matcher[] MATCHERS = {
             new Matcher(TAG, TagMatchTest.class),
             new Matcher(BLOCK, BlockMatchTest.class),
-            new Matcher(STATE, BlockStateMatchTest.class)
+            new Matcher(STATE, BlockStateMatchTest.class),
+            new Matcher(LIST, HeterogeneousListRuleTest.class),
         };
 
         private record Matcher(Codec<RuleTest> codec, Class<? extends RuleTest> type) {}
+
+        private static boolean hasMatcherForRule(RuleTest test) {
+            for (final var matcher : MATCHERS) {
+                if (matcher.type.isInstance(test)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
