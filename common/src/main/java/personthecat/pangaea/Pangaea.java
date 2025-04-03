@@ -40,6 +40,8 @@ import personthecat.pangaea.world.injector.OreInjector;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
+import personthecat.pangaea.world.placer.SimpleBlockPlacer;
+import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
 import personthecat.pangaea.world.provider.DensityFloatProvider;
 import personthecat.pangaea.world.provider.DensityHeightProvider;
 import personthecat.pangaea.world.provider.DensityIntProvider;
@@ -109,6 +111,8 @@ public abstract class Pangaea {
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome_modifier"), BiomeModifierInjector.CODEC);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome_source"), BiomeSourceInjector.CODEC);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("dimension"), DimensionInjector.CODEC);
+        PgRegistries.PLACER_TYPE.deferredRegister(MOD.id("simple"), SimpleBlockPlacer.CODEC);
+        PgRegistries.PLACER_TYPE.deferredRegister(MOD.id("unconditional"), UnconditionalBlockPlacer.CODEC);
     }
 
     private static void enableDebugFeatures() {
