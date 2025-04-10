@@ -21,7 +21,7 @@ import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
 import static personthecat.catlib.serialization.codec.CodecUtils.idList;
 
-public class PatternRuleTestCodec implements Codec<RuleTest> {
+public final class PatternRuleTestCodec implements Codec<RuleTest> {
     public static final Codec<RuleTest> INSTANCE = new PatternRuleTestCodec();
 
     private PatternRuleTestCodec() {}

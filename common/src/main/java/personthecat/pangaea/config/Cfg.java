@@ -101,6 +101,10 @@ public final class Cfg {
         return INSTANCE.data.encodeStructuralHeight;
     }
 
+    public static boolean encodeStructuralBlockPlacers() {
+        return INSTANCE.data.encodeStructuralBlockPlacers;
+    }
+
     public static boolean encodeDensityIntProviders() {
         return INSTANCE.data.encodeDensityIntProviders;
     }
@@ -111,6 +115,10 @@ public final class Cfg {
 
     public static boolean encodePatternRuleTestCodec() {
         return INSTANCE.data.encodePatternRuleTestCodec;
+    }
+
+    public static boolean encodePatternBlockPlacers() {
+        return INSTANCE.data.encodePatternBlockPlacers;
     }
 
     public static boolean encodeRangeIntProvider() {
@@ -169,9 +177,11 @@ public final class Cfg {
         boolean encodeDensityBuilders = true;
         boolean encodeStructuralDensity = true;
         boolean encodeStructuralHeight = true;
+        boolean encodeStructuralBlockPlacers = true;
         boolean encodeDensityIntProviders = true;
         boolean encodeDensityFloatProviders = true;
         boolean encodePatternRuleTestCodec = true;
+        boolean encodePatternBlockPlacers = true;
         boolean encodeRangeIntProvider = true;
         boolean encodeRangeFloatProvider = true;
         boolean encodePatternHeightProvider = true;

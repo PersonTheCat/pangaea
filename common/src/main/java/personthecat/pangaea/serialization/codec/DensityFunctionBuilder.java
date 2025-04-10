@@ -22,7 +22,7 @@ import static personthecat.catlib.serialization.codec.CodecUtils.ofEnum;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.nullable;
 
-public class DensityFunctionBuilder {
+public final class DensityFunctionBuilder {
     private static final Codec<List<CacheType>> CACHE_CODEC = easyList(ofEnum(CacheType.class));
     private static final MapCodec<DensityFunctionBuilder> CODEC = codecOf(
         defaulted(Codec.BOOL, "interpolate", false, b -> b.interpolate),
