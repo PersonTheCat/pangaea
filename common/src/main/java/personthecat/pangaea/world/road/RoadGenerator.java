@@ -124,7 +124,7 @@ public abstract class RoadGenerator {
       return null;
     }
     log.info("Generating network at {}", src);
-    // calculate column of network
+    // calculate bounds of network
     final int w = r0.maxX() - r0.minX();
     final int h = r0.maxZ() - r0.minZ();
     final int bx1; // left
