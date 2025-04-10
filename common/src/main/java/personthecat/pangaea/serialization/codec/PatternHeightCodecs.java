@@ -10,6 +10,7 @@ import net.minecraft.world.level.levelgen.heightproviders.UniformHeight;
 import personthecat.catlib.data.Range;
 import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 import personthecat.pangaea.config.Cfg;
+import personthecat.pangaea.data.AnchorCutoff;
 import personthecat.pangaea.data.ColumnBounds;
 import personthecat.pangaea.mixin.accessor.TrapezoidHeightAccessor;
 import personthecat.pangaea.mixin.accessor.UniformHeightAccessor;
@@ -217,8 +218,8 @@ public final class PatternHeightCodecs {
             this(Type.ABSOLUTE, y, hardness);
         }
 
-        private AnchorRangeBoundsProvider.AnchorCutoff cutoff() {
-            return new AnchorRangeBoundsProvider.AnchorCutoff(this.minBound(), this.maxBound(), this.harshness);
+        private AnchorCutoff cutoff() {
+            return new AnchorCutoff(this.minBound(), this.maxBound(), this.harshness);
         }
 
         private DensityCutoff absoluteCutoff() {
