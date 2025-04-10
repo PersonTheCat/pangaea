@@ -116,9 +116,9 @@ public abstract class Pangaea {
         PgRegistries.PLACER_TYPE.deferredRegister(MOD.id("column_restricted"), ColumnRestrictedBlockPlacer.CODEC);
         PgRegistries.PLACER_TYPE.deferredRegister(MOD.id("list"), BlockPlacerList.CODEC);
         PgRegistries.PLACER_TYPE.deferredRegister(MOD.id("unconditional"), UnconditionalBlockPlacer.CODEC);
-        PgRegistries.BOUNDS_TYPE.deferredRegister(MOD.id("constant"), ConstantBoundsProvider.CODEC);
-        PgRegistries.BOUNDS_TYPE.deferredRegister(MOD.id("anchored"), AnchoredBoundsProvider.CODEC);
-        PgRegistries.BOUNDS_TYPE.deferredRegister(MOD.id("anchor_range"), AnchorRangeBoundsProvider.CODEC);
+        PgRegistries.BOUNDS_TYPE.deferredRegister(MOD.id("constant"), ConstantColumnProvider.CODEC);
+        PgRegistries.BOUNDS_TYPE.deferredRegister(MOD.id("anchored"), AnchoredColumnProvider.CODEC);
+        PgRegistries.BOUNDS_TYPE.deferredRegister(MOD.id("anchor_range"), AnchorRangeColumnProvider.CODEC);
     }
 
     private static void enableDebugFeatures() {

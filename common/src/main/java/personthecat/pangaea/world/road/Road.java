@@ -10,7 +10,7 @@ public record Road(byte level, int minX, int minZ, int maxX, int maxZ, RoadVerte
   public static final int MAX_DISTANCE = RoadRegion.LEN / 2;
   public static final int MAX_LENGTH = RoadRegion.LEN;
   public static final int STEP = 2;
-  public static final int PADDING = 32; // assume vertices will never exit these bounds
+  public static final int PADDING = 32; // assume vertices will never exit these column
 
   public int length() {
     return this.vertices.length * STEP;

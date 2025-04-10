@@ -44,7 +44,7 @@ public final class PgRegistries {
         public static final ResourceKey<Registry<BiomeLayout>> BIOME_LAYOUT = key("layout");
         public static final ResourceKey<Registry<BiomeSlice>> BIOME_SLICE = key("slice");
         public static final ResourceKey<Registry<BlockPlacer>> PLACER = key("placer");
-        public static final ResourceKey<Registry<ColumnProvider>> BOUNDS = key("bounds");
+        public static final ResourceKey<Registry<ColumnProvider>> BOUNDS = key("column");
         public static final ResourceKey<Registry<Template<DensityFunction>>> DENSITY_TEMPLATE = key("function");
 
         private Keys() {}

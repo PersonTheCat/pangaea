@@ -15,10 +15,10 @@ import personthecat.pangaea.data.ColumnBounds;
 import personthecat.pangaea.mixin.accessor.TrapezoidHeightAccessor;
 import personthecat.pangaea.mixin.accessor.UniformHeightAccessor;
 import personthecat.pangaea.world.density.DensityCutoff;
-import personthecat.pangaea.world.provider.AnchorRangeBoundsProvider;
-import personthecat.pangaea.world.provider.AnchoredBoundsProvider;
+import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
+import personthecat.pangaea.world.provider.AnchoredColumnProvider;
 import personthecat.pangaea.world.provider.ColumnProvider;
-import personthecat.pangaea.world.provider.ConstantBoundsProvider;
+import personthecat.pangaea.world.provider.ConstantColumnProvider;
 
 import java.util.List;
 
@@ -33,8 +33,8 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 public final class PatternHeightCodecs {
     private static final Codec<HeightProvider> HEIGHT_CODEC =
         HeightInfo.CODEC.flatXmap(HeightInfo::toHeightProvider, HeightInfo::fromHeightProvider);
-    private static final Codec<ColumnProvider> BOUNDS_CODEC =
-        HeightInfo.CODEC.flatXmap(HeightInfo::toBoundsProvider, HeightInfo::fromBoundsProvider);
+    private static final Codec<ColumnProvider> COLUMN_CODEC =
+        HeightInfo.CODEC.flatXmap(HeightInfo::toColumnProvider, HeightInfo::fromColumnProvider);
 
     private PatternHeightCodecs() {}
 
@@ -43,9 +43,9 @@ public final class PatternHeightCodecs {
             (h, _) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromHeightProvider(h).isSuccess());
     }
 
-    private static Codec<ColumnProvider> wrapBounds(Codec<ColumnProvider> codec) {
-        return new DefaultTypeCodec<>(codec, BOUNDS_CODEC,
-            (b, _) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromBoundsProvider(b).isSuccess());
+    public static Codec<ColumnProvider> wrapColumn(Codec<ColumnProvider> codec) {
+        return new DefaultTypeCodec<>(codec, COLUMN_CODEC,
+            (b, _) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromColumnProvider(b).isSuccess());
     }
 
     private record HeightInfo(HeightRange range, Distribution distribution) {
@@ -65,8 +65,8 @@ public final class PatternHeightCodecs {
             return DataResult.success(this.range.toHeightProvider(this.distribution));
         }
 
-        private DataResult<ColumnProvider> toBoundsProvider() {
-            return DataResult.success(this.range.toBoundsProvider());
+        private DataResult<ColumnProvider> toColumnProvider() {
+            return DataResult.success(this.range.toColumnProvider());
         }
 
         private static DataResult<HeightInfo> fromHeightProvider(HeightProvider provider) {
@@ -83,15 +83,15 @@ public final class PatternHeightCodecs {
             return DataResult.error(() -> "Unsupported height provider: " + provider);
         }
 
-        private static DataResult<HeightInfo> fromBoundsProvider(ColumnProvider provider) {
-            if (provider instanceof ConstantBoundsProvider c) {
-                return HeightRange.fromBounds(c.bounds())
+        private static DataResult<HeightInfo> fromColumnProvider(ColumnProvider provider) {
+            if (provider instanceof ConstantColumnProvider c) {
+                return HeightRange.fromColumn(c.column())
                     .map(r -> new HeightInfo(r, DEFAULT_DISTRIBUTION));
-            } else if (provider instanceof AnchoredBoundsProvider a) {
+            } else if (provider instanceof AnchoredColumnProvider a) {
                 return HeightRange.fromVerticalAnchors(a.min(), a.max())
                     .map(r -> new HeightInfo(r, DEFAULT_DISTRIBUTION));
             }
-            return DataResult.error(() -> "Unsupported bounds provider: " + provider);
+            return DataResult.error(() -> "Unsupported column provider: " + provider);
         }
     }
 
@@ -100,10 +100,10 @@ public final class PatternHeightCodecs {
             easyList(NamedOffset.CODEC).validate(HeightRange::validateList)
                 .xmap(HeightRange::fromList, HeightRange::toList);
 
-        private static DataResult<HeightRange> fromBounds(ColumnBounds bounds) {
+        private static DataResult<HeightRange> fromColumn(ColumnBounds column) {
             return DataResult.success(new HeightRange(
-                new NamedOffset(Type.ABSOLUTE, bounds.lowerRange()),
-                new NamedOffset(Type.ABSOLUTE, bounds.upperRange())
+                new NamedOffset(Type.ABSOLUTE, column.lowerRange()),
+                new NamedOffset(Type.ABSOLUTE, column.upperRange())
             ));
         }
 
@@ -148,27 +148,27 @@ public final class PatternHeightCodecs {
             };
         }
 
-        private ColumnProvider toBoundsProvider() {
+        private ColumnProvider toColumnProvider() {
             if (this.lower == this.upper || (this.lower.isConstant() && this.upper.isConstant())) {
                 // 1 range -> transition is automatic at bottom and top (missing: harshness pattern validation)
                 if (this.isAbsolute()) {
                     // optimize: skip resolving constant values later on
-                    return new ConstantBoundsProvider(
+                    return new ConstantColumnProvider(
                         ColumnBounds.create(this.lower.y.min(), this.upper.y.max(), this.upper.harshness)
                     );
                 }
-                return new AnchoredBoundsProvider(
+                return new AnchoredColumnProvider(
                     this.lower.minBound(), this.upper.maxBound(), this.upper.harshness
                 );
             }
             // 2 ranges -> lower transition, upper transition
             if (this.isAbsolute()) {
                 // optimize: skip resolving constant values later on
-                return new ConstantBoundsProvider(
+                return new ConstantColumnProvider(
                     new ColumnBounds(this.lower.absoluteCutoff(), this.upper.absoluteCutoff())
                 );
             }
-            return new AnchorRangeBoundsProvider(this.lower.cutoff(), this.upper.cutoff());
+            return new AnchorRangeColumnProvider(this.lower.cutoff(), this.upper.cutoff());
         }
 
         private boolean isConstant() {

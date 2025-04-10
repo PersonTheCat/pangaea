@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import personthecat.pangaea.world.density.DensityCutoff;
 import personthecat.pangaea.world.level.GenerationContext;
-import personthecat.pangaea.world.provider.AnchorRangeBoundsProvider;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
