@@ -16,7 +16,7 @@ import personthecat.pangaea.mixin.accessor.TrapezoidHeightAccessor;
 import personthecat.pangaea.mixin.accessor.UniformHeightAccessor;
 import personthecat.pangaea.world.density.DensityCutoff;
 import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
-import personthecat.pangaea.world.provider.AnchoredColumnProvider;
+import personthecat.pangaea.world.provider.DynamicColumnProvider;
 import personthecat.pangaea.world.provider.ColumnProvider;
 import personthecat.pangaea.world.provider.ConstantColumnProvider;
 
@@ -87,8 +87,8 @@ public final class PatternHeightCodecs {
             if (provider instanceof ConstantColumnProvider c) {
                 return HeightRange.fromColumn(c.column())
                     .map(r -> new HeightInfo(r, DEFAULT_DISTRIBUTION));
-            } else if (provider instanceof AnchoredColumnProvider a) {
-                return HeightRange.fromVerticalAnchors(a.min(), a.max())
+            } else if (provider instanceof DynamicColumnProvider d) {
+                return HeightRange.fromVerticalAnchors(d.min(), d.max())
                     .map(r -> new HeightInfo(r, DEFAULT_DISTRIBUTION));
             }
             return DataResult.error(() -> "Unsupported column provider: " + provider);
@@ -157,7 +157,7 @@ public final class PatternHeightCodecs {
                         ColumnBounds.create(this.lower.y.min(), this.upper.y.max(), this.upper.harshness)
                     );
                 }
-                return new AnchoredColumnProvider(
+                return new DynamicColumnProvider(
                     this.lower.minBound(), this.upper.maxBound(), this.upper.harshness
                 );
             }

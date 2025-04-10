@@ -11,13 +11,13 @@ import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 
-public record AnchoredColumnProvider(
+public record DynamicColumnProvider(
         VerticalAnchor min, VerticalAnchor max, double harshness) implements ColumnProvider {
-    public static final MapCodec<AnchoredColumnProvider> CODEC = codecOf(
-        field(VerticalAnchor.CODEC, "min", AnchoredColumnProvider::min),
-        field(VerticalAnchor.CODEC, "max", AnchoredColumnProvider::max),
-        defaulted(Codec.DOUBLE, "harshness", DensityCutoff.DEFAULT_HARSHNESS, AnchoredColumnProvider::harshness),
-        AnchoredColumnProvider::new
+    public static final MapCodec<DynamicColumnProvider> CODEC = codecOf(
+        field(VerticalAnchor.CODEC, "min", DynamicColumnProvider::min),
+        field(VerticalAnchor.CODEC, "max", DynamicColumnProvider::max),
+        defaulted(Codec.DOUBLE, "harshness", DensityCutoff.DEFAULT_HARSHNESS, DynamicColumnProvider::harshness),
+        DynamicColumnProvider::new
     );
 
     @Override
@@ -26,7 +26,7 @@ public record AnchoredColumnProvider(
     }
 
     @Override
-    public MapCodec<AnchoredColumnProvider> codec() {
+    public MapCodec<DynamicColumnProvider> codec() {
         return CODEC;
     }
 }
