@@ -10,8 +10,14 @@ import net.minecraft.world.level.levelgen.heightproviders.UniformHeight;
 import personthecat.catlib.data.Range;
 import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 import personthecat.pangaea.config.Cfg;
+import personthecat.pangaea.data.ColumnBounds;
 import personthecat.pangaea.mixin.accessor.TrapezoidHeightAccessor;
 import personthecat.pangaea.mixin.accessor.UniformHeightAccessor;
+import personthecat.pangaea.world.density.DensityCutoff;
+import personthecat.pangaea.world.provider.AnchorRangeBoundsProvider;
+import personthecat.pangaea.world.provider.AnchoredBoundsProvider;
+import personthecat.pangaea.world.provider.ColumnProvider;
+import personthecat.pangaea.world.provider.ConstantBoundsProvider;
 
 import java.util.List;
 
@@ -23,15 +29,22 @@ import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 
-public final class PatternHeightProviderCodec {
-    private static final Codec<HeightProvider> CODEC =
+public final class PatternHeightCodecs {
+    private static final Codec<HeightProvider> HEIGHT_CODEC =
         HeightInfo.CODEC.flatXmap(HeightInfo::toHeightProvider, HeightInfo::fromHeightProvider);
+    private static final Codec<ColumnProvider> BOUNDS_CODEC =
+        HeightInfo.CODEC.flatXmap(HeightInfo::toBoundsProvider, HeightInfo::fromBoundsProvider);
 
-    private PatternHeightProviderCodec() {}
+    private PatternHeightCodecs() {}
 
-    public static Codec<HeightProvider> wrap(Codec<HeightProvider> codec) {
-        return new DefaultTypeCodec<>(codec, CODEC,
-            (h, ops) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromHeightProvider(h).isSuccess());
+    public static Codec<HeightProvider> wrapHeight(Codec<HeightProvider> codec) {
+        return new DefaultTypeCodec<>(codec, HEIGHT_CODEC,
+            (h, _) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromHeightProvider(h).isSuccess());
+    }
+
+    private static Codec<ColumnProvider> wrapBounds(Codec<ColumnProvider> codec) {
+        return new DefaultTypeCodec<>(codec, BOUNDS_CODEC,
+            (b, _) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromBoundsProvider(b).isSuccess());
     }
 
     private record HeightInfo(HeightRange range, Distribution distribution) {
@@ -51,6 +64,10 @@ public final class PatternHeightProviderCodec {
             return DataResult.success(this.range.toHeightProvider(this.distribution));
         }
 
+        private DataResult<ColumnProvider> toBoundsProvider() {
+            return DataResult.success(this.range.toBoundsProvider());
+        }
+
         private static DataResult<HeightInfo> fromHeightProvider(HeightProvider provider) {
             if (provider instanceof UniformHeightAccessor u) {
                 return HeightRange.fromVerticalAnchors(u.getMinInclusive(), u.getMaxInclusive())
@@ -64,12 +81,30 @@ public final class PatternHeightProviderCodec {
             }
             return DataResult.error(() -> "Unsupported height provider: " + provider);
         }
+
+        private static DataResult<HeightInfo> fromBoundsProvider(ColumnProvider provider) {
+            if (provider instanceof ConstantBoundsProvider c) {
+                return HeightRange.fromBounds(c.bounds())
+                    .map(r -> new HeightInfo(r, DEFAULT_DISTRIBUTION));
+            } else if (provider instanceof AnchoredBoundsProvider a) {
+                return HeightRange.fromVerticalAnchors(a.min(), a.max())
+                    .map(r -> new HeightInfo(r, DEFAULT_DISTRIBUTION));
+            }
+            return DataResult.error(() -> "Unsupported bounds provider: " + provider);
+        }
     }
 
     private record HeightRange(NamedOffset lower, NamedOffset upper) {
         private static final Codec<HeightRange> CODEC =
             easyList(NamedOffset.CODEC).validate(HeightRange::validateList)
                 .xmap(HeightRange::fromList, HeightRange::toList);
+
+        private static DataResult<HeightRange> fromBounds(ColumnBounds bounds) {
+            return DataResult.success(new HeightRange(
+                new NamedOffset(Type.ABSOLUTE, bounds.lowerRange()),
+                new NamedOffset(Type.ABSOLUTE, bounds.upperRange())
+            ));
+        }
 
         private static DataResult<HeightRange> fromVerticalAnchors(VerticalAnchor lower, VerticalAnchor upper) {
             return NamedOffset.fromVerticalAnchor(lower).flatMap(l ->
@@ -112,33 +147,52 @@ public final class PatternHeightProviderCodec {
             };
         }
 
+        private ColumnProvider toBoundsProvider() {
+            if (this.lower == this.upper || (this.lower.isConstant() && this.upper.isConstant())) {
+                // 1 range -> transition is automatic at bottom and top (missing: harshness pattern validation)
+                if (this.isAbsolute()) {
+                    // optimize: skip resolving constant values later on
+                    return new ConstantBoundsProvider(
+                        ColumnBounds.create(this.lower.y.min(), this.upper.y.max(), this.upper.harshness)
+                    );
+                }
+                return new AnchoredBoundsProvider(
+                    this.lower.minBound(), this.upper.maxBound(), this.upper.harshness
+                );
+            }
+            // 2 ranges -> lower transition, upper transition
+            if (this.isAbsolute()) {
+                // optimize: skip resolving constant values later on
+                return new ConstantBoundsProvider(
+                    new ColumnBounds(this.lower.absoluteCutoff(), this.upper.absoluteCutoff())
+                );
+            }
+            return new AnchorRangeBoundsProvider(this.lower.cutoff(), this.upper.cutoff());
+        }
+
         private boolean isConstant() {
             return this.lower.type == this.upper.type && this.lower.y.min() == this.upper.y.max();
         }
 
+        private boolean isAbsolute() {
+            return this.lower.type == Type.ABSOLUTE && this.upper.type == Type.ABSOLUTE;
+        }
+
         private VerticalAnchor upperBound() {
-            return bound(this.upper.type, this.upper.y.max());
+            return this.upper.maxBound();
         }
 
         private VerticalAnchor lowerBound() {
-            return bound(this.lower.type, this.lower.y.min());
-        }
-
-        private static VerticalAnchor bound(Type type, int y) {
-            return switch (type) {
-                case BOTTOM -> VerticalAnchor.aboveBottom(y);
-                case TOP -> VerticalAnchor.belowTop(-y);
-                case ABSOLUTE -> VerticalAnchor.absolute(y);
-            };
+            return this.lower.minBound();
         }
     }
 
-    private record NamedOffset(Type type, Range y) {
+    private record NamedOffset(Type type, Range y, double harshness) {
         private static final Codec<NamedOffset> RANGE_CODEC =
-            Range.CODEC.xmap(y -> new NamedOffset(Type.ABSOLUTE, y), o -> o.y);
+            Range.CODEC.xmap(NamedOffset::new, o -> o.y);
         private static final Codec<NamedOffset> CODEC =
             simpleAny(RANGE_CODEC, Type.TOP.codec, Type.BOTTOM.codec, Type.ABSOLUTE.codec)
-                .withEncoder(o -> o.type == Type.ABSOLUTE ? RANGE_CODEC : o.type.codec);
+                .withEncoder(o -> o.canBeRange() ? RANGE_CODEC : o.type.codec);
 
         private static DataResult<NamedOffset> fromVerticalAnchor(VerticalAnchor anchor) {
             if (anchor instanceof VerticalAnchor.BelowTop top) {
@@ -151,8 +205,48 @@ public final class PatternHeightProviderCodec {
             return DataResult.error(() -> "Unsupported vertical anchor: " + anchor);
         }
 
+        private NamedOffset(Range y) {
+            this(Type.ABSOLUTE, y, DensityCutoff.DEFAULT_HARSHNESS);
+        }
+
+        private NamedOffset(Type type, Range y) {
+            this(type, y, DensityCutoff.DEFAULT_HARSHNESS);
+        }
+
+        private NamedOffset(Range y, double hardness) {
+            this(Type.ABSOLUTE, y, hardness);
+        }
+
+        private AnchorRangeBoundsProvider.AnchorCutoff cutoff() {
+            return new AnchorRangeBoundsProvider.AnchorCutoff(this.minBound(), this.maxBound(), this.harshness);
+        }
+
+        private DensityCutoff absoluteCutoff() {
+            return new DensityCutoff(this.y.min(), this.y.max(), this.harshness);
+        }
+
+        private boolean canBeRange() {
+            return this.type == Type.ABSOLUTE && this.harshness == DensityCutoff.DEFAULT_HARSHNESS;
+        }
+
         private boolean isConstant() {
             return this.y.diff() == 0;
+        }
+
+        private VerticalAnchor minBound() {
+            return bound(this.type, this.y.min());
+        }
+
+        private VerticalAnchor maxBound() {
+            return bound(this.type, this.y.max());
+        }
+
+        private static VerticalAnchor bound(Type type, int y) {
+            return switch (type) {
+                case BOTTOM -> VerticalAnchor.aboveBottom(y);
+                case TOP -> VerticalAnchor.belowTop(-y);
+                case ABSOLUTE -> VerticalAnchor.absolute(y);
+            };
         }
     }
 
@@ -161,8 +255,11 @@ public final class PatternHeightProviderCodec {
         TOP,
         ABSOLUTE;
 
-        private final Codec<NamedOffset> codec =
-            Range.CODEC.fieldOf(this.key()).xmap(y -> new NamedOffset(this, y), o -> o.y).codec();
+        private final Codec<NamedOffset> codec = codecOf(
+            field(Range.CODEC, this.key(), NamedOffset::y),
+            defaulted(Codec.DOUBLE, "harshness", DensityCutoff.DEFAULT_HARSHNESS, NamedOffset::harshness),
+            NamedOffset::new
+        ).codec();
 
         public String key() {
             return this.name().toLowerCase();

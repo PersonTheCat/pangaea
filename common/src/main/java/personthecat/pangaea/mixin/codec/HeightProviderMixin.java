@@ -6,7 +6,7 @@ import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import personthecat.pangaea.serialization.codec.PatternHeightProviderCodec;
+import personthecat.pangaea.serialization.codec.PatternHeightCodecs;
 import personthecat.pangaea.serialization.codec.StructuralHeightProviderCodec;
 
 // priority: lower in case another mod still needs original as a MapCodecCodec
@@ -28,6 +28,6 @@ public class HeightProviderMixin {
 
     @Unique
     private static Codec<HeightProvider> injectPatternSyntax(Codec<HeightProvider> original) {
-        return PatternHeightProviderCodec.wrap(original);
+        return PatternHeightCodecs.wrapHeight(original);
     }
 }

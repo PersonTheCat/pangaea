@@ -15,6 +15,7 @@ import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.registry.CommonRegistries;
 import personthecat.catlib.registry.DynamicRegistries;
+import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.versioning.Version;
 import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
@@ -40,12 +41,10 @@ import personthecat.pangaea.world.injector.OreInjector;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
-import personthecat.pangaea.world.placer.SimpleBlockPlacer;
+import personthecat.pangaea.world.placer.HeightBasedBlockPlacer;
+import personthecat.pangaea.world.placer.TargetedBlockPlacer;
 import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
-import personthecat.pangaea.world.provider.DensityFloatProvider;
-import personthecat.pangaea.world.provider.DensityHeightProvider;
-import personthecat.pangaea.world.provider.DensityIntProvider;
-import personthecat.pangaea.world.provider.DensityOffsetHeightProvider;
+import personthecat.pangaea.world.provider.*;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 
@@ -113,8 +112,12 @@ public abstract class Pangaea {
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome_modifier"), BiomeModifierInjector.CODEC);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome_source"), BiomeSourceInjector.CODEC);
         PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("dimension"), DimensionInjector.CODEC);
-        PgRegistries.PLACER_TYPE.deferredRegister(MOD.id("simple"), SimpleBlockPlacer.CODEC);
+        PgRegistries.PLACER_TYPE.deferredRegister(MOD.id("targeted"), TargetedBlockPlacer.CODEC);
+        PgRegistries.PLACER_TYPE.deferredRegister(MOD.id("height_based"), HeightBasedBlockPlacer.CODEC);
         PgRegistries.PLACER_TYPE.deferredRegister(MOD.id("unconditional"), UnconditionalBlockPlacer.CODEC);
+        PgRegistries.BOUNDS_TYPE.deferredRegister(MOD.id("constant"), ConstantBoundsProvider.CODEC);
+        PgRegistries.BOUNDS_TYPE.deferredRegister(MOD.id("anchored"), AnchoredBoundsProvider.CODEC);
+        PgRegistries.BOUNDS_TYPE.deferredRegister(MOD.id("anchor_range"), AnchorRangeBoundsProvider.CODEC);
     }
 
     private static void enableDebugFeatures() {

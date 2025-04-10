@@ -1,6 +1,7 @@
 package personthecat.pangaea.world.density;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.util.Mth;
@@ -10,15 +11,28 @@ import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.data.FloatRange;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
+import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 
 public record DensityCutoff(double min, double max, double harshness) {
-    public static final MapCodec<DensityCutoff> CODEC = codecOf(
+    public static final double DEFAULT_HARSHNESS = 0.1;
+    public static final MapCodec<DensityCutoff> OBJECT_CODEC = codecOf(
         field(FloatRange.CODEC, "range", c -> new FloatRange((float) c.min, (float) c.max)),
-        defaulted(Codec.DOUBLE, "harshness", 0.1, c -> c.harshness),
+        defaulted(Codec.DOUBLE, "harshness", DEFAULT_HARSHNESS, c -> c.harshness),
         DensityCutoff::new
     );
+    private static final Codec<DensityCutoff> OBJECT_CODEC_CODEC = OBJECT_CODEC.codec();
+    private static final Codec<DensityCutoff> RANGE_CODEC =
+        FloatRange.CODEC.xmap(DensityCutoff::new, c -> new FloatRange((float) c.min, (float) c.max))
+            .validate(DensityCutoff::validateAsRange);
+    public static final Codec<DensityCutoff> CODEC =
+        simpleEither(OBJECT_CODEC_CODEC, RANGE_CODEC)
+            .withEncoder(c -> c.canBeRange() ? RANGE_CODEC : OBJECT_CODEC_CODEC);
+
+    public DensityCutoff(final FloatRange range) {
+        this(range, DEFAULT_HARSHNESS);
+    }
 
     public DensityCutoff(final FloatRange range, final double harshness) {
         this(range.min(), range.max(), harshness);
@@ -38,12 +52,26 @@ public record DensityCutoff(double min, double max, double harshness) {
         return d;
     }
 
+    public double width() {
+        return this.max - this.min;
+    }
+
     public DensityFunction upper(final DensityFunction input) {
         return new UpperTransformer(this, input);
     }
 
     public DensityFunction lower(final DensityFunction input) {
         return new LowerTransformer(this, input);
+    }
+
+    private DataResult<DensityCutoff> validateAsRange() {
+        return this.canBeRange()
+            ? DataResult.success(this)
+            : DataResult.error(() -> "Cannot express as range: " + this);
+    }
+
+    private boolean canBeRange() {
+        return this.harshness == DEFAULT_HARSHNESS;
     }
 
     public record UpperTransformer(DensityCutoff cutoff, DensityFunction input) implements SimpleFunction {
