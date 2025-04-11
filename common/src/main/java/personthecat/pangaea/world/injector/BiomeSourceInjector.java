@@ -15,7 +15,7 @@ import personthecat.catlib.data.DimensionPredicate;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.world.biome.CartesianParameterList;
-import personthecat.pangaea.world.biome.MultiNoiseBiomeSourceExtras;
+import personthecat.pangaea.extras.MultiNoiseBiomeSourceExtras;
 import personthecat.pangaea.world.biome.ParameterMap;
 
 import java.util.List;

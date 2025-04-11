@@ -1,7 +1,8 @@
-package personthecat.pangaea.world.biome;
+package personthecat.pangaea.extras;
 
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
+import personthecat.pangaea.world.biome.ParameterListModifierListener;
 
 public interface MultiNoiseBiomeSourceExtras {
     void pangaea$modifyBiomeParameters(ParameterListModifierListener listener);

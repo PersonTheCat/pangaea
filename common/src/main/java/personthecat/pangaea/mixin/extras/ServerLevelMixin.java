@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import personthecat.pangaea.data.NoiseGraph;
 import personthecat.pangaea.mixin.accessor.MinecraftServerAccessor;
-import personthecat.pangaea.world.level.LevelExtras;
+import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.world.road.RoadMap;
 
 import java.nio.file.Path;

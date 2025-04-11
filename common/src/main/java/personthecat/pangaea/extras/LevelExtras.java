@@ -1,4 +1,4 @@
-package personthecat.pangaea.world.level;
+package personthecat.pangaea.extras;
 
 import net.minecraft.world.level.Level;
 import personthecat.pangaea.data.NoiseGraph;

@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import personthecat.pangaea.registry.PgRegistries;
 import personthecat.pangaea.serialization.codec.FunctionCodecs;
-import personthecat.pangaea.serialization.codec.RegistryOpsExtras;
+import personthecat.pangaea.extras.RegistryOpsExtras;
 import personthecat.pangaea.resources.ResourceInfo;
 
 import java.util.List;

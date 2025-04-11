@@ -4,7 +4,7 @@ import net.minecraft.resources.RegistryOps;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import personthecat.pangaea.serialization.codec.RegistryOpsExtras;
+import personthecat.pangaea.extras.RegistryOpsExtras;
 import personthecat.pangaea.resources.ResourceInfo;
 
 @Mixin(RegistryOps.class)

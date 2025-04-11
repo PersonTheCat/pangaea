@@ -27,6 +27,7 @@
     "codec.RuleTestMixin",
     "extras.ChunkGeneratorMixin",
     "extras.ChunkStatusTasksMixin",
+    "extras.FeatureMixin",
     "extras.MultiNoiseBiomeSourceMixin",
     "extras.NoiseBasedChunkGeneratorMixin",
     "extras.PlacedFeatureMixin",

@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import personthecat.catlib.data.collections.ObserverSet;
 import personthecat.catlib.data.collections.SimpleObserverSet;
-import personthecat.pangaea.world.biome.MultiNoiseBiomeSourceExtras;
+import personthecat.pangaea.extras.MultiNoiseBiomeSourceExtras;
 import personthecat.pangaea.world.biome.ParameterListModifierListener;
 
 import java.util.ArrayList;

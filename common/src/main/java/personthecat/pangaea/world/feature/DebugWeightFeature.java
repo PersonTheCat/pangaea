@@ -8,7 +8,7 @@ import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import org.jetbrains.annotations.Nullable;
 import personthecat.pangaea.data.MutableFunctionContext;
-import personthecat.pangaea.world.level.LevelExtras;
+import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.world.road.TmpRoadUtils;
 
 public class DebugWeightFeature extends Feature<NoneFeatureConfiguration> {

@@ -7,7 +7,7 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
-import personthecat.pangaea.world.level.WorldGenRegionExtras;
+import personthecat.pangaea.extras.WorldGenRegionExtras;
 import personthecat.pangaea.world.level.GenerationContext;
 
 public abstract class PangaeaFeature<FC extends PangaeaFeatureConfiguration> extends Feature<FC> {

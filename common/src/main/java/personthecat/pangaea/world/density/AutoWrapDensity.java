@@ -7,7 +7,7 @@ import net.minecraft.world.level.levelgen.DensityFunctions;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 import personthecat.pangaea.world.level.ScopeExtension;
-import personthecat.pangaea.world.level.WorldGenRegionExtras;
+import personthecat.pangaea.extras.WorldGenRegionExtras;
 
 import java.util.function.Function;
 

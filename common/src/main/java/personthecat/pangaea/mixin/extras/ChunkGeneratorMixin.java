@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import personthecat.pangaea.world.level.WorldGenRegionExtras;
+import personthecat.pangaea.extras.WorldGenRegionExtras;
 import personthecat.pangaea.world.level.GenerationContext;
 
 @Mixin(ChunkGenerator.class)

@@ -1,7 +1,8 @@
-package personthecat.pangaea.world.level;
+package personthecat.pangaea.extras;
 
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.WorldGenLevel;
+import personthecat.pangaea.world.level.GenerationContext;
 
 public interface WorldGenRegionExtras {
     GenerationContext pangaea$getGenerationContext();

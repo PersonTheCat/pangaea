@@ -7,7 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import personthecat.pangaea.io.ByteReader;
 import personthecat.pangaea.io.ByteWriter;
-import personthecat.pangaea.world.level.LevelExtras;
+import personthecat.pangaea.extras.LevelExtras;
 
 import java.io.File;
 import java.io.FileNotFoundException;

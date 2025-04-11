@@ -1,4 +1,4 @@
-package personthecat.pangaea.serialization.codec;
+package personthecat.pangaea.extras;
 
 import com.mojang.serialization.DynamicOps;
 import net.minecraft.resources.RegistryOps;

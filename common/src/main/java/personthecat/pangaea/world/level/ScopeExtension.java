@@ -3,6 +3,7 @@ package personthecat.pangaea.world.level;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.util.RandomSource;
 import personthecat.pangaea.data.MutableFunctionContext;
+import personthecat.pangaea.extras.WorldGenRegionExtras;
 
 @SuppressWarnings("preview")
 public final class ScopeExtension {

@@ -30,13 +30,7 @@ import personthecat.pangaea.world.density.WeightedListDensity;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
-import personthecat.pangaea.world.injector.BiomeInjector;
-import personthecat.pangaea.world.injector.BiomeModifierInjector;
-import personthecat.pangaea.world.injector.BiomeSourceInjector;
-import personthecat.pangaea.world.injector.CavernInjector;
-import personthecat.pangaea.world.injector.DataInjectionHook;
-import personthecat.pangaea.world.injector.DimensionInjector;
-import personthecat.pangaea.world.injector.OreInjector;
+import personthecat.pangaea.world.injector.*;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
@@ -118,7 +112,8 @@ public abstract class Pangaea {
             .register("biome", BiomeInjector.CODEC)
             .register("biome_modifier", BiomeModifierInjector.CODEC)
             .register("biome_source", BiomeSourceInjector.CODEC)
-            .register("dimension", DimensionInjector.CODEC);
+            .register("dimension", DimensionInjector.CODEC)
+            .register("feature", FeatureInjector.CODEC);
         PgRegistries.PLACER_TYPE.createRegister(MOD.modId())
             .register("targeted", TargetedBlockPlacer.CODEC)
             .register("column_restricted", ColumnRestrictedBlockPlacer.CODEC)

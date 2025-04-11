@@ -3,7 +3,7 @@ package personthecat.pangaea.mixin.extras;
 import net.minecraft.server.level.WorldGenRegion;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import personthecat.pangaea.world.level.WorldGenRegionExtras;
+import personthecat.pangaea.extras.WorldGenRegionExtras;
 import personthecat.pangaea.world.level.GenerationContext;
 
 @Mixin(WorldGenRegion.class)
