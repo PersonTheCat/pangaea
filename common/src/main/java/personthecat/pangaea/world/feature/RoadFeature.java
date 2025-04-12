@@ -13,7 +13,7 @@ import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.util.Utils;
-import personthecat.pangaea.world.level.LevelExtras;
+import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.world.road.RoadRegion;
 import personthecat.pangaea.world.road.RoadVertex;
 

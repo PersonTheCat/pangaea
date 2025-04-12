@@ -22,21 +22,25 @@ import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.registry.PgRegistries;
 import personthecat.pangaea.world.density.DensityController;
 import personthecat.pangaea.world.density.DensityList;
-import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.density.FastNoiseDensity;
+import personthecat.pangaea.world.density.NormalDensity;
+import personthecat.pangaea.world.density.TrapezoidDensity;
+import personthecat.pangaea.world.density.UniformDensity;
+import personthecat.pangaea.world.density.WeightedListDensity;
+import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
-import personthecat.pangaea.world.injector.BiomeInjector;
-import personthecat.pangaea.world.injector.BiomeModifierInjector;
-import personthecat.pangaea.world.injector.BiomeSourceInjector;
-import personthecat.pangaea.world.injector.CavernInjector;
-import personthecat.pangaea.world.injector.DataInjectionHook;
-import personthecat.pangaea.world.injector.DimensionInjector;
-import personthecat.pangaea.world.injector.OreInjector;
+import personthecat.pangaea.world.injector.*;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
+import personthecat.pangaea.world.placer.BlockPlacerList;
+import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
+import personthecat.pangaea.world.placer.TargetedBlockPlacer;
+import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
+import personthecat.pangaea.world.provider.*;
 import personthecat.pangaea.world.road.RoadMap;
+import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 
 import java.util.List;
 
@@ -79,20 +83,46 @@ public abstract class Pangaea {
     }
 
     private static void updateRegistries() {
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("controller"), DensityController.CODEC);
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("structural"), StructuralDensityCodec.INSTANCE);
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("noise"), FastNoiseDensity.CODEC);
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("min"), DensityList.Min.CODEC);
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("max"), DensityList.Max.CODEC);
-        CommonRegistries.DENSITY_FUNCTION_TYPE.deferredRegister(MOD.id("sum"), DensityList.Sum.CODEC);
-        CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("simple"), SimplePlacementModifier.TYPE);
-        CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("surface_biome"), SurfaceBiomeFilter.TYPE);
-        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("ore"), OreInjector.CODEC);
-        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("cavern"), CavernInjector.CODEC);
-        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome"), BiomeInjector.CODEC);
-        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome_modifier"), BiomeModifierInjector.CODEC);
-        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("biome_source"), BiomeSourceInjector.CODEC);
-        PgRegistries.INJECTOR_TYPE.deferredRegister(MOD.id("dimension"), DimensionInjector.CODEC);
+        CommonRegistries.DENSITY_FUNCTION_TYPE.createRegister(MOD.modId())
+            .register("controller", DensityController.CODEC)
+            .register("structural", StructuralDensityCodec.INSTANCE)
+            .register("noise", FastNoiseDensity.CODEC)
+            .register("min", DensityList.Min.CODEC)
+            .register("max", DensityList.Max.CODEC)
+            .register("sum", DensityList.Sum.CODEC)
+            .register("normal", NormalDensity.CODEC)
+            .register("uniform", UniformDensity.CODEC)
+            .register("trapezoid", TrapezoidDensity.CODEC)
+            .register("weighted_list", WeightedListDensity.CODEC);
+        CommonRegistries.FLOAT_PROVIDER_TYPE.createRegister(MOD.modId())
+            .register("density", DensityFloatProvider.TYPE);
+        CommonRegistries.INT_PROVIDER_TYPE.createRegister(MOD.modId())
+            .register("density", DensityIntProvider.TYPE);
+        CommonRegistries.HEIGHT_PROVIDER_TYPE.createRegister(MOD.modId())
+            .register("density", DensityHeightProvider.TYPE)
+            .register("density_offset", DensityOffsetHeightProvider.TYPE);
+        CommonRegistries.PLACEMENT_MODIFIER_TYPE.createRegister(MOD.modId())
+            .register("simple", SimplePlacementModifier.TYPE)
+            .register("surface_biome", SurfaceBiomeFilter.TYPE);
+        CommonRegistries.RULE_TEST_TYPE.createRegister(MOD.modId())
+            .register("heterogeneous_list", HeterogeneousListRuleTest.TYPE);
+        PgRegistries.INJECTOR_TYPE.createRegister(MOD.modId())
+            .register("ore", OreInjector.CODEC)
+            .register("cavern", CavernInjector.CODEC)
+            .register("biome", BiomeInjector.CODEC)
+            .register("biome_modifier", BiomeModifierInjector.CODEC)
+            .register("biome_source", BiomeSourceInjector.CODEC)
+            .register("dimension", DimensionInjector.CODEC)
+            .register("feature", FeatureInjector.CODEC);
+        PgRegistries.PLACER_TYPE.createRegister(MOD.modId())
+            .register("targeted", TargetedBlockPlacer.CODEC)
+            .register("column_restricted", ColumnRestrictedBlockPlacer.CODEC)
+            .register("list", BlockPlacerList.CODEC)
+            .register("unconditional", UnconditionalBlockPlacer.CODEC);
+        PgRegistries.BOUNDS_TYPE.createRegister(MOD.modId())
+            .register("constant", ConstantColumnProvider.CODEC)
+            .register("dynamic", DynamicColumnProvider.CODEC)
+            .register("anchor_range", AnchorRangeColumnProvider.CODEC);
     }
 
     private static void enableDebugFeatures() {

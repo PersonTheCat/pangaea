@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Climate.Sampler;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.data.Point;
-import personthecat.pangaea.world.level.LevelExtras;
+import personthecat.pangaea.extras.LevelExtras;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;

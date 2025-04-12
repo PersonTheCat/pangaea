@@ -19,7 +19,7 @@ import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.catlib.serialization.json.JsonTransformer;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.util.Utils;
-import personthecat.pangaea.world.level.LevelExtras;
+import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.road.TmpRoadUtils;
 import xjs.data.JsonFormat;

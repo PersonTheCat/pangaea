@@ -22,7 +22,7 @@ import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.BiomePredicate;
 import personthecat.catlib.data.IdList;
-import personthecat.pangaea.mixin.OreConfigurationAccessor;
+import personthecat.pangaea.mixin.accessor.OreConfigurationAccessor;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 
 import java.util.ArrayList;

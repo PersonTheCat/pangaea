@@ -28,8 +28,8 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import personthecat.pangaea.Pangaea;
-import personthecat.pangaea.mixin.BiomeGenerationSettingsAccessor;
-import personthecat.pangaea.mixin.MobSpawnSettingsAccessor;
+import personthecat.pangaea.mixin.accessor.BiomeGenerationSettingsAccessor;
+import personthecat.pangaea.mixin.accessor.MobSpawnSettingsAccessor;
 import personthecat.pangaea.world.biome.BiomeChanges;
 
 import java.awt.Color;

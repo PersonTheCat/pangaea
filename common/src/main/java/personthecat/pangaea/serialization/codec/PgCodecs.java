@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.registry.RegistryHandle;
+import personthecat.pangaea.extras.RegistryOpsExtras;
 import personthecat.pangaea.resources.ResourceInfo;
 
 public final class PgCodecs {

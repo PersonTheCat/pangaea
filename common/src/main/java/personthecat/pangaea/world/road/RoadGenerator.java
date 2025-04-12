@@ -10,7 +10,7 @@ import personthecat.pangaea.data.Point;
 import personthecat.pangaea.data.VertexGraph;
 import personthecat.pangaea.util.Stopwatch;
 import personthecat.pangaea.util.Utils;
-import personthecat.pangaea.world.level.LevelExtras;
+import personthecat.pangaea.extras.LevelExtras;
 
 import java.util.ArrayList;
 import java.util.HashMap;

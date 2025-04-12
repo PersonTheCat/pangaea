@@ -11,7 +11,7 @@ import personthecat.catlib.data.DimensionPredicate;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.config.Cfg;
-import personthecat.pangaea.mixin.MultiNoiseBiomeSourceAccessor;
+import personthecat.pangaea.mixin.accessor.MultiNoiseBiomeSourceAccessor;
 import personthecat.pangaea.world.biome.DimensionLayout;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;

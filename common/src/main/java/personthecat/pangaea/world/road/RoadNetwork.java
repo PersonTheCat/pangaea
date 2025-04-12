@@ -9,7 +9,7 @@ import personthecat.pangaea.data.Point;
 import personthecat.pangaea.data.VertexGraph;
 import personthecat.pangaea.io.ByteReader;
 import personthecat.pangaea.io.ByteWriter;
-import personthecat.pangaea.world.level.LevelExtras;
+import personthecat.pangaea.extras.LevelExtras;
 
 import java.io.File;
 import java.io.FileNotFoundException;

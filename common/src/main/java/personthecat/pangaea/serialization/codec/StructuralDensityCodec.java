@@ -8,7 +8,6 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
-import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.world.density.DensityList;
 
@@ -16,6 +15,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static net.minecraft.world.level.levelgen.DensityFunction.HOLDER_HELPER_CODEC;
+import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
 
 public class StructuralDensityCodec extends MapCodec<DensityFunction> {
     public static final StructuralDensityCodec INSTANCE = new StructuralDensityCodec();
@@ -26,8 +26,8 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
     private StructuralDensityCodec() {}
 
     public static Codec<DensityFunction> wrap(Codec<DensityFunction> codec) {
-        return new DefaultTypeCodec<>(codec, INSTANCE.codec(),
-            (f, ops) -> Cfg.encodeStructuralDensity() && canBeStructural(f));
+        return defaultType(codec, INSTANCE.codec(),
+            (f, _) -> Cfg.encodeStructuralDensity() && canBeStructural(f));
     }
 
     private static boolean canBeStructural(DensityFunction f) {

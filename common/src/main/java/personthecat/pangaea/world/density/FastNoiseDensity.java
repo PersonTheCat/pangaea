@@ -1,12 +1,14 @@
 package personthecat.pangaea.world.density;
 
 import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunction.SimpleFunction;
 import org.jetbrains.annotations.NotNull;
+import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 import personthecat.catlib.serialization.codec.UnionCodec;
 import personthecat.fastnoise.FastNoise;
 import personthecat.pangaea.serialization.codec.NoiseCodecs;
@@ -17,6 +19,9 @@ public record FastNoiseDensity(
         FastNoise noise, Mode mode, double minValue, double maxValue) implements SimpleFunction {
     public static final MapCodec<FastNoiseDensity> CODEC = createCodec(Mode.SCALED);
     public static final MapCodec<FastNoiseDensity> CODEC_2D = createCodec(Mode.SCALED_2D);
+    public static final Codec<DensityFunction> DEFAULT_2D =
+        new DefaultTypeCodec<>(
+            DensityFunction.HOLDER_HELPER_CODEC, CODEC_2D.codec(), (d, _) -> d instanceof FastNoiseDensity);
 
     public static FastNoiseDensity create(FastNoise noise, Mode mode) {
         final var builder = noise.toBuilder();
