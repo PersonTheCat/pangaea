@@ -1,0 +1,23 @@
+{
+  "biomes": [
+    "#is_forest"
+  ],
+  "step": "vegetal_decoration",
+  "placement": [
+    {
+      "count": 20,
+      "height": [ 50, 100 ]
+    }
+  ],
+  "inject": {
+    "type": "ore",
+    "discard_chance_on_air_exposure": 0.5,
+    "size": 15,
+    "targets": [
+      {
+        "state": "diamond_ore",
+        "target": [ "grass", "dirt" ]
+      }
+    ]
+  }
+}
