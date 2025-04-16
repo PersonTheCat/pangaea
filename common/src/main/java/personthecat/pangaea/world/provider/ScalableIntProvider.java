@@ -5,7 +5,6 @@ import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.level.levelgen.DensityFunction.FunctionContext;
 import personthecat.pangaea.world.level.ScopeExtension;
 
-@SuppressWarnings("preview")
 public abstract class ScalableIntProvider extends IntProvider {
 
     @Override

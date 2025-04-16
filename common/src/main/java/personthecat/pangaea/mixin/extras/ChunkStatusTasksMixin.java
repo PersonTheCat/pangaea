@@ -16,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.world.level.ScopeExtension;
 
-@SuppressWarnings("preview")
 @Mixin(ChunkStatusTasks.class)
 public class ChunkStatusTasksMixin {
 
@@ -34,9 +33,9 @@ public class ChunkStatusTasksMixin {
             Carving step,
             Operation<Void> applyCarvers) {
         final var ctx = MutableFunctionContext.from(chunk.getPos());
-        ScopedValue.where(ScopeExtension.GENERATING_POS, ctx)
-            .where(ScopeExtension.GENERATING_REGION, level)
-            .run(() -> applyCarvers.call(gen, level, seed, rand, biomes, structures, chunk, step));
+        ScopeExtension.GENERATING_POS.runScoped(ctx, () ->
+            ScopeExtension.GENERATING_REGION.runScoped(level, () ->
+                applyCarvers.call(gen, level, seed, rand, biomes, structures, chunk, step)));
     }
 
     @WrapOperation(
@@ -49,8 +48,8 @@ public class ChunkStatusTasksMixin {
             StructureManager structures,
             Operation<Void> applyBiomeDecorations) {
         final var ctx = MutableFunctionContext.from(chunk.getPos());
-        ScopedValue.where(ScopeExtension.GENERATING_POS, ctx)
-            .where(ScopeExtension.GENERATING_REGION, (WorldGenRegion) level)
-            .run(() -> applyBiomeDecorations.call(gen, level, chunk, structures));
+        ScopeExtension.GENERATING_POS.runScoped(ctx, () ->
+            ScopeExtension.GENERATING_REGION.runScoped((WorldGenRegion) level, () ->
+                applyBiomeDecorations.call(gen, level, chunk, structures)));
     }
 }
