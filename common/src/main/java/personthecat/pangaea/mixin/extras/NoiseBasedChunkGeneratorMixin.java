@@ -20,7 +20,6 @@ import personthecat.pangaea.world.level.ScopeExtension;
 
 import java.util.function.Supplier;
 
-@SuppressWarnings("preview")
 @Mixin(NoiseBasedChunkGenerator.class)
 public abstract class NoiseBasedChunkGeneratorMixin {
 
@@ -48,7 +47,7 @@ public abstract class NoiseBasedChunkGeneratorMixin {
         final var source = this.generatorSettings().value().getRandomSource().newInstance(seed);
         final var rand = new WorldgenRandom(source);
         rand.setLargeFeatureSeed(seed - 1L, chunk.getPos().x, chunk.getPos().z);
-        return () -> ScopedValue.where(ScopeExtension.DENSITY_RAND, rand).get(task);
+        return () -> ScopeExtension.DENSITY_RAND.getScoped(rand, task);
     }
 
     @Shadow

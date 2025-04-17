@@ -5,7 +5,6 @@ import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
 import personthecat.pangaea.world.level.ScopeExtension;
 
-@SuppressWarnings("preview")
 public interface ScalableVerticalAnchor extends VerticalAnchor {
 
     @Override

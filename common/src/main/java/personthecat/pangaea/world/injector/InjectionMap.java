@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
+import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
 import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
 import static personthecat.catlib.serialization.codec.CodecUtils.xmapWithOps;
 
@@ -27,7 +28,15 @@ public class InjectionMap<E> extends HashMap<ResourceLocation, E> {
     }
 
     public static <E> Codec<InjectionMap<E>> codecOfList(Codec<E> elementCodec) {
-        return xmapWithOps(elementCodec.listOf(),
+        return codecOfListInternal(elementCodec.listOf());
+    }
+
+    public static <E> Codec<InjectionMap<E>> codecOfEasyList(Codec<E> elementCodec) {
+        return codecOfListInternal(easyList(elementCodec));
+    }
+
+    private static <E> Codec<InjectionMap<E>> codecOfListInternal(Codec<List<E>> listCodec) {
+        return xmapWithOps(listCodec,
             (ops, list) -> withRandomIds(PgCodecs.getActiveNamespace(ops), list),
             (ops, map) -> List.copyOf(map.values()));
     }

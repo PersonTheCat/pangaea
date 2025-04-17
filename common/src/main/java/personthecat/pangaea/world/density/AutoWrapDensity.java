@@ -11,7 +11,6 @@ import personthecat.pangaea.extras.WorldGenRegionExtras;
 
 import java.util.function.Function;
 
-@SuppressWarnings("preview")
 public record AutoWrapDensity(DensityFunction density) implements DensityFunction {
     public static final Codec<DensityFunction> HELPER_CODEC =
         wrap(DensityFunction.HOLDER_HELPER_CODEC);
@@ -69,13 +68,12 @@ public record AutoWrapDensity(DensityFunction density) implements DensityFunctio
     }
 
     private DensityFunction wrap() {
-        if (!ScopeExtension.GENERATING_REGION.isBound()) {
+        final var region = ScopeExtension.GENERATING_REGION.get();
+        if (region == null) {
             throw new IllegalStateException(
                 "Density function should not be auto-wrapped. Use it directly: " + this.density);
         }
-        return WorldGenRegionExtras
-            .getGenerationContext(ScopeExtension.GENERATING_REGION.get())
-            .wrap(this.density);
+        return WorldGenRegionExtras.getGenerationContext(region).wrap(this.density);
     }
 
     @Override
