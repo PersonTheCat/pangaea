@@ -26,7 +26,7 @@ public final class BlockPlacerBuilder extends MapCodec<BlockPlacer> {
     private static final List<StructuralType<?, ?>> STRUCTURAL_TYPES = List.of(
         StructuralType.of(BlockPlacer.class)
             .withCodec(BlockPlacer.CODEC, "place")
-            .withConstructor((p, _) -> p)
+            .withConstructor((p, w) -> p)
             .withDestructor(Function.identity(), Function.identity()),
         StructuralType.of(ColumnRestrictedBlockPlacer.class)
             .withCodec(ColumnProvider.CODEC, "column")
@@ -42,7 +42,7 @@ public final class BlockPlacerBuilder extends MapCodec<BlockPlacer> {
 
     public static Codec<BlockPlacer> wrap(Codec<BlockPlacer> codec) {
         return defaultType(codec, INSTANCE.codec(),
-            (p, _) -> Cfg.encodeStructuralBlockPlacers() && canBeStructural(p));
+            (p, o) -> Cfg.encodeStructuralBlockPlacers() && canBeStructural(p));
     }
 
     private static boolean canBeStructural(BlockPlacer p) {

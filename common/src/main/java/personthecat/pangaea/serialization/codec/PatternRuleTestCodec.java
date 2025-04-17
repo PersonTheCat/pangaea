@@ -27,7 +27,7 @@ public final class PatternRuleTestCodec implements Codec<RuleTest> {
     private PatternRuleTestCodec() {}
 
     public static Codec<RuleTest> wrap(Codec<RuleTest> codec) {
-        return defaultType(codec, INSTANCE, (test, _) -> Pattern.hasMatcherForRule(test));
+        return defaultType(codec, INSTANCE, (test, o) -> Pattern.hasMatcherForRule(test));
     }
 
     @Override

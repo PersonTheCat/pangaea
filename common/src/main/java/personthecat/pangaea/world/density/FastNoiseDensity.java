@@ -21,7 +21,7 @@ public record FastNoiseDensity(
     public static final MapCodec<FastNoiseDensity> CODEC_2D = createCodec(Mode.SCALED_2D);
     public static final Codec<DensityFunction> DEFAULT_2D =
         new DefaultTypeCodec<>(
-            DensityFunction.HOLDER_HELPER_CODEC, CODEC_2D.codec(), (d, _) -> d instanceof FastNoiseDensity);
+            DensityFunction.HOLDER_HELPER_CODEC, CODEC_2D.codec(), (d, o) -> d instanceof FastNoiseDensity);
 
     public static FastNoiseDensity create(FastNoise noise, Mode mode) {
         final var builder = noise.toBuilder();

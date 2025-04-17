@@ -25,7 +25,7 @@ public final class FeaturesByStageCodec {
 
     public static Codec<List<HolderSet<PlacedFeature>>> wrap(Codec<List<HolderSet<PlacedFeature>>> codec) {
         return simpleEither(codec, FEATURES_FROM_MAP)
-            .withEncoder(_ -> Cfg.encodeFeatureCategories() ? FEATURES_FROM_MAP : codec);
+            .withEncoder(l -> Cfg.encodeFeatureCategories() ? FEATURES_FROM_MAP : codec);
     }
 
     private static List<HolderSet<PlacedFeature>> sortDecorations(Map<Decoration, HolderSet<PlacedFeature>> map) {

@@ -40,12 +40,12 @@ public final class PatternHeightCodecs {
 
     public static Codec<HeightProvider> wrapHeight(Codec<HeightProvider> codec) {
         return new DefaultTypeCodec<>(codec, HEIGHT_CODEC,
-            (h, _) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromHeightProvider(h).isSuccess());
+            (h, o) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromHeightProvider(h).isSuccess());
     }
 
     public static Codec<ColumnProvider> wrapColumn(Codec<ColumnProvider> codec) {
         return new DefaultTypeCodec<>(codec, COLUMN_CODEC,
-            (b, _) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromColumnProvider(b).isSuccess());
+            (b, o) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromColumnProvider(b).isSuccess());
     }
 
     private record HeightInfo(HeightRange range, Distribution distribution) {

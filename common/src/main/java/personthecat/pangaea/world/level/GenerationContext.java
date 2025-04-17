@@ -30,7 +30,7 @@ import java.util.Map;
 public final class GenerationContext extends WorldGenerationContext {
 
     private static final FluidStatus NO_FLUID = new FluidStatus(0, CommonBlocks.AIR);
-    private static final Aquifer NO_AQUIFER = Aquifer.createDisabled((_, _, _) -> NO_FLUID);
+    private static final Aquifer NO_AQUIFER = Aquifer.createDisabled((x, y, z) -> NO_FLUID);
     public final BiomeManager biomes;
     public final NoiseGraph noise;
     public final WorldgenRandom rand;
@@ -74,12 +74,12 @@ public final class GenerationContext extends WorldGenerationContext {
         this.heightmaps = ((ChunkAccessAccessor) chunk).getHeightmaps();
         this.oceanFloor = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
         this.carvingMask = chunk.getOrCreateCarvingMask(GenerationStep.Carving.AIR);
-        final var nc = chunk.getOrCreateNoiseChunk(_ -> null);
+        final var nc = chunk.getOrCreateNoiseChunk(c -> null);
         this.aquifer = nc instanceof NoiseChunkAccessor ? nc.aquifer() : NO_AQUIFER;
     }
 
     public DensityFunction wrap(DensityFunction f) {
-        final NoiseChunk c = this.chunk.getOrCreateNoiseChunk(_ -> null);
+        final NoiseChunk c = this.chunk.getOrCreateNoiseChunk(a -> null);
         if (c instanceof NoiseChunkAccessor a) {
             return a.invokeWrap(f);
         }
