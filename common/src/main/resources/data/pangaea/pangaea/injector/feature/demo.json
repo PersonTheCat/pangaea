@@ -3,17 +3,18 @@
     "#is_forest"
   ],
   "step": "vegetal_decoration",
-  "placement": [
-    {
-      "count": 20,
-      "height": [ 50, 100 ]
-    }
-  ],
   "inject": [
     {
       "type": "pangaea:test",
       "column": [ 0, 100 ],
-      "placer": "glass"
+      "placer": [
+        { "column": [ 0, 20 ], "place": "glowstone" },
+        { "column": [ 20, 40 ], "place": "sea_lantern" },
+        { "column": [ 40, 60 ], "place": "glowstone" },
+        { "column": [ 60, 80 ], "place": "sea_lantern" },
+        { "column": [ 80, 100 ], "place": "diamond_block", "chance": 0.5 },
+        { "column": [ 80, 100 ], "place": "gold_block" }
+      ]
     },
     {
      "type": "ore",
@@ -24,7 +25,13 @@
          "state": "diamond_ore",
          "target": [ "grass", "dirt" ]
        }
-     ]
+     ],
+      "placement": [
+        {
+          "count": 20,
+          "height": [ 50, 100 ]
+        }
+      ]
     }
   ]
 }

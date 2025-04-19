@@ -10,6 +10,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import org.jetbrains.annotations.Nullable;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.world.placer.BlockPlacer;
+import personthecat.pangaea.world.placer.ChanceBlockPlacer;
 import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
 import personthecat.pangaea.world.placer.TargetedBlockPlacer;
 import personthecat.pangaea.world.provider.ColumnProvider;
@@ -32,6 +33,10 @@ public final class BlockPlacerBuilder extends MapCodec<BlockPlacer> {
             .withCodec(ColumnProvider.CODEC, "column")
             .withConstructor(ColumnRestrictedBlockPlacer::new)
             .withDestructor(ColumnRestrictedBlockPlacer::column, ColumnRestrictedBlockPlacer::place),
+        StructuralType.of(ChanceBlockPlacer.class)
+            .withCodec(Codec.DOUBLE, "chance")
+            .withConstructor(ChanceBlockPlacer::new)
+            .withDestructor(ChanceBlockPlacer::chance, ChanceBlockPlacer::place),
         StructuralType.of(TargetedBlockPlacer.class)
             .withCodec(RuleTest.CODEC, "target")
             .withConstructor(TargetedBlockPlacer::new)

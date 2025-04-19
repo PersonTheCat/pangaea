@@ -17,7 +17,7 @@ import personthecat.pangaea.world.provider.ColumnProvider;
 public final class PgRegistries {
     public static final RegistryHandle<MapCodec<? extends Injector>> INJECTOR_TYPE = type(Keys.INJECTOR_TYPE);
     public static final RegistryHandle<MapCodec<? extends BlockPlacer>> PLACER_TYPE = type(Keys.PLACER_TYPE);
-    public static final RegistryHandle<MapCodec<? extends ColumnProvider>> BOUNDS_TYPE = type(Keys.BOUNDS_TYPE);
+    public static final RegistryHandle<MapCodec<? extends ColumnProvider>> COLUMN_TYPE = type(Keys.BOUNDS_TYPE);
 
     public static final RegistryHandle<Injector> INJECTOR = dynamic(Keys.INJECTOR, Injector.CODEC);
     public static final RegistryHandle<BiomeLayout> BIOME_LAYOUT = dynamic(Keys.BIOME_LAYOUT, BiomeLayout.CODEC.codec());

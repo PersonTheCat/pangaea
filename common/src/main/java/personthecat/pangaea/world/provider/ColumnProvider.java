@@ -22,7 +22,7 @@ public interface ColumnProvider {
 
     private static Codec<ColumnProvider> buildCodec() {
         final var dispatcher =
-            PgRegistries.BOUNDS_TYPE.codec().dispatch(ColumnProvider::codec, Function.identity());
+            PgRegistries.COLUMN_TYPE.codec().dispatch(ColumnProvider::codec, Function.identity());
         return PatternHeightCodecs.wrapColumn(dispatcher);
     }
 }
