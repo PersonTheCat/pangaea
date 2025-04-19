@@ -9,10 +9,11 @@ import com.mojang.serialization.RecordBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import personthecat.catlib.registry.RegistryHandle;
-import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
 
 public class InferredTypeDispatcher<K, V> extends MapCodec<V> {
     private final RegistryHandle<K> handle;
@@ -30,7 +31,7 @@ public class InferredTypeDispatcher<K, V> extends MapCodec<V> {
 
     public static <K, V> Builder<K, V> builder(RegistryHandle<K> handle, ResourceKey<Registry<V>> type) {
         return (typeGetter, codecGetter) ->
-            new DefaultTypeCodec<>(
+            defaultType(
                 handle.codec().dispatch(typeGetter, codecGetter),
                 new InferredTypeDispatcher<>(handle, type, codecGetter).codec(),
                 (a, ops) -> PgCodecs.inferFromPath(handle, type, ops) != null);

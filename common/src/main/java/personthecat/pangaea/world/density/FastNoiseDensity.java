@@ -8,11 +8,11 @@ import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunction.SimpleFunction;
 import org.jetbrains.annotations.NotNull;
-import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 import personthecat.catlib.serialization.codec.UnionCodec;
 import personthecat.fastnoise.FastNoise;
 import personthecat.pangaea.serialization.codec.NoiseCodecs;
 
+import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
 import static personthecat.catlib.serialization.codec.CodecUtils.ofEnum;
 
 public record FastNoiseDensity(
@@ -20,7 +20,7 @@ public record FastNoiseDensity(
     public static final MapCodec<FastNoiseDensity> CODEC = createCodec(Mode.SCALED);
     public static final MapCodec<FastNoiseDensity> CODEC_2D = createCodec(Mode.SCALED_2D);
     public static final Codec<DensityFunction> DEFAULT_2D =
-        new DefaultTypeCodec<>(
+        defaultType(
             DensityFunction.HOLDER_HELPER_CODEC, CODEC_2D.codec(), (d, o) -> d instanceof FastNoiseDensity);
 
     public static FastNoiseDensity create(FastNoise noise, Mode mode) {

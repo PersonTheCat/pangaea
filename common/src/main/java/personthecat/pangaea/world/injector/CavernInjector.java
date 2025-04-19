@@ -7,18 +7,18 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.DensityFunction;
-import personthecat.catlib.serialization.codec.DefaultTypeCodec;
 import personthecat.pangaea.world.density.DensityController;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.asParent;
 
+import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
 import static personthecat.pangaea.world.injector.InjectorUtil.swapFinalDensity;
 import static personthecat.pangaea.world.injector.InjectorUtil.swapNoiseRouter;
 
 @Log4j2
 public record CavernInjector(InjectionMap<DensityFunction> modifications) implements Injector {
     private static final Codec<DensityFunction> DENSITY_CODEC =
-        new DefaultTypeCodec<>(DensityFunction.DIRECT_CODEC, asParent(DensityController.CODEC.codec()),
+        defaultType(DensityFunction.DIRECT_CODEC, asParent(DensityController.CODEC.codec()),
             (f, ops) -> f instanceof DensityController);
     public static final MapCodec<CavernInjector> CODEC =
         MapCodec.assumeMapUnsafe(InjectionMap.codecOfMap(DENSITY_CODEC))

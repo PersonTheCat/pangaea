@@ -28,7 +28,7 @@ public record ConditionConfiguration(
     public static final MapCodec<ConditionConfiguration> CODEC = codecOf(
         defaulted(DimensionPredicate.CODEC, "dimensions", DimensionPredicate.ALL_DIMENSIONS, ConditionConfiguration::dimensions),
         defaulted(BiomePredicate.CODEC, "biomes", BiomePredicate.ALL_BIOMES, ConditionConfiguration::biomes),
-        defaulted(BOUNDS_CODEC, "column", DensityFunctions.zero(), ConditionConfiguration::bounds),
+        defaulted(BOUNDS_CODEC, "bounds", DensityFunctions.zero(), ConditionConfiguration::bounds),
         defaulted(Codec.DOUBLE, "distance_from_bounds", 18.0, ConditionConfiguration::distanceFromBounds),
         defaulted(Codec.DOUBLE, "boundary_width", 10.0, ConditionConfiguration::boundaryWidth),
         ConditionConfiguration::new
@@ -54,6 +54,6 @@ public record ConditionConfiguration(
     }
 
     private boolean checkPos(int x, int z) {
-        return this.bounds.compute(new SinglePointContext(x, 64, z)) > 0;
+        return this.bounds.compute(new SinglePointContext(x, 64, z)) >= 0;
     }
 }

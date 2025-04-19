@@ -12,6 +12,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.BlockMatchTes
 import net.minecraft.world.level.levelgen.structure.templatesystem.BlockStateMatchTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
+import personthecat.catlib.data.IdList;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.mixin.accessor.BlockMatchTestAccessor;
 import personthecat.pangaea.mixin.accessor.BlockStateMatchTestAccessor;
@@ -19,7 +20,6 @@ import personthecat.pangaea.mixin.accessor.TagMatchTestAccessor;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
-import static personthecat.catlib.serialization.codec.CodecUtils.idList;
 
 public final class PatternRuleTestCodec implements Codec<RuleTest> {
     public static final Codec<RuleTest> INSTANCE = new PatternRuleTestCodec();
@@ -61,7 +61,7 @@ public final class PatternRuleTestCodec implements Codec<RuleTest> {
         private static final Codec<RuleTest> STATE =
             BlockState.CODEC.xmap(BlockStateMatchTest::new, test -> ((BlockStateMatchTestAccessor) test).getBlockState());
         private static final Codec<RuleTest> LIST =
-            idList(Registries.BLOCK).xmap(HeterogeneousListRuleTest::new, test -> ((HeterogeneousListRuleTest) test).list);
+            IdList.listCodec(Registries.BLOCK).xmap(HeterogeneousListRuleTest::new, test -> ((HeterogeneousListRuleTest) test).list);
 
         private static final Matcher[] MATCHERS = {
             new Matcher(TAG, TagMatchTest.class),
