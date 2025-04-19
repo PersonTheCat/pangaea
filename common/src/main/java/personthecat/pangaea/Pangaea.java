@@ -126,7 +126,6 @@ public abstract class Pangaea {
             .register("anchor_range", AnchorRangeColumnProvider.CODEC);
         CommonRegistries.FEATURE.createRegister(ID)
             .register("test", TestFeature.INSTANCE);
-        // todo: manually test demo / test feature codec to figure out why it's failing
     }
 
     private static void enableDebugFeatures() {
