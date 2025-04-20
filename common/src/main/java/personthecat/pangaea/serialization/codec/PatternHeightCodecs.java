@@ -2,7 +2,11 @@ package personthecat.pangaea.serialization.codec;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Decoder;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
+import net.minecraft.world.level.levelgen.VerticalAnchor.AboveBottom;
+import net.minecraft.world.level.levelgen.VerticalAnchor.Absolute;
+import net.minecraft.world.level.levelgen.VerticalAnchor.BelowTop;
 import net.minecraft.world.level.levelgen.heightproviders.ConstantHeight;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import net.minecraft.world.level.levelgen.heightproviders.TrapezoidHeight;
@@ -18,8 +22,11 @@ import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
 import personthecat.pangaea.world.provider.DynamicColumnProvider;
 import personthecat.pangaea.world.provider.ColumnProvider;
 import personthecat.pangaea.world.provider.ConstantColumnProvider;
+import personthecat.pangaea.world.provider.SeaLevelVerticalAnchor;
+import personthecat.pangaea.world.provider.SurfaceVerticalAnchor;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.*;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
@@ -187,16 +194,20 @@ public final class PatternHeightCodecs {
         private static final Codec<NamedOffset> RANGE_CODEC =
             Range.CODEC.xmap(NamedOffset::new, o -> o.y);
         private static final Codec<NamedOffset> CODEC =
-            simpleAny(RANGE_CODEC, Type.TOP.codec, Type.BOTTOM.codec, Type.ABSOLUTE.codec)
+            simpleAny(RANGE_CODEC, Type.decoders())
                 .withEncoder(o -> o.canBeRange() ? RANGE_CODEC : o.type.codec);
 
         private static DataResult<NamedOffset> fromVerticalAnchor(VerticalAnchor anchor) {
-            if (anchor instanceof VerticalAnchor.BelowTop top) {
+            if (anchor instanceof BelowTop top) {
                 return DataResult.success(new NamedOffset(Type.TOP, Range.of(-top.offset())));
-            } else if (anchor instanceof VerticalAnchor.AboveBottom bottom) {
+            } else if (anchor instanceof AboveBottom bottom) {
                 return DataResult.success(new NamedOffset(Type.BOTTOM, Range.of(bottom.offset())));
-            } else if (anchor instanceof VerticalAnchor.Absolute absolute) {
+            } else if (anchor instanceof Absolute absolute) {
                 return DataResult.success(new NamedOffset(Type.ABSOLUTE, Range.of(absolute.y())));
+            } else if (anchor instanceof SurfaceVerticalAnchor surface) {
+                return DataResult.success(new NamedOffset(Type.SURFACE, Range.of(surface.offset())));
+            } else if (anchor instanceof SeaLevelVerticalAnchor seaLevel) {
+                return DataResult.success(new NamedOffset(Type.SEA_LEVEL, Range.of(seaLevel.offset())));
             }
             return DataResult.error(() -> "Unsupported vertical anchor: " + anchor);
         }
@@ -207,10 +218,6 @@ public final class PatternHeightCodecs {
 
         private NamedOffset(Type type, Range y) {
             this(type, y, DensityCutoff.DEFAULT_HARSHNESS);
-        }
-
-        private NamedOffset(Range y, double hardness) {
-            this(Type.ABSOLUTE, y, hardness);
         }
 
         private AnchorCutoff cutoff() {
@@ -242,6 +249,8 @@ public final class PatternHeightCodecs {
                 case BOTTOM -> VerticalAnchor.aboveBottom(y);
                 case TOP -> VerticalAnchor.belowTop(-y);
                 case ABSOLUTE -> VerticalAnchor.absolute(y);
+                case SURFACE -> new SurfaceVerticalAnchor(y);
+                case SEA_LEVEL -> new SeaLevelVerticalAnchor(y);
             };
         }
     }
@@ -249,16 +258,23 @@ public final class PatternHeightCodecs {
     private enum Type {
         BOTTOM,
         TOP,
-        ABSOLUTE;
+        ABSOLUTE,
+        SURFACE,
+        SEA_LEVEL;
 
-        private final Codec<NamedOffset> codec = codecOf(
+        final Codec<NamedOffset> codec = codecOf(
             field(Range.CODEC, this.key(), NamedOffset::y),
             defaulted(Codec.DOUBLE, "harshness", DensityCutoff.DEFAULT_HARSHNESS, NamedOffset::harshness),
-            NamedOffset::new
+            (range, harshness) -> new NamedOffset(this, range, harshness)
         ).codec();
 
-        public String key() {
+        String key() {
             return this.name().toLowerCase();
+        }
+
+        @SuppressWarnings("unchecked")
+        static Decoder<NamedOffset>[] decoders() {
+            return Stream.of(values()).map(t -> t.codec).toArray(Decoder[]::new);
         }
     }
 

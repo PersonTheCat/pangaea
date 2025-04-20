@@ -8,6 +8,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import personthecat.pangaea.world.provider.DensityOffsetVerticalAnchor;
 import personthecat.pangaea.world.provider.DensityVerticalAnchor;
+import personthecat.pangaea.world.provider.SeaLevelVerticalAnchor;
+import personthecat.pangaea.world.provider.SurfaceVerticalAnchor;
 
 @Mixin(VerticalAnchor.class)
 public interface VerticalAnchorMixin {
@@ -17,7 +19,8 @@ public interface VerticalAnchorMixin {
         at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/Codec;xmap(Ljava/util/function/Function;Ljava/util/function/Function;)Lcom/mojang/serialization/Codec;"),
         remap = false)
     private static Codec<VerticalAnchor> modify(Codec<VerticalAnchor> original) {
-        return Codec.lazyInitialized(() -> addDensityOffsetType(addDensityType(original)));
+        return Codec.lazyInitialized(() ->
+            addSeaLevelOffset(addDensityOffsetType(addDensityType(original))));
     }
 
     @Unique
@@ -28,5 +31,15 @@ public interface VerticalAnchorMixin {
     @Unique
     private static Codec<VerticalAnchor> addDensityOffsetType(Codec<VerticalAnchor> original) {
         return DensityOffsetVerticalAnchor.wrapCodec(original);
+    }
+
+    @Unique
+    private static Codec<VerticalAnchor> addSurfaceOffset(Codec<VerticalAnchor> original) {
+        return SurfaceVerticalAnchor.wrapCodec(original);
+    }
+
+    @Unique
+    private static Codec<VerticalAnchor> addSeaLevelOffset(Codec<VerticalAnchor> original) {
+        return SeaLevelVerticalAnchor.wrapCodec(original);
     }
 }

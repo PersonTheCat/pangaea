@@ -2,6 +2,8 @@ package personthecat.pangaea.world.level;
 
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.levelgen.WorldGenerationContext;
+import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import personthecat.catlib.data.ForkJoinThreadLocal;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.extras.WorldGenRegionExtras;
@@ -21,6 +23,19 @@ public final class ScopeExtension {
             return WorldGenRegionExtras.getGenerationContext(gen).rand;
         }
         throw new IllegalStateException("Neither generating noise nor features");
+    }
+
+    public static GenerationContext lookupPgContext(WorldGenerationContext wgc) {
+        if (wgc instanceof PlacementContext pc) {
+            return WorldGenRegionExtras.getGenerationContext(pc.getLevel());
+        } else if (wgc instanceof GenerationContext gc) {
+            return gc;
+        }
+        return getGenerationContext();
+    }
+
+    public static GenerationContext getGenerationContext() {
+        return WorldGenRegionExtras.getGenerationContext(GENERATING_REGION.get());
     }
 
     private ScopeExtension() {}
