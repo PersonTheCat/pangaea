@@ -26,7 +26,7 @@ public class IntProviderMixin {
 
     @Unique
     private static Codec<IntProvider> injectDensitySyntax(Codec<IntProvider> original) {
-        return defaultType(original, DensityIntProvider.CODEC.codec(), (p, _) ->
+        return defaultType(original, DensityIntProvider.CODEC.codec(), (p, o) ->
             p instanceof DensityIntProvider && Cfg.encodeDensityIntProviders());
     }
 

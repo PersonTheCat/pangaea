@@ -17,10 +17,10 @@ public final class ScopeExtension {
             return density;
         }
         final var gen = GENERATING_REGION.get();
-        if (gen == null) {
-            throw new IllegalStateException("Neither generating noise nor features");
+        if (gen != null) {
+            return WorldGenRegionExtras.getGenerationContext(gen).rand;
         }
-        return WorldGenRegionExtras.getGenerationContext(gen).rand;
+        throw new IllegalStateException("Neither generating noise nor features");
     }
 
     private ScopeExtension() {}

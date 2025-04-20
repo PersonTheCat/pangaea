@@ -9,7 +9,7 @@
     {
       "size": 10,
       "targets": [
-        { "state": "bedrock" , "target": "#stone_ore_replaceables" },
+        { "state": "bedrock", "target": "#stone_ore_replaceables" },
         { "state": "smooth_quartz", "target": "#deepslate_ore_replaceables" }
       ],
       "placement": [

@@ -26,7 +26,7 @@ public class FloatProviderMixin {
 
     @Unique
     private static Codec<FloatProvider> injectDensitySyntax(Codec<FloatProvider> original) {
-        return defaultType(original, DensityFloatProvider.CODEC.codec(), (p, _) ->
+        return defaultType(original, DensityFloatProvider.CODEC.codec(), (p, o) ->
             p instanceof DensityFloatProvider && Cfg.encodeDensityFloatProviders());
     }
 

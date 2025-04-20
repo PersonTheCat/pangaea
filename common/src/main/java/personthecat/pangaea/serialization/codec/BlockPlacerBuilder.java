@@ -10,6 +10,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import org.jetbrains.annotations.Nullable;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.world.placer.BlockPlacer;
+import personthecat.pangaea.world.placer.ChanceBlockPlacer;
 import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
 import personthecat.pangaea.world.placer.TargetedBlockPlacer;
 import personthecat.pangaea.world.provider.ColumnProvider;
@@ -26,12 +27,16 @@ public final class BlockPlacerBuilder extends MapCodec<BlockPlacer> {
     private static final List<StructuralType<?, ?>> STRUCTURAL_TYPES = List.of(
         StructuralType.of(BlockPlacer.class)
             .withCodec(BlockPlacer.CODEC, "place")
-            .withConstructor((p, _) -> p)
+            .withConstructor((p, w) -> p)
             .withDestructor(Function.identity(), Function.identity()),
         StructuralType.of(ColumnRestrictedBlockPlacer.class)
             .withCodec(ColumnProvider.CODEC, "column")
             .withConstructor(ColumnRestrictedBlockPlacer::new)
             .withDestructor(ColumnRestrictedBlockPlacer::column, ColumnRestrictedBlockPlacer::place),
+        StructuralType.of(ChanceBlockPlacer.class)
+            .withCodec(Codec.DOUBLE, "chance")
+            .withConstructor(ChanceBlockPlacer::new)
+            .withDestructor(ChanceBlockPlacer::chance, ChanceBlockPlacer::place),
         StructuralType.of(TargetedBlockPlacer.class)
             .withCodec(RuleTest.CODEC, "target")
             .withConstructor(TargetedBlockPlacer::new)
@@ -42,7 +47,7 @@ public final class BlockPlacerBuilder extends MapCodec<BlockPlacer> {
 
     public static Codec<BlockPlacer> wrap(Codec<BlockPlacer> codec) {
         return defaultType(codec, INSTANCE.codec(),
-            (p, _) -> Cfg.encodeStructuralBlockPlacers() && canBeStructural(p));
+            (p, o) -> Cfg.encodeStructuralBlockPlacers() && canBeStructural(p));
     }
 
     private static boolean canBeStructural(BlockPlacer p) {

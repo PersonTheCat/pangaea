@@ -30,14 +30,12 @@ import personthecat.pangaea.world.density.WeightedListDensity;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
+import personthecat.pangaea.world.feature.TestFeature;
 import personthecat.pangaea.world.injector.*;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
-import personthecat.pangaea.world.placer.BlockPlacerList;
-import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
-import personthecat.pangaea.world.placer.TargetedBlockPlacer;
-import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
+import personthecat.pangaea.world.placer.*;
 import personthecat.pangaea.world.provider.*;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
@@ -83,7 +81,7 @@ public abstract class Pangaea {
     }
 
     private static void updateRegistries() {
-        CommonRegistries.DENSITY_FUNCTION_TYPE.createRegister(MOD.modId())
+        CommonRegistries.DENSITY_FUNCTION_TYPE.createRegister(ID)
             .register("controller", DensityController.CODEC)
             .register("structural", StructuralDensityCodec.INSTANCE)
             .register("noise", FastNoiseDensity.CODEC)
@@ -94,19 +92,19 @@ public abstract class Pangaea {
             .register("uniform", UniformDensity.CODEC)
             .register("trapezoid", TrapezoidDensity.CODEC)
             .register("weighted_list", WeightedListDensity.CODEC);
-        CommonRegistries.FLOAT_PROVIDER_TYPE.createRegister(MOD.modId())
+        CommonRegistries.FLOAT_PROVIDER_TYPE.createRegister(ID)
             .register("density", DensityFloatProvider.TYPE);
-        CommonRegistries.INT_PROVIDER_TYPE.createRegister(MOD.modId())
+        CommonRegistries.INT_PROVIDER_TYPE.createRegister(ID)
             .register("density", DensityIntProvider.TYPE);
-        CommonRegistries.HEIGHT_PROVIDER_TYPE.createRegister(MOD.modId())
+        CommonRegistries.HEIGHT_PROVIDER_TYPE.createRegister(ID)
             .register("density", DensityHeightProvider.TYPE)
             .register("density_offset", DensityOffsetHeightProvider.TYPE);
-        CommonRegistries.PLACEMENT_MODIFIER_TYPE.createRegister(MOD.modId())
+        CommonRegistries.PLACEMENT_MODIFIER_TYPE.createRegister(ID)
             .register("simple", SimplePlacementModifier.TYPE)
             .register("surface_biome", SurfaceBiomeFilter.TYPE);
-        CommonRegistries.RULE_TEST_TYPE.createRegister(MOD.modId())
+        CommonRegistries.RULE_TEST_TYPE.createRegister(ID)
             .register("heterogeneous_list", HeterogeneousListRuleTest.TYPE);
-        PgRegistries.INJECTOR_TYPE.createRegister(MOD.modId())
+        PgRegistries.INJECTOR_TYPE.createRegister(ID)
             .register("ore", OreInjector.CODEC)
             .register("cavern", CavernInjector.CODEC)
             .register("biome", BiomeInjector.CODEC)
@@ -114,15 +112,18 @@ public abstract class Pangaea {
             .register("biome_source", BiomeSourceInjector.CODEC)
             .register("dimension", DimensionInjector.CODEC)
             .register("feature", FeatureInjector.CODEC);
-        PgRegistries.PLACER_TYPE.createRegister(MOD.modId())
+        PgRegistries.PLACER_TYPE.createRegister(ID)
             .register("targeted", TargetedBlockPlacer.CODEC)
             .register("column_restricted", ColumnRestrictedBlockPlacer.CODEC)
+            .register("chance", ChanceBlockPlacer.CODEC)
             .register("list", BlockPlacerList.CODEC)
             .register("unconditional", UnconditionalBlockPlacer.CODEC);
-        PgRegistries.BOUNDS_TYPE.createRegister(MOD.modId())
+        PgRegistries.COLUMN_TYPE.createRegister(ID)
             .register("constant", ConstantColumnProvider.CODEC)
             .register("dynamic", DynamicColumnProvider.CODEC)
             .register("anchor_range", AnchorRangeColumnProvider.CODEC);
+        CommonRegistries.FEATURE.createRegister(ID)
+            .register("test", TestFeature.INSTANCE);
     }
 
     private static void enableDebugFeatures() {

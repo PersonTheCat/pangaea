@@ -18,7 +18,7 @@ public class SimpleNeighborGraph extends NeighborGraph<SimpleNode> {
     }
 
     public void plot(int x, int z) {
-        this.plot(x, z, _ -> this.node);
+        this.plot(x, z, n -> this.node);
     }
 
     @Override

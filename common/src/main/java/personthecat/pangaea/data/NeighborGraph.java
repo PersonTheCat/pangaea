@@ -28,8 +28,8 @@ public abstract class NeighborGraph<N extends Node> {
     }
 
     protected void plot(int x, int z, UnaryOperator<N> f) {
-        this.graph.computeIfAbsent(x, _ -> new NeighborMap<>())
-            .compute(z, (_, n) -> f.apply(n));
+        this.graph.computeIfAbsent(x, _x -> new NeighborMap<>())
+            .compute(z, (_z, n) -> f.apply(n));
     }
 
     protected void endBatch() {
