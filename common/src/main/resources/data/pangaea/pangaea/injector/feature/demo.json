@@ -5,12 +5,14 @@
   "step": "vegetal_decoration",
   "inject": [
     {
+      "x": [ "surface", "top" ],
       "type": "pangaea:test",
       "column": [ 0, 100 ],
       "placer": [
         { "column": [ 0, 20 ], "place": "glowstone" },
         { "column": [ 20, 40 ], "place": "sea_lantern" },
         { "column": [ 40, 60 ], "place": "glowstone" },
+        { "column": { "surface": 1 }, "place": "redstone_block" },
         { "column": [ 60, 80 ], "place": "sea_lantern" },
         { "column": [ 80, 100 ], "place": "diamond_block", "chance": 0.5 },
         { "column": [ 80, 100 ], "place": "gold_block" }

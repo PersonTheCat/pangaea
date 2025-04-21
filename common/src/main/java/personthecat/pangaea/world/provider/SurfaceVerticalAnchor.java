@@ -31,6 +31,7 @@ public record SurfaceVerticalAnchor(int offset) implements ScalableVerticalAncho
     @Override
     public String toString() {
         if (this.offset == 0) return "surface";
-        return this.offset + (this.offset > 0 ? " above surface" : "below surface");
+        if (this.offset > 0) return this.offset + " above surface";
+        return -this.offset + " below surface";
     }
 }

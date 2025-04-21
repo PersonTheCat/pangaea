@@ -22,6 +22,7 @@ import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
 import personthecat.pangaea.world.provider.DynamicColumnProvider;
 import personthecat.pangaea.world.provider.ColumnProvider;
 import personthecat.pangaea.world.provider.ConstantColumnProvider;
+import personthecat.pangaea.world.provider.ExactColumnProvider;
 import personthecat.pangaea.world.provider.SeaLevelVerticalAnchor;
 import personthecat.pangaea.world.provider.SurfaceVerticalAnchor;
 
@@ -32,6 +33,10 @@ import static personthecat.catlib.serialization.codec.CodecUtils.*;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 
+// todo:
+//  * refactor to handle by shape,
+//  * optimize range of single type,
+//  * support 0-offset by Type as enum
 public final class PatternHeightCodecs {
     private static final Codec<HeightProvider> HEIGHT_CODEC =
         HeightInfo.CODEC.flatXmap(HeightInfo::toHeightProvider, HeightInfo::fromHeightProvider);
@@ -158,6 +163,9 @@ public final class PatternHeightCodecs {
                     return new ConstantColumnProvider(
                         ColumnBounds.create(this.lower.y.min(), this.upper.y.max(), this.upper.harshness)
                     );
+                } else if (this.isConstant()) {
+                    // Exactly one height -> range of x...x+1 (can't determine if single value given)
+                    return new ExactColumnProvider(this.lowerBound());
                 }
                 return new DynamicColumnProvider(
                     this.lower.minBound(), this.upper.maxBound(), this.upper.harshness

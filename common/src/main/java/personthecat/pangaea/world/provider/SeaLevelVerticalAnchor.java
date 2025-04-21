@@ -30,6 +30,7 @@ public record SeaLevelVerticalAnchor(int offset) implements VerticalAnchor {
     @Override
     public String toString() {
         if (this.offset == 0) return "sea level";
-        return this.offset + (this.offset > 0 ? " above sea level" : "below sea level");
+        if (this.offset > 0) return this.offset + " above sea level";
+        return -this.offset + " below sea level";
     }
 }

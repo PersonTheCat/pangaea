@@ -120,6 +120,7 @@ public abstract class Pangaea {
             .register("unconditional", UnconditionalBlockPlacer.CODEC);
         PgRegistries.COLUMN_TYPE.createRegister(ID)
             .register("constant", ConstantColumnProvider.CODEC)
+            .register("exact", ExactColumnProvider.CODEC)
             .register("dynamic", DynamicColumnProvider.CODEC)
             .register("anchor_range", AnchorRangeColumnProvider.CODEC);
         CommonRegistries.FEATURE.createRegister(ID)
