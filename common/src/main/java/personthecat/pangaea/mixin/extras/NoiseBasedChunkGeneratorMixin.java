@@ -1,6 +1,8 @@
 package personthecat.pangaea.mixin.extras;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.ChunkPos;
@@ -15,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.mixin.accessor.StructureManagerAccessor;
 import personthecat.pangaea.world.level.ScopeExtension;
 
@@ -23,6 +26,15 @@ import java.util.function.Supplier;
 @Mixin(NoiseBasedChunkGenerator.class)
 public abstract class NoiseBasedChunkGeneratorMixin {
 
+    @Inject(
+        method = "applyCarvers",
+        at = @At("HEAD"))
+    private void getGeneratingPos(
+            CallbackInfo ci,
+            @Share("pos") LocalRef<MutableFunctionContext> target) {
+        target.set(ScopeExtension.GENERATING_POS.get());
+    }
+
     // Ordinarily, carvers only use providers in the origin chunk.
     // This solution is otherwise brittle, but will not affect vanilla or PG features.
     @Inject(
@@ -30,8 +42,9 @@ public abstract class NoiseBasedChunkGeneratorMixin {
         at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/WorldGenRegion;getChunk(II)Lnet/minecraft/world/level/chunk/ChunkAccess;"))
     private void updateCarverPos(
             CallbackInfo ci,
-            @Local(ordinal = 1) ChunkPos currentPos) {
-        ScopeExtension.GENERATING_POS.get().set(currentPos);
+            @Local(ordinal = 1) ChunkPos currentPos,
+            @Share("pos") LocalRef<MutableFunctionContext> target) {
+        target.get().set(currentPos);
     }
 
     @ModifyArg(
