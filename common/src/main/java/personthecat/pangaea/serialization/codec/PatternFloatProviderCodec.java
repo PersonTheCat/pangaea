@@ -13,9 +13,9 @@ public final class PatternFloatProviderCodec {
     private PatternFloatProviderCodec() {}
 
     public static Codec<FloatProvider> wrap(Codec<FloatProvider> codec) {
-        return Codec.either(FloatRange.CODEC, codec).xmap(
-            either -> either.map(range -> UniformFloat.of(range.min(), range.max()), Function.identity()),
+        return Codec.either(codec, FloatRange.CODEC).xmap(
+            either -> either.map(Function.identity(), range -> UniformFloat.of(range.min(), range.max())),
             i -> i instanceof UniformFloat u && Cfg.encodeRangeFloatProvider()
-                ? Either.left(FloatRange.of(u.getMinValue(), u.getMaxValue())) : Either.right(i));
+                ? Either.right(FloatRange.of(u.getMinValue(), u.getMaxValue())) : Either.left(i));
     }
 }
