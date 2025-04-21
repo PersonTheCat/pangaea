@@ -20,6 +20,9 @@ import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.registry.PgRegistries;
+import personthecat.pangaea.serialization.codec.StructuralFloatProviderCodec;
+import personthecat.pangaea.serialization.codec.StructuralHeightProviderCodec;
+import personthecat.pangaea.serialization.codec.StructuralIntProviderCodec;
 import personthecat.pangaea.world.density.DensityController;
 import personthecat.pangaea.world.density.DensityList;
 import personthecat.pangaea.world.density.FastNoiseDensity;
@@ -93,12 +96,15 @@ public abstract class Pangaea {
             .register("trapezoid", TrapezoidDensity.CODEC)
             .register("weighted_list", WeightedListDensity.CODEC);
         CommonRegistries.FLOAT_PROVIDER_TYPE.createRegister(ID)
-            .register("density", DensityFloatProvider.TYPE);
+            .register("density", DensityFloatProvider.TYPE)
+            .register("structural", StructuralFloatProviderCodec.TYPE);
         CommonRegistries.INT_PROVIDER_TYPE.createRegister(ID)
-            .register("density", DensityIntProvider.TYPE);
+            .register("density", DensityIntProvider.TYPE)
+            .register("structural", StructuralIntProviderCodec.TYPE);
         CommonRegistries.HEIGHT_PROVIDER_TYPE.createRegister(ID)
             .register("density", DensityHeightProvider.TYPE)
-            .register("density_offset", DensityOffsetHeightProvider.TYPE);
+            .register("density_offset", DensityOffsetHeightProvider.TYPE)
+            .register("structural", StructuralHeightProviderCodec.TYPE);
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.createRegister(ID)
             .register("simple", SimplePlacementModifier.TYPE)
             .register("surface_biome", SurfaceBiomeFilter.TYPE);

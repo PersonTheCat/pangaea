@@ -20,7 +20,7 @@ public final class PatternBlockPlacerCodec implements Codec<BlockPlacer> {
     public static Codec<BlockPlacer> wrap(Codec<BlockPlacer> codec) {
         return simpleEither(codec, INSTANCE)
             .withEncoder((placer) ->
-                Cfg.encodeStructuralBlockPlacers() && Pattern.hasMatcherForPlacer(placer)
+                Cfg.encodePatternBlockPlacers() && Pattern.hasMatcherForPlacer(placer)
                     ? INSTANCE : codec);
     }
 

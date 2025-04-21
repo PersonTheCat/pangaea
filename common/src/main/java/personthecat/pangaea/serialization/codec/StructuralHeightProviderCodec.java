@@ -7,6 +7,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
+import net.minecraft.world.level.levelgen.heightproviders.HeightProviderType;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.world.provider.DensityHeightProvider;
 import personthecat.pangaea.world.provider.DensityOffsetHeightProvider;
@@ -18,6 +19,7 @@ import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
 
 public class StructuralHeightProviderCodec extends MapCodec<HeightProvider> {
     public static final StructuralHeightProviderCodec INSTANCE = new StructuralHeightProviderCodec();
+    public static final HeightProviderType<HeightProvider> TYPE = () -> INSTANCE;
     private static final List<String> KEYS = List.of("density", "reference", "offset");
 
     private StructuralHeightProviderCodec() {}
@@ -38,13 +40,11 @@ public class StructuralHeightProviderCodec extends MapCodec<HeightProvider> {
 
     @Override
     public <T> DataResult<HeightProvider> decode(DynamicOps<T> ops, MapLike<T> input) {
-        var r = asParent(DensityOffsetHeightProvider.CODEC.decode(ops, input));
-        if (r.isSuccess()) {
-            return r;
+        if (input.get("reference") != null && input.get("offset") != null) {
+            return asParent(DensityOffsetHeightProvider.CODEC.decode(ops, input));
         }
-        r = asParent(DensityHeightProvider.CODEC.decode(ops, input));
-        if (r.isSuccess()) {
-            return r;
+        if (input.get("density") != null) {
+            return asParent(DensityHeightProvider.CODEC.decode(ops, input));
         }
         return DataResult.error(() -> "no structural fields or type present");
     }
