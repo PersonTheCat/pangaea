@@ -17,6 +17,8 @@ public class NoiseGraph {
     public static final int BIOME_SAMPLE_RADIUS = 16 / BIOME_SAMPLE_DIMENSION;
     public static final int BIOME_SCAN_CHUNK_RADIUS = 2;
     public static final int BIOME_SCAN_DIMENSION = BIOME_SAMPLE_DIMENSION * (BIOME_SCAN_CHUNK_RADIUS * 2 + 1);
+    private static final int CLEANUP_INTERVAL = 5;
+    private static final int CLEANUP_DISTANCE = 10;
     private static final Point[] BIOME_CHECKS = {
         new Point(3, 3),
         new Point(3, 12),
@@ -132,7 +134,12 @@ public class NoiseGraph {
     }
 
     protected Samples getData(int cX, int cZ) {
-        return this.graph.computeIfAbsent((((long) cX) << 32) | (cZ & 0xFFFFFFFFL), c -> new Samples());
+        return this.graph.computeIfAbsent((((long) cX) << 32) | (cZ & 0xFFFFFFFFL), c -> {
+            if ((cX % CLEANUP_INTERVAL) == 0 && (cZ % CLEANUP_INTERVAL) == 0) {
+                this.drainOutside(cX, cZ, CLEANUP_DISTANCE);
+            }
+            return new Samples();
+        });
     }
 
     protected void compute(Sampler sampler, Samples data, int cX, int cZ, int lX, int lZ) {
