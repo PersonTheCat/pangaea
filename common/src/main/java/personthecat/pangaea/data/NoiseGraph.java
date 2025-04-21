@@ -134,12 +134,16 @@ public class NoiseGraph {
     }
 
     protected Samples getData(int cX, int cZ) {
-        return this.graph.computeIfAbsent((((long) cX) << 32) | (cZ & 0xFFFFFFFFL), c -> {
-            if ((cX % CLEANUP_INTERVAL) == 0 && (cZ % CLEANUP_INTERVAL) == 0) {
-                this.drainOutside(cX, cZ, CLEANUP_DISTANCE);
-            }
-            return new Samples();
-        });
+        final long c = (((long) cX) << 32) | (cZ & 0xFFFFFFFFL);
+        var data = this.graph.get(c);
+        if (data != null) {
+            return data;
+        }
+        if ((cX % CLEANUP_INTERVAL) == 0 && (cZ % CLEANUP_INTERVAL) == 0) {
+            this.drainOutside(cX, cZ, CLEANUP_DISTANCE);
+        }
+        this.graph.put(c, data = new Samples());
+        return data;
     }
 
     protected void compute(Sampler sampler, Samples data, int cX, int cZ, int lX, int lZ) {
