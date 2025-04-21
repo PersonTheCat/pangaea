@@ -74,8 +74,10 @@ public interface Border {
             return NONE;
         }
         final var graph = ctx.noise.graphBiomes(ctx.biomes, predicate, ctx.chunkX, ctx.chunkZ);
+        if (graph.isEmpty()) {
+            return NONE;
+        }
         final var cutoff = new DensityCutoff(t, r, 0.15);
-
         return new Border() {
 
             @Override

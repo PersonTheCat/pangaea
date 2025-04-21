@@ -37,6 +37,10 @@ public abstract class NeighborGraph<N extends Node> {
         this.graph.entries().forEach(e -> e.t.endBatch());
     }
 
+    public boolean isEmpty() {
+        return this.graph.entries().isEmpty();
+    }
+
     public double distance(int x, int z, double min) {
         final NodeResult<N> nearest = this.getNearest(x, z, min);
         return nearest != null ? nearest.distance : Double.MAX_VALUE;
