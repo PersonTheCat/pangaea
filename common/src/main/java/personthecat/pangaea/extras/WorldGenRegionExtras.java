@@ -7,12 +7,6 @@ import personthecat.pangaea.world.level.GenerationContext;
 public interface WorldGenRegionExtras {
     GenerationContext pangaea$getGenerationContext();
     void pangaea$setGenerationContext(GenerationContext ctx);
-    int pangaea$getGeneratingFeatureIndex();
-    void pangaea$setGeneratingFeatureIndex(int idx);
-
-    default void pangaea$incrementGeneratingFeatureIndex() {
-        this.pangaea$setGeneratingFeatureIndex(this.pangaea$getGeneratingFeatureIndex() + 1);
-    }
 
     static GenerationContext getGenerationContext(WorldGenLevel level) {
         return get(level).pangaea$getGenerationContext();
@@ -20,14 +14,6 @@ public interface WorldGenRegionExtras {
 
     static void setGenerationContext(WorldGenLevel level, GenerationContext ctx) {
         get(level).pangaea$setGenerationContext(ctx);
-    }
-
-    static int getGeneratingFeatureIndex(WorldGenLevel level) {
-        return get(level).pangaea$getGeneratingFeatureIndex();
-    }
-
-    static void incrementGeneratingFeatureIndex(WorldGenLevel level) {
-        get(level).pangaea$incrementGeneratingFeatureIndex();
     }
 
     static WorldGenRegionExtras get(WorldGenLevel level) {

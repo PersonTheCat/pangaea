@@ -1,6 +1,8 @@
 package personthecat.pangaea.mixin.extras;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -11,7 +13,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import personthecat.pangaea.extras.WorldGenRegionExtras;
 import personthecat.pangaea.world.level.GenerationContext;
 
 @Mixin(ChunkGenerator.class)
@@ -25,9 +26,9 @@ public class ChunkGeneratorMixin {
             ChunkAccess chunk,
             StructureManager structures,
             CallbackInfo ci,
-            @Local WorldgenRandom rand) {
-        final var ctx = new GenerationContext(level, rand, (ProtoChunk) chunk, ((ChunkGenerator) (Object) this));
-        WorldGenRegionExtras.setGenerationContext(level, ctx);
+            @Local WorldgenRandom rand,
+            @Share("ctx") LocalRef<GenerationContext> ctx) {
+        ctx.set(GenerationContext.init(level, rand, (ProtoChunk) chunk, ((ChunkGenerator) (Object) this)));
     }
 
     @Inject(
@@ -37,7 +38,8 @@ public class ChunkGeneratorMixin {
             WorldGenLevel level,
             ChunkAccess chunk,
             StructureManager structures,
-            CallbackInfo ci) {
-        WorldGenRegionExtras.incrementGeneratingFeatureIndex(level);
+            CallbackInfo ci,
+            @Share("ctx") LocalRef<GenerationContext> ctx) {
+        ctx.get().featureIndex.increment();
     }
 }

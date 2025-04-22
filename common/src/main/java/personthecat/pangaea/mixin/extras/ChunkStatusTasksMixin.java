@@ -8,13 +8,13 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.ProtoChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatusTasks;
 import net.minecraft.world.level.levelgen.GenerationStep.Carving;
 import net.minecraft.world.level.levelgen.RandomState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import personthecat.pangaea.data.MutableFunctionContext;
-import personthecat.pangaea.world.level.ScopeExtension;
+import personthecat.pangaea.world.level.GenerationContext;
 
 @Mixin(ChunkStatusTasks.class)
 public class ChunkStatusTasksMixin {
@@ -32,10 +32,8 @@ public class ChunkStatusTasksMixin {
             ChunkAccess chunk,
             Carving step,
             Operation<Void> applyCarvers) {
-        final var ctx = MutableFunctionContext.from(chunk.getPos());
-        ScopeExtension.GENERATING_POS.runScoped(ctx, () ->
-            ScopeExtension.GENERATING_REGION.runScoped(level, () ->
-                applyCarvers.call(gen, level, seed, rand, biomes, structures, chunk, step)));
+        GenerationContext.init(level, (ProtoChunk) chunk, gen);
+        applyCarvers.call(gen, level, seed, rand, biomes, structures, chunk, step);
     }
 
     @WrapOperation(
@@ -47,9 +45,7 @@ public class ChunkStatusTasksMixin {
             ChunkAccess chunk,
             StructureManager structures,
             Operation<Void> applyBiomeDecorations) {
-        final var ctx = MutableFunctionContext.from(chunk.getPos());
-        ScopeExtension.GENERATING_POS.runScoped(ctx, () ->
-            ScopeExtension.GENERATING_REGION.runScoped((WorldGenRegion) level, () ->
-                applyBiomeDecorations.call(gen, level, chunk, structures)));
+        GenerationContext.init(level, (ProtoChunk) chunk, gen);
+        applyBiomeDecorations.call(gen, level, chunk, structures);
     }
 }

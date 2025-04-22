@@ -23,6 +23,7 @@ public class TestFeature extends PangaeaFeature<Configuration> {
         if (!border.isInRange(ctx, ctx.centerX, ctx.centerZ)) {
             return false;
         }
+        ctx.targetPos.at(ctx.centerX, ctx.centerZ);
         final var column = cfg.column.getColumn(ctx, ctx.centerX, ctx.centerZ);
         for (int y = column.min(); y < column.max(); y++) {
             cfg.placer.placeUnchecked(ctx, ctx.centerX, y, ctx.centerZ);

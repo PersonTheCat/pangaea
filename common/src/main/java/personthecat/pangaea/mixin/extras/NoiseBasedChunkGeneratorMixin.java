@@ -3,23 +3,21 @@ package personthecat.pangaea.mixin.extras;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import net.minecraft.core.Holder;
-import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.ProtoChunk;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
-import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
-import net.minecraft.world.level.levelgen.WorldgenRandom;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.mixin.accessor.StructureManagerAccessor;
-import personthecat.pangaea.world.level.ScopeExtension;
+import personthecat.pangaea.world.level.GenerationContext;
 
 import java.util.function.Supplier;
 
@@ -32,7 +30,7 @@ public abstract class NoiseBasedChunkGeneratorMixin {
     private void getGeneratingPos(
             CallbackInfo ci,
             @Share("pos") LocalRef<MutableFunctionContext> target) {
-        target.set(ScopeExtension.GENERATING_POS.get());
+        target.set(GenerationContext.get().targetPos);
     }
 
     // Ordinarily, carvers only use providers in the origin chunk.
@@ -55,14 +53,11 @@ public abstract class NoiseBasedChunkGeneratorMixin {
             Supplier<ChunkAccess> task,
             @Local(argsOnly = true) StructureManager structures,
             @Local(argsOnly = true) ChunkAccess chunk) {
-        final var level = ((StructureManagerAccessor) structures).getLevel();
-        final var seed = ((WorldGenRegion) level).getSeed();
-        final var source = this.generatorSettings().value().getRandomSource().newInstance(seed);
-        final var rand = new WorldgenRandom(source);
-        rand.setLargeFeatureSeed(seed - 1L, chunk.getPos().x, chunk.getPos().z);
-        return () -> ScopeExtension.DENSITY_RAND.getScoped(rand, task);
+        return () -> {
+            final var level = ((StructureManagerAccessor) structures).getLevel();
+            final var ctx = GenerationContext.init((WorldGenLevel) level, (ProtoChunk) chunk, ((ChunkGenerator) (Object) this));
+            ctx.rand.setLargeFeatureSeed(ctx.seed - 1L, ctx.chunkX, ctx.chunkZ);
+            return task.get();
+        };
     }
-
-    @Shadow
-    public abstract Holder<NoiseGeneratorSettings> generatorSettings();
 }

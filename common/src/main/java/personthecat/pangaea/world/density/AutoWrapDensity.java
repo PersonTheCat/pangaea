@@ -6,8 +6,7 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
-import personthecat.pangaea.world.level.ScopeExtension;
-import personthecat.pangaea.extras.WorldGenRegionExtras;
+import personthecat.pangaea.world.level.GenerationContext;
 
 import java.util.function.Function;
 
@@ -68,12 +67,7 @@ public record AutoWrapDensity(DensityFunction density) implements DensityFunctio
     }
 
     private DensityFunction wrap() {
-        final var region = ScopeExtension.GENERATING_REGION.get();
-        if (region == null) {
-            throw new IllegalStateException(
-                "Density function should not be auto-wrapped. Use it directly: " + this.density);
-        }
-        return WorldGenRegionExtras.getGenerationContext(region).wrap(this.density);
+        return GenerationContext.get().wrap(this.density);
     }
 
     @Override

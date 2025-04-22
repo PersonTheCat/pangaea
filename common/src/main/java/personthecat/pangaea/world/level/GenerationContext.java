@@ -16,11 +16,18 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions.Marker;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseChunk;
+import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
+import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
+import personthecat.catlib.data.ForkJoinThreadLocal;
+import personthecat.pangaea.data.Counter;
+import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.data.NoiseGraph;
 import personthecat.pangaea.extras.LevelExtras;
+import personthecat.pangaea.extras.WorldGenRegionExtras;
 import personthecat.pangaea.mixin.accessor.ChunkAccessAccessor;
 import personthecat.pangaea.mixin.accessor.NoiseChunkAccessor;
 import personthecat.pangaea.util.CommonBlocks;
@@ -29,6 +36,7 @@ import java.util.Map;
 
 public final class GenerationContext extends WorldGenerationContext {
 
+    private static final ForkJoinThreadLocal<GenerationContext> INSTANCE = ForkJoinThreadLocal.create();
     private static final FluidStatus NO_FLUID = new FluidStatus(0, CommonBlocks.AIR);
     private static final Aquifer NO_AQUIFER = Aquifer.createDisabled((x, y, z) -> NO_FLUID);
     public final BiomeManager biomes;
@@ -50,6 +58,8 @@ public final class GenerationContext extends WorldGenerationContext {
     public final Heightmap oceanFloor;
     public final CarvingMask carvingMask;
     public final Aquifer aquifer;
+    public final MutableFunctionContext targetPos;
+    public final Counter featureIndex;
 
     public GenerationContext(WorldGenLevel level, WorldgenRandom rand, ProtoChunk chunk, ChunkGenerator gen) {
         super(gen, level);
@@ -76,6 +86,49 @@ public final class GenerationContext extends WorldGenerationContext {
         this.carvingMask = chunk.getOrCreateCarvingMask(GenerationStep.Carving.AIR);
         final var nc = chunk.getOrCreateNoiseChunk(c -> null);
         this.aquifer = nc instanceof NoiseChunkAccessor ? nc.aquifer() : NO_AQUIFER;
+        this.targetPos = MutableFunctionContext.from(pos);
+        this.featureIndex = new Counter();
+    }
+
+    public static GenerationContext init(WorldGenLevel level, ProtoChunk chunk, ChunkGenerator gen) {
+        if (gen instanceof NoiseBasedChunkGenerator noise) {
+            final var rand = new WorldgenRandom(
+                noise.generatorSettings().value().getRandomSource().newInstance(level.getSeed()));
+            return init(level, rand, chunk, gen);
+        }
+        final var rand = new WorldgenRandom(new XoroshiroRandomSource(level.getSeed()));
+        return init(level, rand, chunk, gen);
+    }
+
+    public static GenerationContext init(
+            WorldGenLevel level, WorldgenRandom rand, ProtoChunk chunk, ChunkGenerator gen) {
+        final var ctx = new GenerationContext(level, rand, chunk, gen);
+        INSTANCE.set(ctx);
+        // ctx is doubly linked here to minimize cost of thread-local access
+        WorldGenRegionExtras.setGenerationContext(level, ctx);
+        return ctx;
+    }
+
+    public static GenerationContext get() {
+        final var ctx = INSTANCE.get();
+        if (ctx != null) {
+            return ctx;
+        }
+        throw new IllegalStateException("Pangaea context not installed");
+    }
+
+    public static GenerationContext get(WorldGenerationContext wgc) {
+        if (wgc instanceof PlacementContext pc) {
+            return WorldGenRegionExtras.getGenerationContext(pc.getLevel());
+        } else if (wgc instanceof GenerationContext gc) {
+            return gc;
+        }
+        return get();
+    }
+
+    public static GenerationContext get(WorldGenLevel level) {
+        // assumes context has been installed correctly
+        return WorldGenRegionExtras.getGenerationContext(level);
     }
 
     public DensityFunction wrap(DensityFunction f) {

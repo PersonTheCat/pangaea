@@ -19,7 +19,9 @@ public abstract class MapFeature<FC extends MapFeatureConfiguration> extends Pan
 
         for (int x = cX - r; x < cX + r; x++) {
             for (int z = cZ - r; z < cZ +r; z++) {
-                this.place(ctx, cfg, new ChunkPos(x, z), border);
+                final var pos2 = new ChunkPos(x, z);
+                ctx.rand.setLargeFeatureSeed(ctx.seed + ctx.featureIndex.get(), pos2.x, pos2.z);
+                this.place(ctx, cfg, pos2, border);
             }
         }
         return true;

@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import personthecat.pangaea.data.MutableFunctionContext;
-import personthecat.pangaea.world.level.ScopeExtension;
+import personthecat.pangaea.world.level.GenerationContext;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -25,7 +25,7 @@ public class PlacedFeatureMixin {
     private void getGeneratingPos(
             CallbackInfoReturnable<Boolean> cir,
             @Share("pos") LocalRef<MutableFunctionContext> target) {
-        target.set(ScopeExtension.GENERATING_POS.get());
+        target.set(GenerationContext.get().targetPos);
     }
 
     // Wrapping lambdas to avoid having different mixins on each platform
