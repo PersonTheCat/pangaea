@@ -6,7 +6,7 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 import java.util.function.Function;
 
@@ -67,7 +67,7 @@ public record AutoWrapDensity(DensityFunction density) implements DensityFunctio
     }
 
     private DensityFunction wrap() {
-        return GenerationContext.get().wrap(this.density);
+        return PangaeaContext.get().wrap(this.density);
     }
 
     @Override

@@ -5,7 +5,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 import java.util.function.Function;
 
@@ -24,7 +24,7 @@ public record SeaLevelVerticalAnchor(int offset) implements VerticalAnchor {
 
     @Override
     public int resolveY(WorldGenerationContext gen) {
-        return GenerationContext.get(gen).seaLevel + this.offset;
+        return PangaeaContext.get(gen).seaLevel + this.offset;
     }
 
     @Override

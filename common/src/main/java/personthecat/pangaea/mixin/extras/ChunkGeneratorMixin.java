@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 @Mixin(ChunkGenerator.class)
 public class ChunkGeneratorMixin {
@@ -21,14 +21,14 @@ public class ChunkGeneratorMixin {
     @Inject(
         method = "applyBiomeDecoration",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/WorldgenRandom;setDecorationSeed(JII)J"))
-    private void injectGenerationContext(
+    private void injectPangaeaContext(
             WorldGenLevel level,
             ChunkAccess chunk,
             StructureManager structures,
             CallbackInfo ci,
             @Local WorldgenRandom rand,
-            @Share("ctx") LocalRef<GenerationContext> ctx) {
-        ctx.set(GenerationContext.init(level, rand, (ProtoChunk) chunk, ((ChunkGenerator) (Object) this)));
+            @Share("ctx") LocalRef<PangaeaContext> ctx) {
+        ctx.set(PangaeaContext.init(level, rand, (ProtoChunk) chunk, ((ChunkGenerator) (Object) this)));
     }
 
     @Inject(
@@ -39,7 +39,7 @@ public class ChunkGeneratorMixin {
             ChunkAccess chunk,
             StructureManager structures,
             CallbackInfo ci,
-            @Share("ctx") LocalRef<GenerationContext> ctx) {
+            @Share("ctx") LocalRef<PangaeaContext> ctx) {
         ctx.get().featureIndex.increment();
     }
 }

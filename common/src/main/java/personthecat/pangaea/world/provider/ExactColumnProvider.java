@@ -3,7 +3,7 @@ package personthecat.pangaea.world.provider;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import personthecat.pangaea.data.ColumnBounds;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 public record ExactColumnProvider(VerticalAnchor anchor) implements ColumnProvider {
     public static final MapCodec<ExactColumnProvider> CODEC =
@@ -11,7 +11,7 @@ public record ExactColumnProvider(VerticalAnchor anchor) implements ColumnProvid
             .xmap(ExactColumnProvider::new, ExactColumnProvider::anchor);
 
     @Override
-    public ColumnBounds getColumn(GenerationContext ctx, int x, int z) {
+    public ColumnBounds getColumn(PangaeaContext ctx, int x, int z) {
         final int y = this.anchor.resolveY(ctx);
         return ColumnBounds.create(y, y + 1, 0);
     }

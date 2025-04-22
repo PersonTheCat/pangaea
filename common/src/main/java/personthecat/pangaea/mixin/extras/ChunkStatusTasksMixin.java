@@ -14,7 +14,7 @@ import net.minecraft.world.level.levelgen.GenerationStep.Carving;
 import net.minecraft.world.level.levelgen.RandomState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 @Mixin(ChunkStatusTasks.class)
 public class ChunkStatusTasksMixin {
@@ -32,7 +32,7 @@ public class ChunkStatusTasksMixin {
             ChunkAccess chunk,
             Carving step,
             Operation<Void> applyCarvers) {
-        GenerationContext.init(level, (ProtoChunk) chunk, gen);
+        PangaeaContext.init(level, (ProtoChunk) chunk, gen);
         applyCarvers.call(gen, level, seed, rand, biomes, structures, chunk, step);
     }
 
@@ -45,7 +45,7 @@ public class ChunkStatusTasksMixin {
             ChunkAccess chunk,
             StructureManager structures,
             Operation<Void> applyBiomeDecorations) {
-        GenerationContext.init(level, (ProtoChunk) chunk, gen);
+        PangaeaContext.init(level, (ProtoChunk) chunk, gen);
         applyBiomeDecorations.call(gen, level, chunk, structures);
     }
 }

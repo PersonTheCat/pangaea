@@ -2,18 +2,18 @@ package personthecat.pangaea.extras;
 
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.WorldGenLevel;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 public interface WorldGenRegionExtras {
-    GenerationContext pangaea$getGenerationContext();
-    void pangaea$setGenerationContext(GenerationContext ctx);
+    PangaeaContext pangaea$getPangaeaContext();
+    void pangaea$setPangaeaContext(PangaeaContext ctx);
 
-    static GenerationContext getGenerationContext(WorldGenLevel level) {
-        return get(level).pangaea$getGenerationContext();
+    static PangaeaContext getPangaeaContext(WorldGenLevel level) {
+        return get(level).pangaea$getPangaeaContext();
     }
 
-    static void setGenerationContext(WorldGenLevel level, GenerationContext ctx) {
-        get(level).pangaea$setGenerationContext(ctx);
+    static void setPangaeaContext(WorldGenLevel level, PangaeaContext ctx) {
+        get(level).pangaea$setPangaeaContext(ctx);
     }
 
     static WorldGenRegionExtras get(WorldGenLevel level) {

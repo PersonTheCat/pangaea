@@ -3,7 +3,7 @@ package personthecat.pangaea.world.feature;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import personthecat.pangaea.world.feature.TestFeature.Configuration;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.provider.ColumnProvider;
 
@@ -19,7 +19,7 @@ public class TestFeature extends PangaeaFeature<Configuration> {
     }
 
     @Override
-    protected boolean place(GenerationContext ctx, Configuration cfg, BlockPos pos, Border border) {
+    protected boolean place(PangaeaContext ctx, Configuration cfg, BlockPos pos, Border border) {
         if (!border.isInRange(ctx, ctx.centerX, ctx.centerZ)) {
             return false;
         }

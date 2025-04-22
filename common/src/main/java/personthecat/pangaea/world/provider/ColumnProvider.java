@@ -5,16 +5,16 @@ import com.mojang.serialization.MapCodec;
 import personthecat.pangaea.data.ColumnBounds;
 import personthecat.pangaea.registry.PgRegistries;
 import personthecat.pangaea.serialization.codec.PatternHeightCodecs;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 import java.util.function.Function;
 
 public interface ColumnProvider {
     Codec<ColumnProvider> CODEC = buildCodec();
 
-    ColumnBounds getColumn(GenerationContext ctx, int x, int z);
+    ColumnBounds getColumn(PangaeaContext ctx, int x, int z);
 
-    default boolean isInBounds(GenerationContext ctx, int x, int y, int z) {
+    default boolean isInBounds(PangaeaContext ctx, int x, int y, int z) {
         return this.getColumn(ctx, x, z).isInRange(y);
     }
 

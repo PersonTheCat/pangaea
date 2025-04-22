@@ -3,7 +3,7 @@ package personthecat.pangaea.world.feature;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 public abstract class MapFeature<FC extends MapFeatureConfiguration> extends PangaeaFeature<FC> {
 
@@ -12,7 +12,7 @@ public abstract class MapFeature<FC extends MapFeatureConfiguration> extends Pan
     }
 
     @Override
-    protected final boolean place(GenerationContext ctx, FC cfg, BlockPos pos, Border border) {
+    protected final boolean place(PangaeaContext ctx, FC cfg, BlockPos pos, Border border) {
         final int cX = ctx.chunkX;
         final int cZ = ctx.chunkZ;
         final int r = cfg.chunkRadius;
@@ -27,5 +27,5 @@ public abstract class MapFeature<FC extends MapFeatureConfiguration> extends Pan
         return true;
     }
 
-    protected abstract void place(GenerationContext ctx, FC cfg, ChunkPos pos, Border border);
+    protected abstract void place(PangaeaContext ctx, FC cfg, ChunkPos pos, Border border);
 }

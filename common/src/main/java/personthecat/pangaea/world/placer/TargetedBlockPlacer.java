@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
@@ -19,7 +19,7 @@ public record TargetedBlockPlacer(RuleTest target, BlockPlacer place) implements
     );
 
     @Override
-    public boolean placeUnchecked(GenerationContext ctx, int x, int y, int z) {
+    public boolean placeUnchecked(PangaeaContext ctx, int x, int y, int z) {
         final var replaced = ctx.getUnchecked(x, y, z);
         if (this.target.test(replaced, ctx.rand)) {
             return this.place.placeUnchecked(ctx, x, y, z);

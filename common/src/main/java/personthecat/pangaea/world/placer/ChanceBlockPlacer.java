@@ -2,7 +2,7 @@ package personthecat.pangaea.world.placer;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
@@ -16,7 +16,7 @@ public record ChanceBlockPlacer(double chance, BlockPlacer place) implements Blo
     );
 
     @Override
-    public boolean placeUnchecked(GenerationContext ctx, int x, int y, int z) {
+    public boolean placeUnchecked(PangaeaContext ctx, int x, int y, int z) {
         if (ctx.rand.nextDouble() <= this.chance) {
             return this.place.placeUnchecked(ctx, x, y, z);
         }

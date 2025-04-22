@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.mixin.accessor.StructureManagerAccessor;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 import java.util.function.Supplier;
 
@@ -30,7 +30,7 @@ public abstract class NoiseBasedChunkGeneratorMixin {
     private void getGeneratingPos(
             CallbackInfo ci,
             @Share("pos") LocalRef<MutableFunctionContext> target) {
-        target.set(GenerationContext.get().targetPos);
+        target.set(PangaeaContext.get().targetPos);
     }
 
     // Ordinarily, carvers only use providers in the origin chunk.
@@ -55,7 +55,7 @@ public abstract class NoiseBasedChunkGeneratorMixin {
             @Local(argsOnly = true) ChunkAccess chunk) {
         return () -> {
             final var level = ((StructureManagerAccessor) structures).getLevel();
-            final var ctx = GenerationContext.init((WorldGenLevel) level, (ProtoChunk) chunk, ((ChunkGenerator) (Object) this));
+            final var ctx = PangaeaContext.init((WorldGenLevel) level, (ProtoChunk) chunk, ((ChunkGenerator) (Object) this));
             ctx.rand.setLargeFeatureSeed(ctx.seed - 1L, ctx.chunkX, ctx.chunkZ);
             return task.get();
         };

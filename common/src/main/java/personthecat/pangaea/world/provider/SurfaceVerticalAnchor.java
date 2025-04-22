@@ -6,7 +6,7 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.DensityFunction.FunctionContext;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 import java.util.function.Function;
 
@@ -25,7 +25,7 @@ public record SurfaceVerticalAnchor(int offset) implements ScalableVerticalAncho
 
     @Override
     public int resolveY(WorldGenerationContext gen, FunctionContext ctx) {
-        return GenerationContext.get(gen).getHeight(ctx.blockX(), ctx.blockZ()) + this.offset;
+        return PangaeaContext.get(gen).getHeight(ctx.blockX(), ctx.blockZ()) + this.offset;
     }
 
     @Override

@@ -34,9 +34,9 @@ import personthecat.pangaea.util.CommonBlocks;
 
 import java.util.Map;
 
-public final class GenerationContext extends WorldGenerationContext {
+public final class PangaeaContext extends WorldGenerationContext {
 
-    private static final ForkJoinThreadLocal<GenerationContext> INSTANCE = ForkJoinThreadLocal.create();
+    private static final ForkJoinThreadLocal<PangaeaContext> INSTANCE = ForkJoinThreadLocal.create();
     private static final FluidStatus NO_FLUID = new FluidStatus(0, CommonBlocks.AIR);
     private static final Aquifer NO_AQUIFER = Aquifer.createDisabled((x, y, z) -> NO_FLUID);
     public final BiomeManager biomes;
@@ -61,7 +61,7 @@ public final class GenerationContext extends WorldGenerationContext {
     public final MutableFunctionContext targetPos;
     public final Counter featureIndex;
 
-    public GenerationContext(WorldGenLevel level, WorldgenRandom rand, ProtoChunk chunk, ChunkGenerator gen) {
+    public PangaeaContext(WorldGenLevel level, WorldgenRandom rand, ProtoChunk chunk, ChunkGenerator gen) {
         super(gen, level);
         final var source = gen.getBiomeSource();
         final var pos = chunk.getPos();
@@ -90,7 +90,7 @@ public final class GenerationContext extends WorldGenerationContext {
         this.featureIndex = new Counter();
     }
 
-    public static GenerationContext init(WorldGenLevel level, ProtoChunk chunk, ChunkGenerator gen) {
+    public static PangaeaContext init(WorldGenLevel level, ProtoChunk chunk, ChunkGenerator gen) {
         if (gen instanceof NoiseBasedChunkGenerator noise) {
             final var rand = new WorldgenRandom(
                 noise.generatorSettings().value().getRandomSource().newInstance(level.getSeed()));
@@ -100,16 +100,16 @@ public final class GenerationContext extends WorldGenerationContext {
         return init(level, rand, chunk, gen);
     }
 
-    public static GenerationContext init(
+    public static PangaeaContext init(
             WorldGenLevel level, WorldgenRandom rand, ProtoChunk chunk, ChunkGenerator gen) {
-        final var ctx = new GenerationContext(level, rand, chunk, gen);
+        final var ctx = new PangaeaContext(level, rand, chunk, gen);
         INSTANCE.set(ctx);
         // ctx is doubly linked here to minimize cost of thread-local access
-        WorldGenRegionExtras.setGenerationContext(level, ctx);
+        WorldGenRegionExtras.setPangaeaContext(level, ctx);
         return ctx;
     }
 
-    public static GenerationContext get() {
+    public static PangaeaContext get() {
         final var ctx = INSTANCE.get();
         if (ctx != null) {
             return ctx;
@@ -117,18 +117,18 @@ public final class GenerationContext extends WorldGenerationContext {
         throw new IllegalStateException("Pangaea context not installed");
     }
 
-    public static GenerationContext get(WorldGenerationContext wgc) {
+    public static PangaeaContext get(WorldGenerationContext wgc) {
         if (wgc instanceof PlacementContext pc) {
-            return WorldGenRegionExtras.getGenerationContext(pc.getLevel());
-        } else if (wgc instanceof GenerationContext gc) {
+            return WorldGenRegionExtras.getPangaeaContext(pc.getLevel());
+        } else if (wgc instanceof PangaeaContext gc) {
             return gc;
         }
         return get();
     }
 
-    public static GenerationContext get(WorldGenLevel level) {
+    public static PangaeaContext get(WorldGenLevel level) {
         // assumes context has been installed correctly
-        return WorldGenRegionExtras.getGenerationContext(level);
+        return WorldGenRegionExtras.getPangaeaContext(level);
     }
 
     public DensityFunction wrap(DensityFunction f) {

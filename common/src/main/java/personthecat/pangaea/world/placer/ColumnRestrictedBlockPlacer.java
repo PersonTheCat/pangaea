@@ -1,7 +1,7 @@
 package personthecat.pangaea.world.placer;
 
 import com.mojang.serialization.MapCodec;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.provider.ColumnProvider;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
@@ -15,7 +15,7 @@ public record ColumnRestrictedBlockPlacer(ColumnProvider column, BlockPlacer pla
     );
 
     @Override
-    public boolean placeUnchecked(GenerationContext ctx, int x, int y, int z) {
+    public boolean placeUnchecked(PangaeaContext ctx, int x, int y, int z) {
         if (this.column.isInBounds(ctx, x, y, z)) {
             return this.place.placeUnchecked(ctx, x, y, z);
         }

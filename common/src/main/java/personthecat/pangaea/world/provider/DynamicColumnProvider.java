@@ -5,7 +5,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import personthecat.pangaea.data.ColumnBounds;
 import personthecat.pangaea.world.density.DensityCutoff;
-import personthecat.pangaea.world.level.GenerationContext;
+import personthecat.pangaea.world.level.PangaeaContext;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
@@ -21,7 +21,7 @@ public record DynamicColumnProvider(
     );
 
     @Override
-    public ColumnBounds getColumn(GenerationContext ctx, int x, int z) {
+    public ColumnBounds getColumn(PangaeaContext ctx, int x, int z) {
         return ColumnBounds.create(this.min.resolveY(ctx), this.max.resolveY(ctx), this.harshness);
     }
 
