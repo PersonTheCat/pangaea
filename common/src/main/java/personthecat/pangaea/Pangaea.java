@@ -34,6 +34,7 @@ import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.feature.TestFeature;
+import personthecat.pangaea.world.filter.ProbabilityChunkFilter;
 import personthecat.pangaea.world.injector.*;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
@@ -129,6 +130,8 @@ public abstract class Pangaea {
             .register("exact", ExactColumnProvider.CODEC)
             .register("dynamic", DynamicColumnProvider.CODEC)
             .register("anchor_range", AnchorRangeColumnProvider.CODEC);
+        PgRegistries.CHUNK_FILTER_TYPE.createRegister(ID)
+            .register("probability", ProbabilityChunkFilter.CODEC);
         CommonRegistries.FEATURE.createRegister(ID)
             .register("test", TestFeature.INSTANCE);
     }
