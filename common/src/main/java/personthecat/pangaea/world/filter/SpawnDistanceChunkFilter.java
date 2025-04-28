@@ -28,11 +28,9 @@ public record SpawnDistanceChunkFilter(Range distance, double chance, int fade) 
 
     @Override
     public boolean test(PangaeaContext ctx, int x, int z) {
-        final var distance = this.distance;
-        final int fade = this.fade;
         final int d = (int) Math.sqrt((x * x) + (z * z));
 
-        if (distance.contains(d + fade)) {
+        if (this.distance.contains(d + this.fade)) {
             return ctx.rand.nextDouble() <= this.getProbability(d);
         }
         return false;

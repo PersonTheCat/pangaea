@@ -20,6 +20,7 @@ import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.registry.PgRegistries;
+import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.serialization.codec.StructuralFloatProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralHeightProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralIntProviderCodec;
@@ -30,23 +31,41 @@ import personthecat.pangaea.world.density.NormalDensity;
 import personthecat.pangaea.world.density.TrapezoidDensity;
 import personthecat.pangaea.world.density.UniformDensity;
 import personthecat.pangaea.world.density.WeightedListDensity;
-import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.feature.TestFeature;
+import personthecat.pangaea.world.filter.ChanceChunkFilter;
 import personthecat.pangaea.world.filter.ClusterChunkFilter;
 import personthecat.pangaea.world.filter.DensityChunkFilter;
 import personthecat.pangaea.world.filter.FastNoiseChunkFilter;
 import personthecat.pangaea.world.filter.IntervalChunkFilter;
 import personthecat.pangaea.world.filter.PredictableChunkFilter;
-import personthecat.pangaea.world.filter.ChanceChunkFilter;
 import personthecat.pangaea.world.filter.SpawnDistanceChunkFilter;
-import personthecat.pangaea.world.injector.*;
-import personthecat.pangaea.world.placement.SimplePlacementModifier;
+import personthecat.pangaea.world.filter.UnionChunkFilter;
+import personthecat.pangaea.world.injector.BiomeInjector;
+import personthecat.pangaea.world.injector.BiomeModifierInjector;
+import personthecat.pangaea.world.injector.BiomeSourceInjector;
+import personthecat.pangaea.world.injector.CavernInjector;
+import personthecat.pangaea.world.injector.DataInjectionHook;
+import personthecat.pangaea.world.injector.DimensionInjector;
+import personthecat.pangaea.world.injector.FeatureInjector;
+import personthecat.pangaea.world.injector.OreInjector;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
+import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
-import personthecat.pangaea.world.placer.*;
-import personthecat.pangaea.world.provider.*;
+import personthecat.pangaea.world.placer.BlockPlacerList;
+import personthecat.pangaea.world.placer.ChanceBlockPlacer;
+import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
+import personthecat.pangaea.world.placer.TargetedBlockPlacer;
+import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
+import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
+import personthecat.pangaea.world.provider.ConstantColumnProvider;
+import personthecat.pangaea.world.provider.DensityFloatProvider;
+import personthecat.pangaea.world.provider.DensityHeightProvider;
+import personthecat.pangaea.world.provider.DensityIntProvider;
+import personthecat.pangaea.world.provider.DensityOffsetHeightProvider;
+import personthecat.pangaea.world.provider.DynamicColumnProvider;
+import personthecat.pangaea.world.provider.ExactColumnProvider;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 
@@ -143,7 +162,8 @@ public abstract class Pangaea {
             .register("interval", IntervalChunkFilter.CODEC)
             .register("noise", FastNoiseChunkFilter.CODEC)
             .register("spawn_distance", SpawnDistanceChunkFilter.CODEC)
-            .register("density", DensityChunkFilter.CODEC);
+            .register("density", DensityChunkFilter.CODEC)
+            .register("union", UnionChunkFilter.CODEC);
         CommonRegistries.FEATURE.createRegister(ID)
             .register("test", TestFeature.INSTANCE);
     }
