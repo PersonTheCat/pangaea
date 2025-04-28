@@ -16,11 +16,21 @@ public abstract class MapFeature<FC extends MapFeatureConfiguration> extends Pan
         final int cX = ctx.chunkX;
         final int cZ = ctx.chunkZ;
         final int r = cfg.chunkRadius;
+        final var strict = cfg.strictOrigin;
+        final var predicate = strict ? cfg.conditions.buildPredicate() : PositionalBiomePredicate.ALWAYS;
 
         for (int x = cX - r; x < cX + r; x++) {
             for (int z = cZ - r; z < cZ +r; z++) {
                 final var pos2 = new ChunkPos(x, z);
                 ctx.rand.setLargeFeatureSeed(ctx.seed + ctx.featureIndex.get(), pos2.x, pos2.z);
+                if (strict) {
+                    final int aX = (x << 4) + 8;
+                    final int aZ = (z << 4) + 8;
+                    final var biome = ctx.biomes.getNoiseBiomeAtPosition(aX, 63, aZ);
+                    if (!predicate.test(biome, aX, aZ)) {
+                        continue;
+                    }
+                }
                 this.place(ctx, cfg, pos2, border);
             }
         }

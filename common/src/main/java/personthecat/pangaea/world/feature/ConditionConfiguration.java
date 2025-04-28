@@ -46,7 +46,7 @@ public record ConditionConfiguration(
         if (this.hasBiomes() || this.hasBounds()) {
             return (b, x, z) -> this.checkBiome(b) && this.checkPos(x, z);
         }
-        return PositionalBiomePredicate.NEVER;
+        return PositionalBiomePredicate.ALWAYS;
     }
 
     private boolean checkBiome(Holder<Biome> b) {

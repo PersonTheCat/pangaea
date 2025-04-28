@@ -11,17 +11,21 @@ public class MapFeatureConfiguration extends PangaeaFeatureConfiguration {
     public static final MapCodec<MapFeatureConfiguration> CODEC = codecOf(
         union(PangaeaFeatureConfiguration.CODEC, c -> c),
         defaulted(Codec.intRange(1, 32), "chunk_radius", 8, c -> c.chunkRadius),
+        defaulted(Codec.BOOL, "strict_origin", true, c -> c.strictOrigin),
         MapFeatureConfiguration::new
     );
 
     public final int chunkRadius;
+    public final boolean strictOrigin;
 
-    public MapFeatureConfiguration(PangaeaFeatureConfiguration parent, int chunkRadius) {
+    public MapFeatureConfiguration(
+        PangaeaFeatureConfiguration parent, int chunkRadius, boolean strictOrigin) {
         super(parent);
         this.chunkRadius = chunkRadius;
+        this.strictOrigin = strictOrigin;
     }
 
     protected MapFeatureConfiguration(MapFeatureConfiguration source) {
-        this(source, source.chunkRadius);
+        this(source, source.chunkRadius, source.strictOrigin);
     }
 }
