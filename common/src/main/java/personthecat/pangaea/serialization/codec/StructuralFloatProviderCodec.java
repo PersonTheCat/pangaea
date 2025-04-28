@@ -46,7 +46,7 @@ public class StructuralFloatProviderCodec extends MapCodec<FloatProvider> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> DataResult<FloatProvider> asParent(DataResult<? extends FloatProvider> result) {
+    private static DataResult<FloatProvider> asParent(DataResult<? extends FloatProvider> result) {
         return (DataResult<FloatProvider>) result;
     }
 

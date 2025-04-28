@@ -113,12 +113,20 @@ public final class Cfg {
         return INSTANCE.data.encodeStructuralBlockPlacers;
     }
 
+    public static boolean encodeStructuralChunkFilters() {
+        return INSTANCE.data.encodeStructuralChunkFilters;
+    }
+
     public static boolean encodePatternRuleTestCodec() {
         return INSTANCE.data.encodePatternRuleTestCodec;
     }
 
     public static boolean encodePatternBlockPlacers() {
         return INSTANCE.data.encodePatternBlockPlacers;
+    }
+
+    public static boolean encodePatternChunkFilters() {
+        return INSTANCE.data.encodePatternChunkFilters;
     }
 
     public static boolean encodeRangeIntProvider() {
@@ -180,8 +188,10 @@ public final class Cfg {
         boolean encodeStructuralIntProviders = true;
         boolean encodeStructuralFloatProviders = true;
         boolean encodeStructuralBlockPlacers = true;
+        boolean encodeStructuralChunkFilters = true;
         boolean encodePatternRuleTestCodec = true;
         boolean encodePatternBlockPlacers = true;
+        boolean encodePatternChunkFilters = true;
         boolean encodeRangeIntProvider = true;
         boolean encodeRangeFloatProvider = true;
         boolean encodePatternHeightProvider = true;

@@ -20,6 +20,7 @@ import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.registry.PgRegistries;
+import personthecat.pangaea.serialization.codec.StructuralChunkFilterCodec;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.serialization.codec.StructuralFloatProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralHeightProviderCodec;
@@ -163,7 +164,8 @@ public abstract class Pangaea {
             .register("noise", FastNoiseChunkFilter.CODEC)
             .register("spawn_distance", SpawnDistanceChunkFilter.CODEC)
             .register("density", DensityChunkFilter.CODEC)
-            .register("union", UnionChunkFilter.CODEC);
+            .register("union", UnionChunkFilter.CODEC)
+            .register("structural", StructuralChunkFilterCodec.INSTANCE);
         CommonRegistries.FEATURE.createRegister(ID)
             .register("test", TestFeature.INSTANCE);
     }
