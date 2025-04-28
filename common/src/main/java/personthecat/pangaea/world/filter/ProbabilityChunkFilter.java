@@ -6,7 +6,8 @@ import personthecat.pangaea.world.level.PangaeaContext;
 
 public record ProbabilityChunkFilter(double chance) implements ChunkFilter {
     public static final MapCodec<ProbabilityChunkFilter> CODEC =
-        Codec.DOUBLE.fieldOf("chance").xmap(ProbabilityChunkFilter::new, ProbabilityChunkFilter::chance);
+        Codec.doubleRange(0, 1).fieldOf("chance")
+            .xmap(ProbabilityChunkFilter::new, ProbabilityChunkFilter::chance);
 
     @Override
     public boolean test(PangaeaContext ctx, int x, int z) {

@@ -76,7 +76,7 @@ public final class BlockPlacerBuilder extends MapCodec<BlockPlacer> {
         if (result == null) {
             return DataResult.error(() -> "no structural fields present");
         }
-        return result.map(p -> p);
+        return result;
     }
 
     @Override

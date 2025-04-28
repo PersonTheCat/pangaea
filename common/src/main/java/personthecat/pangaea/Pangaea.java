@@ -40,6 +40,7 @@ import personthecat.pangaea.world.filter.FastNoiseChunkFilter;
 import personthecat.pangaea.world.filter.IntervalChunkFilter;
 import personthecat.pangaea.world.filter.PredictableChunkFilter;
 import personthecat.pangaea.world.filter.ProbabilityChunkFilter;
+import personthecat.pangaea.world.filter.SpawnDistanceChunkFilter;
 import personthecat.pangaea.world.injector.*;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
@@ -141,6 +142,7 @@ public abstract class Pangaea {
             .register("predictable", PredictableChunkFilter.CODEC)
             .register("interval", IntervalChunkFilter.CODEC)
             .register("noise", FastNoiseChunkFilter.CODEC)
+            .register("spawn_distance", SpawnDistanceChunkFilter.CODEC)
             .register("density", DensityChunkFilter.CODEC);
         CommonRegistries.FEATURE.createRegister(ID)
             .register("test", TestFeature.INSTANCE);
