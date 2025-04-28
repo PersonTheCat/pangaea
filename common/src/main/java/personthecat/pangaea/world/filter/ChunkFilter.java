@@ -18,8 +18,8 @@ public interface ChunkFilter {
         final var dispatcher =
             PgRegistries.CHUNK_FILTER_TYPE.codec().dispatch(ChunkFilter::codec, Function.identity());
         return Codec.either(Codec.DOUBLE, dispatcher).xmap(
-            e -> e.map(ProbabilityChunkFilter::new, Function.identity()),
-            f -> f instanceof ProbabilityChunkFilter(var chance) ? Either.left(chance) : Either.right(f)
+            e -> e.map(ChanceChunkFilter::new, Function.identity()),
+            f -> f instanceof ChanceChunkFilter(var chance) ? Either.left(chance) : Either.right(f)
         );
     }
 }

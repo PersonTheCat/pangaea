@@ -12,7 +12,7 @@ public record PredictableChunkFilter(double threshold, int seed) implements Chun
     private static final double HASHER_SCALE = 91.0;
     private static final RandomChunkSelector SELECTOR = RandomChunkSelector.DEFAULT;
     public static final MapCodec<PredictableChunkFilter> CODEC = codecOf(
-        defaulted(Codec.DOUBLE, "probability", 0.75, PredictableChunkFilter::probability),
+        defaulted(Codec.doubleRange(0, 1), "chance", 0.75, PredictableChunkFilter::probability),
         defaulted(Codec.INT, "seed", 0, PredictableChunkFilter::seed),
         PredictableChunkFilter::fromProbability
     );

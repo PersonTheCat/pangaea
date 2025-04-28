@@ -39,7 +39,7 @@ import personthecat.pangaea.world.filter.DensityChunkFilter;
 import personthecat.pangaea.world.filter.FastNoiseChunkFilter;
 import personthecat.pangaea.world.filter.IntervalChunkFilter;
 import personthecat.pangaea.world.filter.PredictableChunkFilter;
-import personthecat.pangaea.world.filter.ProbabilityChunkFilter;
+import personthecat.pangaea.world.filter.ChanceChunkFilter;
 import personthecat.pangaea.world.filter.SpawnDistanceChunkFilter;
 import personthecat.pangaea.world.injector.*;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
@@ -137,7 +137,7 @@ public abstract class Pangaea {
             .register("dynamic", DynamicColumnProvider.CODEC)
             .register("anchor_range", AnchorRangeColumnProvider.CODEC);
         PgRegistries.CHUNK_FILTER_TYPE.createRegister(ID)
-            .register("probability", ProbabilityChunkFilter.CODEC)
+            .register("chance", ChanceChunkFilter.CODEC)
             .register("cluster", ClusterChunkFilter.CODEC)
             .register("predictable", PredictableChunkFilter.CODEC)
             .register("interval", IntervalChunkFilter.CODEC)

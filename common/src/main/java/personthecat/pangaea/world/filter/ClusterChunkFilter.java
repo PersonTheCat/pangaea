@@ -12,7 +12,7 @@ public record ClusterChunkFilter(double threshold, int seed) implements ChunkFil
     private static final double HASHER_SCALE = 91.0;
     private static final RandomChunkSelector SELECTOR = RandomChunkSelector.DEFAULT;
     public static final MapCodec<ClusterChunkFilter> CODEC = codecOf(
-        defaulted(Codec.doubleRange(0, 1), "probability", 0.75, ClusterChunkFilter::probability),
+        defaulted(Codec.doubleRange(0, 1), "chance", 0.75, ClusterChunkFilter::probability),
         defaulted(Codec.INT, "seed", 0, ClusterChunkFilter::seed),
         ClusterChunkFilter::fromProbability
     );

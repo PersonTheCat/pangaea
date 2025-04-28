@@ -6,7 +6,7 @@ import personthecat.pangaea.world.level.PangaeaContext;
 
 public record IntervalChunkFilter(int interval) implements ChunkFilter {
     public static final MapCodec<IntervalChunkFilter> CODEC =
-        Codec.INT.optionalFieldOf("interval", 5)
+        Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("interval", 5)
             .xmap(IntervalChunkFilter::new, IntervalChunkFilter::interval);
 
     @Override

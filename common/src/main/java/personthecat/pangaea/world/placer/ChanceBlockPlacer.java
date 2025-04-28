@@ -10,7 +10,7 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 
 public record ChanceBlockPlacer(double chance, BlockPlacer place) implements BlockPlacer {
     public static final MapCodec<ChanceBlockPlacer> CODEC = codecOf(
-        defaulted(Codec.DOUBLE, "chance", 0.5, ChanceBlockPlacer::chance),
+        defaulted(Codec.doubleRange(0, 1), "chance", 0.5, ChanceBlockPlacer::chance),
         field(BlockPlacer.CODEC, "place", ChanceBlockPlacer::place),
         ChanceBlockPlacer::new
     );
