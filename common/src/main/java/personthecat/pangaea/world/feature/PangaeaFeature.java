@@ -28,11 +28,6 @@ public abstract class PangaeaFeature<FC extends PangaeaFeatureConfiguration> ext
             return false;
         }
         final var predicate = cfg.conditions.buildPredicate();
-        if (!predicate.isDisabled()) {
-            if (!ctx.noise.chunkMatches(ctx.biomes, predicate, ctx.chunkX, ctx.chunkZ)) {
-                return false;
-            }
-        }
         final var r = cfg.conditions.distanceFromBounds();
         final var t = r + cfg.conditions.boundaryWidth();
         final var border = Border.forPredicate(ctx, predicate, r, t);

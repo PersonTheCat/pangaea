@@ -19,7 +19,7 @@ public class MapFeatureConfiguration extends PangaeaFeatureConfiguration {
     public final boolean strictOrigin;
 
     public MapFeatureConfiguration(
-        PangaeaFeatureConfiguration parent, int chunkRadius, boolean strictOrigin) {
+            PangaeaFeatureConfiguration parent, int chunkRadius, boolean strictOrigin) {
         super(parent);
         this.chunkRadius = chunkRadius;
         this.strictOrigin = strictOrigin;
