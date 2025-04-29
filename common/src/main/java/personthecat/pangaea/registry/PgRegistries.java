@@ -42,7 +42,7 @@ public final class PgRegistries {
         public static final ResourceKey<Registry<MapCodec<? extends Injector>>> INJECTOR_TYPE = key("injector_type");
         public static final ResourceKey<Registry<MapCodec<? extends BlockPlacer>>> PLACER_TYPE = key("placer_type");
         public static final ResourceKey<Registry<MapCodec<? extends ColumnProvider>>> BOUNDS_TYPE = key("bounds_type");
-        public static final ResourceKey<Registry<MapCodec<? extends ChunkFilter>>> CHUNK_FILTER_TYPE = key("chunk_fitler_type");
+        public static final ResourceKey<Registry<MapCodec<? extends ChunkFilter>>> CHUNK_FILTER_TYPE = key("chunk_filter_type");
 
         public static final ResourceKey<Registry<Injector>> INJECTOR = key("injector");
         public static final ResourceKey<Registry<BiomeLayout>> BIOME_LAYOUT = key("layout");
