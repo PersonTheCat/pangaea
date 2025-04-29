@@ -7,7 +7,6 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
-import personthecat.pangaea.extras.WorldGenRegionExtras;
 import personthecat.pangaea.world.level.PangaeaContext;
 
 public abstract class PangaeaFeature<FC extends PangaeaFeatureConfiguration> extends Feature<FC> {
@@ -23,7 +22,7 @@ public abstract class PangaeaFeature<FC extends PangaeaFeatureConfiguration> ext
 
     @Override
     public final boolean place(FC cfg, WorldGenLevel level, ChunkGenerator gen, RandomSource rand, BlockPos pos) {
-        final var ctx = WorldGenRegionExtras.getPangaeaContext(level);
+        final var ctx = PangaeaContext.get(level);
         if (!cfg.conditions.dimensions().test(ctx.chunk)) {
             return false;
         }
