@@ -1,13 +1,4 @@
 {
-  "pangaea:condition": {
-    "mods": [ "catlib", "quark" ],
-    "registry": {
-      "pangaea:injector": [ "pangaea:biome/forest_like" ]
-    },
-    "filter": {
-      "worldgen/density_function": [ "@pangaea" ]
-    }
-  },
   "biomes": [
     "#is_forest"
   ],
@@ -22,7 +13,7 @@
           { "place": "light_gray_stained_glass" }
         ]
       },
-      "chunk_filter": 0.1,
+      "chunk_filter": 0.025,
       "step": "raw_generation"
     },
     {

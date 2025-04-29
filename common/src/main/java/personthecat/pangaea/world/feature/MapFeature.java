@@ -26,7 +26,7 @@ public abstract class MapFeature<FC extends MapFeatureConfiguration> extends Pan
                 if (strict) {
                     final int aX = (x << 4) + 8;
                     final int aZ = (z << 4) + 8;
-                    final var biome = ctx.biomes.getNoiseBiomeAtPosition(aX, 63, aZ);
+                    final var biome = ctx.noise.getApproximateBiome(ctx.biomes, aX, aZ);
                     if (!predicate.test(biome, aX, aZ)) {
                         continue;
                     }
