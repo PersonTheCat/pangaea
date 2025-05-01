@@ -20,17 +20,7 @@ public interface VerticalAnchorMixin {
         remap = false)
     private static Codec<VerticalAnchor> modify(Codec<VerticalAnchor> original) {
         return Codec.lazyInitialized(() ->
-            addSeaLevelOffset(addSurfaceOffset((addDensityOffsetType(addDensityType(original))))));
-    }
-
-    @Unique
-    private static Codec<VerticalAnchor> addDensityType(Codec<VerticalAnchor> original) {
-        return DensityVerticalAnchor.wrapCodec(original);
-    }
-
-    @Unique
-    private static Codec<VerticalAnchor> addDensityOffsetType(Codec<VerticalAnchor> original) {
-        return DensityOffsetVerticalAnchor.wrapCodec(original);
+            addDensityOffsetType(addDensityType(addSeaLevelOffset(addSurfaceOffset(original)))));
     }
 
     @Unique
@@ -41,5 +31,15 @@ public interface VerticalAnchorMixin {
     @Unique
     private static Codec<VerticalAnchor> addSeaLevelOffset(Codec<VerticalAnchor> original) {
         return SeaLevelVerticalAnchor.wrapCodec(original);
+    }
+
+    @Unique
+    private static Codec<VerticalAnchor> addDensityType(Codec<VerticalAnchor> original) {
+        return DensityVerticalAnchor.wrapCodec(original);
+    }
+
+    @Unique
+    private static Codec<VerticalAnchor> addDensityOffsetType(Codec<VerticalAnchor> original) {
+        return DensityOffsetVerticalAnchor.wrapCodec(original);
     }
 }
