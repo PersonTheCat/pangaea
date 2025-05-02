@@ -22,10 +22,11 @@ public abstract class MapFeature<FC extends MapFeatureConfiguration> extends Pan
         for (int x = cX - r; x < cX + r; x++) {
             for (int z = cZ - r; z < cZ +r; z++) {
                 final var pos2 = new ChunkPos(x, z);
+                final int aX = (x << 4) + 8;
+                final int aZ = (z << 4) + 8;
                 ctx.rand.setLargeFeatureSeed(ctx.seed + ctx.featureIndex.get(), pos2.x, pos2.z);
+                ctx.targetPos.at(aX, aZ);
                 if (strict) {
-                    final int aX = (x << 4) + 8;
-                    final int aZ = (z << 4) + 8;
                     final var biome = ctx.noise.getApproximateBiome(ctx.biomes, aX, aZ);
                     if (!predicate.test(biome, aX, aZ)) {
                         continue;

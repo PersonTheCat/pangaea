@@ -17,6 +17,7 @@ public record AnchorRangeColumnProvider(AnchorCutoff lower, AnchorCutoff upper) 
 
     @Override
     public ColumnBounds getColumn(PangaeaContext ctx, int x, int z) {
+        ctx.targetPos.at(x, z);
         // We should eventually look into caching this result if the column are effectively constant
         return new ColumnBounds(this.lower.getCutoff(ctx), this.upper.getCutoff(ctx));
     }
