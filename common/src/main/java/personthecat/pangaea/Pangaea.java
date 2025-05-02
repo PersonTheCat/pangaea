@@ -32,7 +32,9 @@ import personthecat.pangaea.world.density.NormalDensity;
 import personthecat.pangaea.world.density.TrapezoidDensity;
 import personthecat.pangaea.world.density.UniformDensity;
 import personthecat.pangaea.world.density.WeightedListDensity;
+import personthecat.pangaea.world.feature.BlobFeature;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
+import personthecat.pangaea.world.feature.DensityFeature;
 import personthecat.pangaea.world.feature.GiantSphereFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.feature.TestFeature;
@@ -169,7 +171,9 @@ public abstract class Pangaea {
             .register("structural", StructuralChunkFilterCodec.INSTANCE);
         CommonRegistries.FEATURE.createRegister(ID)
             .register("test", TestFeature.INSTANCE)
-            .register("giant_sphere", GiantSphereFeature.INSTANCE);
+            .register("giant_sphere", GiantSphereFeature.INSTANCE)
+            .register("blob", BlobFeature.INSTANCE)
+            .register("density", DensityFeature.INSTANCE);
     }
 
     private static void enableDebugFeatures() {

@@ -18,7 +18,7 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 
-public class GiantSphereFeature extends MapFeature<Configuration> {
+public final class GiantSphereFeature extends MapFeature<Configuration> {
     public static final GiantSphereFeature INSTANCE = new GiantSphereFeature();
 
     private GiantSphereFeature() {

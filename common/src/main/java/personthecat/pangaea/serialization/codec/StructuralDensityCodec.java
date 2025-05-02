@@ -10,6 +10,7 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.world.density.DensityList;
+import personthecat.pangaea.world.density.FastNoiseDensity;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -20,8 +21,8 @@ import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
 public class StructuralDensityCodec extends MapCodec<DensityFunction> {
     public static final StructuralDensityCodec INSTANCE = new StructuralDensityCodec();
     private static final List<String> KEYS = List.of(
-        "mul", "times", "add", "plus", "min", "max", "sum", "abs",
-        "square", "cube", "half_negative", "quarter_negative", "squeeze");
+        "mul", "times", "add", "plus", "min", "max", "sum", "abs", "square",
+        "cube", "half_negative", "quarter_negative", "squeeze", "noise");
 
     private StructuralDensityCodec() {}
 
@@ -33,7 +34,9 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
     private static boolean canBeStructural(DensityFunction f) {
         return f instanceof DensityFunctions.TwoArgumentSimpleFunction
             || f instanceof DensityFunctions.Mapped
-            || f instanceof DensityList;
+            || f instanceof DensityList
+            || f instanceof DensityFunctions.Noise
+            || f instanceof FastNoiseDensity;
     }
 
     @Override
@@ -86,6 +89,10 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
         if (arg1 != null) {
             return HOLDER_HELPER_CODEC.parse(ops, arg1).map(DensityFunction::squeeze);
         }
+        arg1 = input.get("noise");
+        if (arg1 != null) {
+            return this.decodeNoise(ops, arg1, input);
+        }
         return DataResult.error(() -> "no structural fields or type present");
     }
 
@@ -99,6 +106,21 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
         return HOLDER_HELPER_CODEC.parse(ops, add)
             .flatMap(arg1 -> HOLDER_HELPER_CODEC.parse(ops, plus)
                 .map(arg2 -> DensityFunctions.add(arg1, arg2)));
+    }
+
+    private <T> DataResult<DensityFunction> decodeNoise(DynamicOps<T> ops, T noise, MapLike<T> input) {
+        if (NoiseCodecs.TYPE.decode(ops, noise).isSuccess()) {
+            return asParent(FastNoiseDensity.CODEC_2D.decode(ops, input));
+        }
+        if (input.get("shift_x") != null) {
+            return asParent(DensityFunctions.ShiftedNoise.CODEC.codec().decode(ops, input));
+        }
+        return asParent(DensityFunctions.Noise.CODEC.codec().decode(ops, input));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static DataResult<DensityFunction> asParent(DataResult<? extends DensityFunction> result) {
+        return (DataResult<DensityFunction>) result;
     }
 
     @Override

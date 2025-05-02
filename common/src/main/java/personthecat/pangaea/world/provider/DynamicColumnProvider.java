@@ -22,6 +22,7 @@ public record DynamicColumnProvider(
 
     @Override
     public ColumnBounds getColumn(PangaeaContext ctx, int x, int z) {
+        ctx.targetPos.at(x, z);
         return ColumnBounds.create(this.min.resolveY(ctx), this.max.resolveY(ctx), this.harshness);
     }
 

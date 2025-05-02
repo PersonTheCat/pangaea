@@ -137,6 +137,10 @@ public final class Cfg {
         return INSTANCE.data.encodeRangeFloatProvider;
     }
 
+    public static boolean encodeVerticalAnchorBuilders() {
+        return INSTANCE.data.encodeVerticalAnchorBuilders;
+    }
+
     public static boolean encodePatternHeightProvider() {
         return INSTANCE.data.encodePatternHeightProvider;
     }
@@ -194,6 +198,7 @@ public final class Cfg {
         boolean encodePatternChunkFilters = true;
         boolean encodeRangeIntProvider = true;
         boolean encodeRangeFloatProvider = true;
+        boolean encodeVerticalAnchorBuilders = true;
         boolean encodePatternHeightProvider = true;
         boolean encodeDefaultStateAsBlock = true;
         boolean encodeStatePropertiesAsList = true;

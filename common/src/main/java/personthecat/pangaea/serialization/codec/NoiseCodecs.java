@@ -25,12 +25,12 @@ import static personthecat.catlib.serialization.codec.CodecUtils.simpleAny;
 import static personthecat.catlib.serialization.codec.DynamicField.field;
 
 public class NoiseCodecs {
-    private static final Codec<NoiseType> TYPE = ofEnum(NoiseType.class);
-    private static final Codec<FractalType> FRACTAL = ofEnum(FractalType.class);
-    private static final Codec<WarpType> WARP = ofEnum(WarpType.class);
-    private static final Codec<DistanceType> DISTANCE = ofEnum(DistanceType.class);
-    private static final Codec<ReturnType> RETURN = ofEnum(ReturnType.class);
-    private static final Codec<MultiType> MULTI = ofEnum(MultiType.class);
+    public static final Codec<NoiseType> TYPE = ofEnum(NoiseType.class);
+    public static final Codec<FractalType> FRACTAL = ofEnum(FractalType.class);
+    public static final Codec<WarpType> WARP = ofEnum(WarpType.class);
+    public static final Codec<DistanceType> DISTANCE = ofEnum(DistanceType.class);
+    public static final Codec<ReturnType> RETURN = ofEnum(ReturnType.class);
+    public static final Codec<MultiType> MULTI = ofEnum(MultiType.class);
 
     private static final Codec<Float3> FLOAT_3 = Util.make(() -> {
         final Codec<Float3> single = Codec.FLOAT.xmap(f -> new Float3(f, f, f), f3 -> f3.x);

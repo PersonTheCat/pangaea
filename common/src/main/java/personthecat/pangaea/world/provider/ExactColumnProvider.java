@@ -12,6 +12,7 @@ public record ExactColumnProvider(VerticalAnchor anchor) implements ColumnProvid
 
     @Override
     public ColumnBounds getColumn(PangaeaContext ctx, int x, int z) {
+        ctx.targetPos.at(x, z);
         final int y = this.anchor.resolveY(ctx);
         return ColumnBounds.create(y, y + 1, 0);
     }
