@@ -6,10 +6,10 @@ import com.mojang.serialization.DynamicOps;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
-import org.jetbrains.annotations.Nullable;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.world.density.AutoWrapDensity;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.asMapCodec;
@@ -31,7 +31,7 @@ public record DensityOffsetVerticalAnchor(
             e -> e.map(Function.identity(), Function.identity()),
             a -> a instanceof DensityOffsetVerticalAnchor d ? Either.right(d) : Either.left(a)
         );
-        final var nullableOffset = AutoWrapDensity.HELPER_CODEC.optionalFieldOf("offset", null);
+        final var nullableOffset = AutoWrapDensity.HELPER_CODEC.optionalFieldOf("offset");
         final var addedField = codecOf(
             union(asMapCodec(codec), DensityOffsetVerticalAnchor::getReference),
             union(nullableOffset, DensityOffsetVerticalAnchor::getOffset),
@@ -44,12 +44,13 @@ public record DensityOffsetVerticalAnchor(
         return a instanceof DensityOffsetVerticalAnchor o ? o.reference : a;
     }
 
-    private static @Nullable DensityFunction getOffset(VerticalAnchor a) {
-        return a instanceof DensityOffsetVerticalAnchor o ? o.offset : null;
+    private static Optional<DensityFunction> getOffset(VerticalAnchor a) {
+        return a instanceof DensityOffsetVerticalAnchor o ? Optional.of(o.offset) : Optional.empty();
     }
 
-    private static VerticalAnchor applyOffset(VerticalAnchor reference, @Nullable DensityFunction offset) {
-        return offset != null ? new DensityOffsetVerticalAnchor(reference, offset) : reference;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static VerticalAnchor applyOffset(VerticalAnchor reference, Optional<DensityFunction> offset) {
+        return offset.<VerticalAnchor>map(o -> new DensityOffsetVerticalAnchor(reference, o)).orElse(reference);
     }
 
     private static boolean encodeAsDensityOffset(VerticalAnchor a, DynamicOps<?> o) {

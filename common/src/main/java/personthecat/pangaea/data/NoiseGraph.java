@@ -15,7 +15,7 @@ import personthecat.pangaea.world.feature.PositionalBiomePredicate;
 public class NoiseGraph {
     public static final int BIOME_SAMPLE_DIMENSION = 3;
     public static final int BIOME_SAMPLE_RADIUS = 16 / BIOME_SAMPLE_DIMENSION;
-    public static final int BIOME_SCAN_CHUNK_RADIUS = 2;
+    public static final int BIOME_SCAN_CHUNK_RADIUS = 3;
     public static final int BIOME_SCAN_DIMENSION = BIOME_SAMPLE_DIMENSION * (BIOME_SCAN_CHUNK_RADIUS * 2 + 1);
     private static final int CLEANUP_INTERVAL = 5;
     private static final int CLEANUP_DISTANCE = 10;
@@ -89,11 +89,11 @@ public class NoiseGraph {
         final int cZ = z >> 4;
         final int rX = x & 15;
         final int rZ = z & 15;
-        // get one of: (1,1),(1,14),(8,8),(14,1),(14,14)
-        final int sX = rX < 8 ? 1 : rX > 8 ? 14 : 8;
-        final int sZ = sX == 8 ? 8 : rZ < 8 ? 1 : rZ > 8 ? 14 : 8;
+        // get one of: (3,3),(3,12),(8,8),(12,3),(12,12)
+        final int sX = rX < 8 ? 3 : rX > 8 ? 12 : 8;
+        final int sZ = sX == 8 ? 8 : rZ < 8 ? 3 : rZ > 8 ? 12 : 8;
         final Samples data = this.getData(cX, cZ);
-        return this.getOrComputeBiome(biomes, data, sX, sZ);
+        return this.getOrComputeBiome(biomes, data, sX, sZ, x, z);
     }
 
     public SimpleNeighborGraph graphBiomes(BiomeManager biomes, PositionalBiomePredicate predicate, int cX, int cZ) {
@@ -111,9 +111,9 @@ public class NoiseGraph {
             SimpleNeighborGraph graph, BiomeManager biomes, PositionalBiomePredicate predicate, int cX, int cZ) {
         final Samples data = this.getData(cX, cZ);
         for (final var check : BIOME_CHECKS) {
-            final var biome = this.getOrComputeBiome(biomes, data, check.x, check.z);
             final int aX = (cX << 4) + check.x;
             final int aZ = (cZ << 4) + check.z;
+            final var biome = this.getOrComputeBiome(biomes, data, check.x, check.z, aX, aZ);
             if (!predicate.test(biome, aX, aZ)) {
                 graph.plot(aX, aZ);
             }
@@ -123,9 +123,9 @@ public class NoiseGraph {
     public boolean chunkMatches(BiomeManager biomes, PositionalBiomePredicate predicate, int cX, int cZ) {
         final Samples data = this.getData(cX, cZ);
         for (final var check : BIOME_CHECKS) {
-            final var biome = this.getOrComputeBiome(biomes, data, check.x, check.z);
             final int aX = (cX << 4) + check.x;
             final int aZ = (cZ << 4) + check.z;
+            final var biome = this.getOrComputeBiome(biomes, data, check.x, check.z, aX, aZ);
             if (predicate.test(biome, aX, aZ)) {
                 return true;
             }
@@ -205,10 +205,10 @@ public class NoiseGraph {
         return d;
     }
 
-    protected Holder<Biome> getOrComputeBiome(BiomeManager biomes, Samples data, int rX, int rZ) {
+    protected Holder<Biome> getOrComputeBiome(BiomeManager biomes, Samples data, int rX, int rZ, int aX, int aZ) {
         var biome = data.getBiome(rX, rZ);
         if (biome == null) {
-            biome = biomes.getNoiseBiomeAtPosition(rX, 63, rZ);
+            biome = biomes.getNoiseBiomeAtPosition(aX, 1_000_000, aZ);
             data.setBiome(rX, rZ, biome);
         }
         return biome;

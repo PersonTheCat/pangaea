@@ -1,26 +1,28 @@
 {
   "overworld": {
     "surface": "overworld/sloped_cheese",
-    "entrances": {
-      "mul": 5.0,
-      "times": "overworld/caves/entrances"
-    },
-    "upper_cutoff": {
-      "range": [ 240, 256 ],
-      "harshness": 0.078125
-    },
-    "lower_cutoff": {
-      "range": [ -64, -40 ],
-      "harshness": 0.1171875
-    },
-    "underground_caverns": [
-      "pangaea:overworld/caves/cheese",
-      "overworld/caves/entrances",
-      "pangaea:overworld/caves/spaghetti"
-    ],
-    "global_caverns": [
-      "overworld/caves/noodle"
-    ],
-    "underground_filler": "overworld/caves/pillars"
+    "disabled": {
+      "entrances": {
+        "mul": 5.0,
+        "times": "overworld/caves/entrances"
+      },
+      "upper_cutoff": {
+        "range": [ 240, 256 ],
+        "harshness": 0.078125
+      },
+      "lower_cutoff": {
+        "range": [ -64, -40 ],
+        "harshness": 0.1171875
+      },
+      "underground_caverns": [
+        "pangaea:overworld/caves/cheese",
+        "overworld/caves/entrances",
+        "pangaea:overworld/caves/spaghetti"
+      ],
+      "global_caverns": [
+        "overworld/caves/noodle"
+      ],
+      "underground_filler": "overworld/caves/pillars"
+    }
   }
 }
