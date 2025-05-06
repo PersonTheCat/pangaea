@@ -77,22 +77,22 @@ public interface Border {
         if (graph.isEmpty()) {
             return NONE;
         }
-        final var cutoff = new DensityCutoff(t, r, 0.15);
+        final var cutoff = new DensityCutoff(r, t, 0.1);
         return new Border() {
 
             @Override
             public boolean isInRange(PangaeaContext ctx, int x, int z) {
-                return graph.distance(x, z, r) <= r;
+                return graph.distance(x, z, r) > r;
             }
 
             @Override
             public boolean isClose(PangaeaContext ctx, int x, int z) {
-                return graph.distance(x, z, t) <= t;
+                return graph.distance(x, z, t) > t;
             }
 
             @Override
             public double transformNoise(PangaeaContext ctx, int x, int z, double n) {
-                return cutoff.transformUpper(n, graph.distance(x, z, r));
+                return cutoff.transformLower(n, graph.distance(x, z, r));
             }
         };
     }

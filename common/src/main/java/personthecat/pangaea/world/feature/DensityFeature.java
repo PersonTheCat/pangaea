@@ -1,11 +1,13 @@
 package personthecat.pangaea.world.feature;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.world.density.AutoWrapDensity;
+import personthecat.pangaea.world.density.FastNoiseDensity;
 import personthecat.pangaea.world.feature.DensityFeature.Configuration;
 import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.placer.BlockPlacer;
@@ -15,6 +17,7 @@ import personthecat.pangaea.world.provider.DynamicColumnProvider;
 import java.util.List;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
+import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
 import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
@@ -52,7 +55,7 @@ public final class DensityFeature extends PangaeaFeature<Configuration> {
                 double n = f.compute(pos.at(y));
                 n = border.transformNoise(ctx, x, z, n);
                 n = column.transformNoise(n, y);
-                if (n >= 0) {
+                if (n > 0) {
                     placer.placeUnchecked(ctx, x, y, z);
                     break;
                 }
@@ -67,10 +70,12 @@ public final class DensityFeature extends PangaeaFeature<Configuration> {
 
         private static final ColumnProvider DEFAULT_COLUMN = new DynamicColumnProvider(
             VerticalAnchor.aboveBottom(24), VerticalAnchor.absolute(54), DEFAULT_HARSHNESS);
+        private static final Codec<DensityFunction> NOISE_CODEC =
+            defaultType(AutoWrapDensity.HELPER_CODEC, FastNoiseDensity.CODEC.codec());
         public static final MapCodec<Configuration> CODEC = codecOf(
             field(BlockPlacer.CODEC, "placer", c -> c.placer),
             defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
-            field(easyList(AutoWrapDensity.HELPER_CODEC), "generators", c -> c.generators),
+            field(easyList(NOISE_CODEC), "generators", c -> c.generators),
             union(MapFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );

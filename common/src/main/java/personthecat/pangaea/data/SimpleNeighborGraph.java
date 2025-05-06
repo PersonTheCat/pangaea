@@ -38,6 +38,7 @@ public class SimpleNeighborGraph extends NeighborGraph<SimpleNode> {
 
     @NotThreadSafe
     private static class CacheEnabledGraph extends SimpleNeighborGraph {
+        private Search lastSearch;
         private NodeResult<SimpleNode> lastResult;
 
         public CacheEnabledGraph(
@@ -47,14 +48,17 @@ public class SimpleNeighborGraph extends NeighborGraph<SimpleNode> {
 
         @Override
         public NodeResult<SimpleNode> getNearest(int x, int z, double min) {
-            final var lastResult = this.lastResult;
-            if (lastResult != null
-                    && lastResult.x() == x
-                    && lastResult.z() == z
-                    && lastResult.distance() <= min) {
-                return lastResult;
+            final var lastSearch = this.lastSearch;
+            if (lastSearch != null
+                    && lastSearch.x == x
+                    && lastSearch.z == z
+                    && lastSearch.min <= min) {
+                return this.lastResult;
             }
+            this.lastSearch = new Search(x, z, min);
             return this.lastResult = super.getNearest(x, z, min);
         }
     }
+
+    private record Search(int x, int z, double min) {}
 }

@@ -5,15 +5,16 @@
   "step": "vegetal_decoration",
   "inject": [
     {
-      "type": "pangaea:giant_sphere",
+      "type": "pangaea:blob",
       "placer": {
         "target": "#overworld_carver_replaceables",
-        "place": [
-          { "place": "green_stained_glass", "chance": 0.01 },
-          { "place": "light_gray_stained_glass" }
-        ]
+        "place": "cave_air"
       },
-      "chunk_filter": 0.025,
+      "generators": {
+        "noise": "simplex",
+        "frequency": [ 0.02, 0.04, 0.02 ],
+        "range": [ -1.5, 0.5 ]
+      },
       "step": "raw_generation"
     },
     {
@@ -30,7 +31,14 @@
           { "column": [ 80, 100 ], "place": "diamond_block", "chance": 0.5 },
           { "column": [ 80, 100 ], "place": "gold_block" }
         ]
-      }
+      },
+      "placement": [
+        {
+          "count": 1,
+          "height": 0,
+          "chance": 0.05
+        }
+      ]
     },
     {
      "type": "ore",

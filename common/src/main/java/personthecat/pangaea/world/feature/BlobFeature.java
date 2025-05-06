@@ -12,6 +12,7 @@ import net.minecraft.world.level.levelgen.heightproviders.UniformHeight;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.world.density.AutoWrapDensity;
 import personthecat.pangaea.world.density.DensityCutoff;
+import personthecat.pangaea.world.density.FastNoiseDensity;
 import personthecat.pangaea.world.feature.BlobFeature.Configuration;
 import personthecat.pangaea.world.filter.ChanceChunkFilter;
 import personthecat.pangaea.world.filter.ChunkFilter;
@@ -22,8 +23,7 @@ import personthecat.pangaea.world.provider.DynamicColumnProvider;
 
 import java.util.List;
 
-import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
+import static personthecat.catlib.serialization.codec.CodecUtils.*;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
@@ -84,7 +84,7 @@ public final class BlobFeature extends MapFeature<Configuration> {
                 n = cutoff.transformUpper(n, sum);
                 n = column.transformNoise(n, y);
 
-                if (n >= 0) {
+                if (n > 0) {
                     cfg.placer.placeUnchecked(ctx, x, y, z);
                     break;
                 }
@@ -105,15 +105,17 @@ public final class BlobFeature extends MapFeature<Configuration> {
             UniformHeight.of(VerticalAnchor.absolute(-32), VerticalAnchor.absolute(32));
         private static final ColumnProvider DEFAULT_COLUMN = new DynamicColumnProvider(
             VerticalAnchor.bottom(), VerticalAnchor.top(), DEFAULT_HARSHNESS);
+        private static final Codec<DensityFunction> NOISE_CODEC =
+            defaultType(AutoWrapDensity.HELPER_CODEC, FastNoiseDensity.CODEC.codec());
         public static final MapCodec<Configuration> CODEC = codecOf(
             field(BlockPlacer.CODEC, "placer", c -> c.placer),
-            defaulted(IntProvider.CODEC, "radius", UniformInt.of(18, 24), c -> c.radius),
+            defaulted(IntProvider.CODEC, "radius", UniformInt.of(24, 48), c -> c.radius),
             defaulted(Codec.doubleRange(0, 1), "cutoff", 0.8, c -> c.cutoff.min()),
             defaulted(Codec.DOUBLE, "harshness", DEFAULT_HARSHNESS, c -> c.cutoff.harshness()),
             defaulted(HeightProvider.CODEC, "height", DEFAULT_HEIGHT, c -> c.height),
             defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
-            defaulted(ChunkFilter.CODEC, "chunk_filter", new ChanceChunkFilter(0.15), c -> c.chunkFilter),
-            field(easyList(AutoWrapDensity.HELPER_CODEC), "generators", c -> c.generators),
+            defaulted(ChunkFilter.CODEC, "chunk_filter", new ChanceChunkFilter(0.02), c -> c.chunkFilter),
+            field(easyList(NOISE_CODEC), "generators", c -> c.generators),
             union(MapFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
