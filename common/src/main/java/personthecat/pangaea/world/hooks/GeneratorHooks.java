@@ -18,7 +18,7 @@ public final class GeneratorHooks {
         }
         final var centerPos = new BlockPos(ctx.centerX, 0, ctx.centerZ);
         final var rand = RandomSource.create(ctx.seed);
-        final var biome = ctx.biomes.getBiome(centerPos);
+        final var biome = ctx.noise.getApproximateBiome(ctx.biomes, ctx.centerX, ctx.centerZ);
         for (final var feature : registry) {
             final var predicate = feature.config().conditions.buildPredicate();
             if (predicate.test(biome, ctx.centerX, ctx.centerZ)) {
