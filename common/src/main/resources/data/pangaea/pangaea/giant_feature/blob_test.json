@@ -1,0 +1,15 @@
+{
+  "type": "pangaea:blob",
+  "biomes": [
+    "#is_forest"
+  ],
+  "placer": {
+    "target": "#overworld_carver_replaceables",
+    "place": "cave_air"
+  },
+  "generators": {
+    "noise": "simplex",
+    "frequency": [ 0.02, 0.04, 0.02 ],
+    "range": [ -0.9, 1.1 ]
+  }
+}

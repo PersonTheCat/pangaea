@@ -5,19 +5,6 @@
   "step": "vegetal_decoration",
   "inject": [
     {
-      "type": "pangaea:blob",
-      "placer": {
-        "target": "#overworld_carver_replaceables",
-        "place": "cave_air"
-      },
-      "generators": {
-        "noise": "simplex",
-        "frequency": [ 0.02, 0.04, 0.02 ],
-        "range": [ -1.5, 0.5 ]
-      },
-      "step": "raw_generation"
-    },
-    {
       "type": "pangaea:test",
       "column": [ 0, 100 ],
       "placer": {
