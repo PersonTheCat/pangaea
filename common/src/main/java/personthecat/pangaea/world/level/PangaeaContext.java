@@ -1,6 +1,5 @@
 package personthecat.pangaea.world.level;
 
-import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.BiomeManager;
@@ -68,7 +67,7 @@ public final class PangaeaContext extends WorldGenerationContext {
         this.noise = LevelExtras.getNoiseGraph(level.getLevel());
         this.rand = rand;
         this.level = level.getLevel();
-        this.sampler = ((ServerChunkCache) level.getChunkSource()).randomState().sampler();
+        this.sampler = level.getLevel().getChunkSource().randomState().sampler();
         this.biomes = level.getBiomeManager().withDifferentSource((x, y, z) ->
             source.getNoiseBiome(x, y, z, this.sampler));
         this.chunkX = pos.x;
