@@ -10,7 +10,7 @@ public record ConstantColumnProvider(ColumnBounds column) implements ColumnProvi
 
     @Override
     public ColumnBounds getColumn(PangaeaContext ctx, int x, int z) {
-        return this.column();
+        return this.column;
     }
 
     @Override
