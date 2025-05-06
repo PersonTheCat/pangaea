@@ -30,8 +30,8 @@ public abstract class GiantFeature<FC extends GiantFeatureConfiguration> extends
         final var strict = cfg.strictOrigin;
         final var predicate = strict ? cfg.conditions.buildPredicate() : PositionalBiomePredicate.ALWAYS;
 
-        for (int x = cX - r; x < cX + r; x++) {
-            for (int z = cZ - r; z < cZ +r; z++) {
+        for (int x = cX - r; x <= cX + r; x++) {
+            for (int z = cZ - r; z <= cZ + r; z++) {
                 final var pos2 = new ChunkPos(x, z);
                 final int aX = (x << 4) + 8;
                 final int aZ = (z << 4) + 8;

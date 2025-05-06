@@ -2,7 +2,7 @@ package personthecat.pangaea.world.feature;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import personthecat.pangaea.data.MutableFunctionContext;
@@ -24,7 +24,7 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 import static personthecat.pangaea.world.density.DensityCutoff.DEFAULT_HARSHNESS;
 
-public final class DensityFeature extends PangaeaFeature<Configuration> {
+public final class DensityFeature extends GiantFeature<Configuration> {
     public static final DensityFeature INSTANCE = new DensityFeature();
 
     private DensityFeature() {
@@ -32,7 +32,7 @@ public final class DensityFeature extends PangaeaFeature<Configuration> {
     }
 
     @Override
-    protected boolean place(PangaeaContext ctx, Configuration cfg, BlockPos pos, Border border) {
+    protected void place(PangaeaContext ctx, Configuration cfg, ChunkPos pos, Border border) {
         final int aX = ctx.actualX;
         final int aZ = ctx.actualZ;
 
@@ -43,7 +43,6 @@ public final class DensityFeature extends PangaeaFeature<Configuration> {
                 }
             }
         }
-        return true;
     }
 
     private void generateColumn(PangaeaContext ctx, Configuration cfg, Border border, int x, int z) {
@@ -85,7 +84,7 @@ public final class DensityFeature extends PangaeaFeature<Configuration> {
                 ColumnProvider column,
                 List<DensityFunction> generators,
                 GiantFeatureConfiguration source) {
-            super(source, false);
+            super(source, 0, false);
             this.placer = placer;
             this.column = column;
             this.generators = generators;

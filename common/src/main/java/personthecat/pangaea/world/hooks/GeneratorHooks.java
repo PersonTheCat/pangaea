@@ -22,10 +22,11 @@ public final class GeneratorHooks {
         for (final var feature : registry) {
             if (!feature.config().strictOrigin) {
                 final var predicate = feature.config().conditions.buildPredicate();
-                if (predicate.test(biome, ctx.centerX, ctx.centerZ)) {
+                if (!predicate.test(biome, ctx.centerX, ctx.centerZ)) {
                     continue;
                 }
             }
+            ctx.featureIndex.increment();
             feature.feature().place(feature.config(), level, gen, rand, centerPos);
         }
     }
