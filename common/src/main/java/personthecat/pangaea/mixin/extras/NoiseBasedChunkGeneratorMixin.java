@@ -20,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.mixin.accessor.StructureManagerAccessor;
 import personthecat.pangaea.world.level.PangaeaContext;
 
@@ -32,7 +31,7 @@ public abstract class NoiseBasedChunkGeneratorMixin {
     @Inject(
         method = "applyCarvers",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/ChunkAccess;getPos()Lnet/minecraft/world/level/ChunkPos;"))
-    private void getGeneratingPos(
+    private void injectPangaeaContext(
             WorldGenRegion level,
             long seed,
             RandomState state,
@@ -42,8 +41,8 @@ public abstract class NoiseBasedChunkGeneratorMixin {
             Carving step,
             CallbackInfo ci,
             @Local WorldgenRandom rand,
-            @Share("pos") LocalRef<MutableFunctionContext> target) {
-        target.set(PangaeaContext.init(level, rand, (ProtoChunk) chunk, ((ChunkGenerator) (Object) this)).targetPos);
+            @Share("ctx") LocalRef<PangaeaContext> target) {
+        target.set(PangaeaContext.init(level, rand, (ProtoChunk) chunk, ((ChunkGenerator) (Object) this)));
     }
 
     // Ordinarily, carvers only use providers in the origin chunk.
@@ -54,8 +53,8 @@ public abstract class NoiseBasedChunkGeneratorMixin {
     private void updateCarverPos(
             CallbackInfo ci,
             @Local(ordinal = 1) ChunkPos currentPos,
-            @Share("pos") LocalRef<MutableFunctionContext> target) {
-        target.get().set(currentPos);
+            @Share("ctx") LocalRef<PangaeaContext> ctx) {
+        ctx.get().targetPos.set(currentPos);
     }
 
     @ModifyArg(
