@@ -16,7 +16,7 @@
     "accessor.TagMatchTestAccessor",
     "accessor.TrapezoidHeightAccessor",
     "accessor.UniformHeightAccessor",
-    "accessor.VerticalAnchorMixin",
+    "codec.VerticalAnchorMixin",
     "codec.BiomeSpecialEffectsMixin",
     "codec.BlockStateMixin",
     "codec.DensityFunctionsMixin",

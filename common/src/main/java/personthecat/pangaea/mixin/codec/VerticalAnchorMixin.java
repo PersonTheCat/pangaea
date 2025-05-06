@@ -1,4 +1,4 @@
-package personthecat.pangaea.mixin.accessor;
+package personthecat.pangaea.mixin.codec;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.mojang.serialization.Codec;
