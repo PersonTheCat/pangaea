@@ -18,7 +18,7 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 
-public final class GiantSphereFeature extends MapFeature<Configuration> {
+public final class GiantSphereFeature extends GiantFeature<Configuration> {
     public static final GiantSphereFeature INSTANCE = new GiantSphereFeature();
 
     private GiantSphereFeature() {
@@ -58,7 +58,7 @@ public final class GiantSphereFeature extends MapFeature<Configuration> {
         }
     }
 
-    public static class Configuration extends MapFeatureConfiguration {
+    public static class Configuration extends GiantFeatureConfiguration {
         public final BlockPlacer placer;
         public final IntProvider radius;
         public final HeightProvider height;
@@ -71,7 +71,7 @@ public final class GiantSphereFeature extends MapFeature<Configuration> {
             defaulted(IntProvider.CODEC, "radius", UniformInt.of(18, 24), c -> c.radius),
             defaulted(HeightProvider.CODEC, "height", DEFAULT_HEIGHT, c -> c.height),
             defaulted(ChunkFilter.CODEC, "chunk_filter", new ChanceChunkFilter(0.15), c -> c.chunkFilter),
-            union(MapFeatureConfiguration.CODEC, c -> c),
+            union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
 
@@ -80,7 +80,7 @@ public final class GiantSphereFeature extends MapFeature<Configuration> {
                 IntProvider radius,
                 HeightProvider height,
                 ChunkFilter chunkFilter,
-                MapFeatureConfiguration source) {
+                GiantFeatureConfiguration source) {
             super(source);
             this.placer = placer;
             this.radius = radius;

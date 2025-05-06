@@ -5,11 +5,14 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.DensityFunction;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import personthecat.catlib.registry.RegistryHandle;
 import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.serialization.codec.FunctionCodec.Template;
 import personthecat.pangaea.world.biome.BiomeLayout;
 import personthecat.pangaea.world.biome.BiomeSlice;
+import personthecat.pangaea.world.feature.GiantFeature;
+import personthecat.pangaea.world.feature.GiantFeatureConfiguration;
 import personthecat.pangaea.world.filter.ChunkFilter;
 import personthecat.pangaea.world.injector.Injector;
 import personthecat.pangaea.world.placer.BlockPlacer;
@@ -27,6 +30,7 @@ public final class PgRegistries {
     public static final RegistryHandle<BlockPlacer> PLACER = dynamic(Keys.PLACER, BlockPlacer.CODEC);
     public static final RegistryHandle<ColumnProvider> COLUMN = dynamic(Keys.COLUMN, ColumnProvider.CODEC);
     public static final RegistryHandle<ChunkFilter> CHUNK_FILTER = dynamic(Keys.CHUNK_FILTER, ChunkFilter.CODEC);
+    public static final RegistryHandle<ConfiguredFeature<GiantFeatureConfiguration, ?>> GIANT_FEATURE = dynamic(Keys.GIANT_FEATURE, GiantFeature.DIRECT_CODEC);
 
     private PgRegistries() {}
 
@@ -50,6 +54,7 @@ public final class PgRegistries {
         public static final ResourceKey<Registry<BlockPlacer>> PLACER = key("placer");
         public static final ResourceKey<Registry<ColumnProvider>> COLUMN = key("column");
         public static final ResourceKey<Registry<ChunkFilter>> CHUNK_FILTER = key("chunk_filter");
+        public static final ResourceKey<Registry<ConfiguredFeature<GiantFeatureConfiguration, ?>>> GIANT_FEATURE = key("giant_feature");
         public static final ResourceKey<Registry<Template<DensityFunction>>> DENSITY_TEMPLATE = key("function");
 
         private Keys() {}

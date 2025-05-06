@@ -29,7 +29,7 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 import static personthecat.pangaea.world.density.DensityCutoff.DEFAULT_HARSHNESS;
 
-public final class BlobFeature extends MapFeature<Configuration> {
+public final class BlobFeature extends GiantFeature<Configuration> {
     public static final BlobFeature INSTANCE = new BlobFeature();
 
     private BlobFeature() {
@@ -92,7 +92,7 @@ public final class BlobFeature extends MapFeature<Configuration> {
         }
     }
 
-    public static class Configuration extends MapFeatureConfiguration {
+    public static class Configuration extends GiantFeatureConfiguration {
         public final BlockPlacer placer;
         public final IntProvider radius;
         public final DensityCutoff cutoff;
@@ -116,7 +116,7 @@ public final class BlobFeature extends MapFeature<Configuration> {
             defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
             defaulted(ChunkFilter.CODEC, "chunk_filter", new ChanceChunkFilter(0.02), c -> c.chunkFilter),
             field(easyList(NOISE_CODEC), "generators", c -> c.generators),
-            union(MapFeatureConfiguration.CODEC, c -> c),
+            union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
 
@@ -129,7 +129,7 @@ public final class BlobFeature extends MapFeature<Configuration> {
                 ColumnProvider column,
                 ChunkFilter chunkFilter,
                 List<DensityFunction> generators,
-                MapFeatureConfiguration source) {
+                GiantFeatureConfiguration source) {
             super(source);
             this.placer = placer;
             this.radius = radius;

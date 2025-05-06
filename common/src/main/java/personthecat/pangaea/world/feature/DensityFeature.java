@@ -63,7 +63,7 @@ public final class DensityFeature extends PangaeaFeature<Configuration> {
         }
     }
 
-    public static class Configuration extends MapFeatureConfiguration {
+    public static class Configuration extends GiantFeatureConfiguration {
         public final BlockPlacer placer;
         public final ColumnProvider column;
         public final List<DensityFunction> generators;
@@ -76,7 +76,7 @@ public final class DensityFeature extends PangaeaFeature<Configuration> {
             field(BlockPlacer.CODEC, "placer", c -> c.placer),
             defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
             field(easyList(NOISE_CODEC), "generators", c -> c.generators),
-            union(MapFeatureConfiguration.CODEC, c -> c),
+            union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
 
@@ -84,7 +84,7 @@ public final class DensityFeature extends PangaeaFeature<Configuration> {
                 BlockPlacer placer,
                 ColumnProvider column,
                 List<DensityFunction> generators,
-                MapFeatureConfiguration source) {
+                GiantFeatureConfiguration source) {
             super(source);
             this.placer = placer;
             this.column = column;
