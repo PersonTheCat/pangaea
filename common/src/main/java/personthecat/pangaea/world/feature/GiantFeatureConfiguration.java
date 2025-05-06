@@ -28,4 +28,8 @@ public class GiantFeatureConfiguration extends PangaeaFeatureConfiguration {
     protected GiantFeatureConfiguration(GiantFeatureConfiguration source) {
         this(source, source.chunkRadius, source.strictOrigin);
     }
+
+    protected GiantFeatureConfiguration(GiantFeatureConfiguration source, boolean strictOrigin) {
+        this(source, source.chunkRadius, strictOrigin);
+    }
 }

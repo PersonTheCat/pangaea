@@ -85,7 +85,7 @@ public final class DensityFeature extends PangaeaFeature<Configuration> {
                 ColumnProvider column,
                 List<DensityFunction> generators,
                 GiantFeatureConfiguration source) {
-            super(source);
+            super(source, false);
             this.placer = placer;
             this.column = column;
             this.generators = generators;

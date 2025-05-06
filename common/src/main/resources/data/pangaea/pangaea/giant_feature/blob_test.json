@@ -7,6 +7,7 @@
     "target": "#overworld_carver_replaceables",
     "place": "cave_air"
   },
+  "cutoff": 0.65,
   "generators": {
     "noise": "simplex",
     "frequency": [ 0.02, 0.04, 0.02 ],
