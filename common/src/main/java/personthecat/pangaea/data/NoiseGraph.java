@@ -18,7 +18,7 @@ public class NoiseGraph {
     public static final int BIOME_SCAN_CHUNK_RADIUS = 3;
     public static final int BIOME_SCAN_DIMENSION = BIOME_SAMPLE_DIMENSION * (BIOME_SCAN_CHUNK_RADIUS * 2 + 1);
     private static final int CLEANUP_INTERVAL = 5;
-    private static final int CLEANUP_DISTANCE = 10;
+    private static final int CLEANUP_DISTANCE = 12;
     private static final Point[] BIOME_CHECKS = {
         new Point(3, 3),
         new Point(3, 12),
