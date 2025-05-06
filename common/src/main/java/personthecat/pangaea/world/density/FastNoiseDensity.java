@@ -25,8 +25,8 @@ public record FastNoiseDensity(
 
     public static FastNoiseDensity create(FastNoise noise, Mode mode) {
         final var builder = noise.toBuilder();
-        final var min = builder.scaleAmplitude() + builder.scaleOffset();
-        final var max = -builder.scaleAmplitude() + builder.scaleOffset();
+        final var min = -builder.scaleAmplitude() + builder.scaleOffset();
+        final var max = builder.scaleAmplitude() + builder.scaleOffset();
         return new FastNoiseDensity(noise, mode, min, max);
     }
 
