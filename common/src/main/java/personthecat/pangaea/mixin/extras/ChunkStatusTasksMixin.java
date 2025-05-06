@@ -35,7 +35,7 @@ public class ChunkStatusTasksMixin {
             Operation<Void> applyCarvers) {
         PangaeaContext.init(level, (ProtoChunk) chunk, gen);
         applyCarvers.call(gen, level, seed, rand, biomes, structures, chunk, step);
-        GeneratorHooks.applyGiantFeatures(gen, PangaeaContext.get(level));
+        GeneratorHooks.applyGiantFeatures(level, gen, PangaeaContext.get(level));
     }
 
     @WrapOperation(
