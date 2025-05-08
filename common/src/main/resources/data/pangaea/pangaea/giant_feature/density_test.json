@@ -1,7 +1,7 @@
 {
   "type": "pangaea:density",
   "biomes": [
-    "#is_forest"
+    "#is_mountain"
   ],
   "placer": {
     "target": "#overworld_carver_replaceables",

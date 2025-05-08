@@ -47,6 +47,10 @@ public class MutableFunctionContext implements FunctionContext {
         return this.at(pos.getMiddleBlockX(), pos.getMiddleBlockZ());
     }
 
+    public MutableFunctionContext set(FunctionContext ctx) {
+        return this.at(ctx.blockX(), ctx.blockY(), ctx.blockZ());
+    }
+
     public MutableFunctionContext at(int x, int y, int z) {
         this.x = x;
         this.y = y;
