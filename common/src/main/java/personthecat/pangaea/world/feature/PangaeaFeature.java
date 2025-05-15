@@ -26,7 +26,7 @@ public abstract class PangaeaFeature<FC extends PangaeaFeatureConfiguration> ext
         if (!cfg.conditions.dimensions().test(ctx.chunk)) {
             return false;
         }
-        final var predicate = cfg.conditions.buildPredicate();
+        final var predicate = cfg.strictBorder ? cfg.conditions.buildPredicate() : PositionalBiomePredicate.ALWAYS;
         final var r = cfg.conditions.distanceFromBounds();
         final var t = r + cfg.conditions.boundaryWidth();
         final var border = Border.forPredicate(ctx, predicate, r, t);

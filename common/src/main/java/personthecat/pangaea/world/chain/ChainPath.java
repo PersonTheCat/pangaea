@@ -2,6 +2,7 @@ package personthecat.pangaea.world.chain;
 
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import personthecat.pangaea.world.feature.Border;
 import personthecat.pangaea.world.level.PangaeaContext;
 
 public abstract class ChainPath {

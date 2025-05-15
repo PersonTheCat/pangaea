@@ -1,6 +1,9 @@
 {
   "type": "pangaea:chain",
   "chance": 0.15,
+  "biomes": [
+    "#is_forest"
+  ],
   "height": {
     "bottom": [ 8, 100 ]
   },

@@ -65,7 +65,7 @@ public class ChainFeature extends GiantFeature<Configuration> {
                     this.generateHub(ctx, cfg, localRand, path);
                     branches += cfg.systemDensity.sample(rand);
                 }
-                this.traversePath(ctx, localRand, path, link, 0, range);
+                this.traversePath(ctx, localRand, path, link, border, 0, range);
             }
         }
     }
@@ -79,28 +79,31 @@ public class ChainFeature extends GiantFeature<Configuration> {
         hub.place(ctx, rand, path, 0, 0);
     }
 
-    protected void traversePath(PangaeaContext ctx, RandomSource rand, ChainPath path, ChainLink link, int idx, int end) {
+    protected void traversePath(
+            PangaeaContext ctx, RandomSource rand, ChainPath path, ChainLink link, Border border, int idx, int end) {
         final int branchIndex = rand.nextInt(end / 2) + end / 4;
 
         for (int i = idx; i < end; i++) {
             path.next(ctx, rand, i, end);
 
-            if (i == branchIndex && path.radiusFactor() > 1.5F) {
+            if (i == branchIndex && path.radiusFactor() > 1.25F) {
                 var localRand = RandomSource.create(rand.nextLong());
                 var fork = path.fork(ctx, localRand);
                 fork.redirect(path.yaw() - Mth.HALF_PI, path.pitch() / 3.0F);
-                this.traversePath(ctx, localRand, fork, link, i, end);
+                this.traversePath(ctx, localRand, fork, link, border, i, end);
 
                 localRand = RandomSource.create(rand.nextLong());
                 fork = path.fork(ctx, localRand);
                 fork.redirect(path.yaw() + Mth.HALF_PI, path.pitch() / 3.0F);
-                this.traversePath(ctx, localRand, fork, link, i, end);
+                this.traversePath(ctx, localRand, fork, link, border, i, end);
                 return;
             }
             if (!canReach(ctx, path, link, idx, end)) {
                 return;
             }
-            link.place(ctx, rand, path, idx, end);
+            if (border.isInRange(ctx, (int) path.blockX(), (int) path.blockZ())) {
+                link.place(ctx, rand, path, idx, end);
+            }
         }
     }
 
@@ -156,7 +159,7 @@ public class ChainFeature extends GiantFeature<Configuration> {
                 ChainLinkConfig<?> link,
                 @Nullable ChainLinkConfig<?> hub,
                 GiantFeatureConfiguration parent) {
-            super(parent, false);
+            super(parent);
             this.chunkFilter = chunkFilter;
             this.systemChance = systemChance;
             this.count = count;
