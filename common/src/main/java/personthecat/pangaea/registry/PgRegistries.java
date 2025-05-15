@@ -11,6 +11,9 @@ import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.serialization.codec.FunctionCodec.Template;
 import personthecat.pangaea.world.biome.BiomeLayout;
 import personthecat.pangaea.world.biome.BiomeSlice;
+import personthecat.pangaea.world.chain.ChainLink;
+import personthecat.pangaea.world.chain.ChainLinkConfig;
+import personthecat.pangaea.world.chain.ChainPathConfig;
 import personthecat.pangaea.world.feature.GiantFeature;
 import personthecat.pangaea.world.feature.GiantFeatureConfiguration;
 import personthecat.pangaea.world.filter.ChunkFilter;
@@ -23,6 +26,8 @@ public final class PgRegistries {
     public static final RegistryHandle<MapCodec<? extends BlockPlacer>> PLACER_TYPE = type(Keys.PLACER_TYPE);
     public static final RegistryHandle<MapCodec<? extends ColumnProvider>> COLUMN_TYPE = type(Keys.BOUNDS_TYPE);
     public static final RegistryHandle<MapCodec<? extends ChunkFilter>> CHUNK_FILTER_TYPE = type(Keys.CHUNK_FILTER_TYPE);
+    public static final RegistryHandle<MapCodec<? extends ChainLinkConfig<?>>> LINK_TYPE = type(Keys.LINK_TYPE);
+    public static final RegistryHandle<MapCodec<? extends ChainPathConfig<?>>> PATH_TYPE = type(Keys.PATH_TYPE);
 
     public static final RegistryHandle<Injector> INJECTOR = dynamic(Keys.INJECTOR, Injector.CODEC);
     public static final RegistryHandle<BiomeLayout> BIOME_LAYOUT = dynamic(Keys.BIOME_LAYOUT, BiomeLayout.CODEC.codec());
@@ -47,6 +52,8 @@ public final class PgRegistries {
         public static final ResourceKey<Registry<MapCodec<? extends BlockPlacer>>> PLACER_TYPE = key("placer_type");
         public static final ResourceKey<Registry<MapCodec<? extends ColumnProvider>>> BOUNDS_TYPE = key("bounds_type");
         public static final ResourceKey<Registry<MapCodec<? extends ChunkFilter>>> CHUNK_FILTER_TYPE = key("chunk_filter_type");
+        public static final ResourceKey<Registry<MapCodec<? extends ChainLinkConfig<?>>>> LINK_TYPE = key("chain_link_type");
+        public static final ResourceKey<Registry<MapCodec<? extends ChainPathConfig<?>>>> PATH_TYPE = key("chain_path_type");
 
         public static final ResourceKey<Registry<Injector>> INJECTOR = key("injector");
         public static final ResourceKey<Registry<BiomeLayout>> BIOME_LAYOUT = key("layout");
@@ -54,6 +61,7 @@ public final class PgRegistries {
         public static final ResourceKey<Registry<BlockPlacer>> PLACER = key("placer");
         public static final ResourceKey<Registry<ColumnProvider>> COLUMN = key("column");
         public static final ResourceKey<Registry<ChunkFilter>> CHUNK_FILTER = key("chunk_filter");
+        public static final ResourceKey<Registry<ChainLink>> LINK = key("chain_link");
         public static final ResourceKey<Registry<ConfiguredFeature<GiantFeatureConfiguration, ?>>> GIANT_FEATURE = key("giant_feature");
         public static final ResourceKey<Registry<Template<DensityFunction>>> DENSITY_TEMPLATE = key("function");
 

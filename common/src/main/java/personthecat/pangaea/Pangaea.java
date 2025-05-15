@@ -25,6 +25,8 @@ import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.serialization.codec.StructuralFloatProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralHeightProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralIntProviderCodec;
+import personthecat.pangaea.world.chain.EllipsoidLink;
+import personthecat.pangaea.world.chain.TunnelPath;
 import personthecat.pangaea.world.density.DensityController;
 import personthecat.pangaea.world.density.DensityList;
 import personthecat.pangaea.world.density.FastNoiseDensity;
@@ -34,11 +36,13 @@ import personthecat.pangaea.world.density.UniformDensity;
 import personthecat.pangaea.world.density.WeightedListDensity;
 import personthecat.pangaea.world.feature.BlobFeature;
 import personthecat.pangaea.world.feature.BurrowFeature;
+import personthecat.pangaea.world.feature.ChainFeature;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.DensityFeature;
 import personthecat.pangaea.world.feature.GiantSphereFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.feature.TestFeature;
+import personthecat.pangaea.world.feature.TunnelFeature;
 import personthecat.pangaea.world.filter.ChanceChunkFilter;
 import personthecat.pangaea.world.filter.ClusterChunkFilter;
 import personthecat.pangaea.world.filter.DensityChunkFilter;
@@ -64,6 +68,7 @@ import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
 import personthecat.pangaea.world.placer.TargetedBlockPlacer;
 import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
 import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
+import personthecat.pangaea.world.provider.BiasedToBottomFloat;
 import personthecat.pangaea.world.provider.ConstantColumnProvider;
 import personthecat.pangaea.world.provider.DensityFloatProvider;
 import personthecat.pangaea.world.provider.DensityHeightProvider;
@@ -71,6 +76,7 @@ import personthecat.pangaea.world.provider.DensityIntProvider;
 import personthecat.pangaea.world.provider.DensityOffsetHeightProvider;
 import personthecat.pangaea.world.provider.DynamicColumnProvider;
 import personthecat.pangaea.world.provider.ExactColumnProvider;
+import personthecat.pangaea.world.provider.VeryBiasedToBottomInt;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 
@@ -128,10 +134,12 @@ public abstract class Pangaea {
             .register("weighted_list", WeightedListDensity.CODEC);
         CommonRegistries.FLOAT_PROVIDER_TYPE.createRegister(ID)
             .register("density", DensityFloatProvider.TYPE)
-            .register("structural", StructuralFloatProviderCodec.TYPE);
+            .register("structural", StructuralFloatProviderCodec.TYPE)
+            .register("biased_to_bottom", BiasedToBottomFloat.TYPE);
         CommonRegistries.INT_PROVIDER_TYPE.createRegister(ID)
             .register("density", DensityIntProvider.TYPE)
-            .register("structural", StructuralIntProviderCodec.TYPE);
+            .register("structural", StructuralIntProviderCodec.TYPE)
+            .register("very_biased_to_bottom", VeryBiasedToBottomInt.TYPE);
         CommonRegistries.HEIGHT_PROVIDER_TYPE.createRegister(ID)
             .register("density", DensityHeightProvider.TYPE)
             .register("density_offset", DensityOffsetHeightProvider.TYPE)
@@ -170,12 +178,18 @@ public abstract class Pangaea {
             .register("density", DensityChunkFilter.CODEC)
             .register("union", UnionChunkFilter.CODEC)
             .register("structural", StructuralChunkFilterCodec.INSTANCE);
+        PgRegistries.LINK_TYPE.createRegister(ID)
+            .register("ellipsoid", EllipsoidLink.Config.CODEC);
+        PgRegistries.PATH_TYPE.createRegister(ID)
+            .register("tunnel", TunnelPath.Config.CODEC);
         CommonRegistries.FEATURE.createRegister(ID)
             .register("test", TestFeature.INSTANCE)
             .register("giant_sphere", GiantSphereFeature.INSTANCE)
             .register("blob", BlobFeature.INSTANCE)
             .register("density", DensityFeature.INSTANCE)
-            .register("burrow", BurrowFeature.INSTANCE);
+            .register("burrow", BurrowFeature.INSTANCE)
+            .register("chain", ChainFeature.INSTANCE)
+            .register("temporary_tunnel", TunnelFeature.INSTANCE);
     }
 
     private static void enableDebugFeatures() {

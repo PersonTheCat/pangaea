@@ -9,6 +9,10 @@ public record ChanceChunkFilter(double chance) implements ChunkFilter {
         Codec.doubleRange(0, 1).fieldOf("chance")
             .xmap(ChanceChunkFilter::new, ChanceChunkFilter::chance);
 
+    public static ChanceChunkFilter of(double chance) {
+        return new ChanceChunkFilter(chance);
+    }
+
     @Override
     public boolean test(PangaeaContext ctx, int x, int z) {
         return ctx.rand.nextDouble() <= this.chance;

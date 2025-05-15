@@ -1,10 +1,14 @@
 package personthecat.pangaea.serialization.codec;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.valueproviders.ConstantFloat;
+import net.minecraft.util.valueproviders.FloatProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.registry.RegistryHandle;
@@ -43,5 +47,20 @@ public final class PgCodecs {
             }
         }
         return null;
+    }
+
+    // Workaround bizarre behavior of ConstantFloat#getMaxValue being value + 1
+    public static Codec<FloatProvider> floatRangeFix(float min, float max) {
+        return FloatProvider.CODEC.validate(fp -> validateRange(fp, min, max));
+    }
+
+    private static DataResult<FloatProvider> validateRange(FloatProvider fp, float min, float max) {
+        final float maxValue = fp instanceof ConstantFloat c ? c.getMinValue() : fp.getMaxValue();
+        if (fp.getMinValue() < min) {
+            return DataResult.error(() -> "Value provider too low: min of " + min + ", given " + fp);
+        } else if (maxValue > max) {
+            return DataResult.error(() -> "Value provider too high: max of " + max + ", given " + fp);
+        }
+        return DataResult.success(fp);
     }
 }
