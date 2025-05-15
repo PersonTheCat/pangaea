@@ -59,11 +59,6 @@ public final class GiantSphereFeature extends GiantFeature<Configuration> {
     }
 
     public static class Configuration extends GiantFeatureConfiguration {
-        public final BlockPlacer placer;
-        public final IntProvider radius;
-        public final HeightProvider height;
-        public final ChunkFilter chunkFilter;
-
         private static final HeightProvider DEFAULT_HEIGHT =
             UniformHeight.of(VerticalAnchor.absolute(-32), VerticalAnchor.absolute(32));
         public static final MapCodec<Configuration> CODEC = codecOf(
@@ -74,6 +69,10 @@ public final class GiantSphereFeature extends GiantFeature<Configuration> {
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
+        public final BlockPlacer placer;
+        public final IntProvider radius;
+        public final HeightProvider height;
+        public final ChunkFilter chunkFilter;
 
         protected Configuration(
                 BlockPlacer placer,

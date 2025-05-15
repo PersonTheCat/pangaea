@@ -167,14 +167,6 @@ public class TunnelFeature extends GiantFeature<Configuration> {
     }
 
     public static class Configuration extends GiantFeatureConfiguration {
-        public final float chance;
-        public final HeightProvider height;
-        public final FloatProvider radiusFactorXz;
-        public final FloatProvider radiusFactorY;
-        public final FloatProvider floorCurve;
-        public final FloatProvider verticalScale;
-        public final BlockPlacer placer;
-
         public static final MapCodec<Configuration> CODEC = codecOf(
             field(Codec.FLOAT, "chance", c -> c.chance),
             field(HeightProvider.CODEC, "height", c -> c.height),
@@ -186,6 +178,13 @@ public class TunnelFeature extends GiantFeature<Configuration> {
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
+        public final float chance;
+        public final HeightProvider height;
+        public final FloatProvider radiusFactorXz;
+        public final FloatProvider radiusFactorY;
+        public final FloatProvider floorCurve;
+        public final FloatProvider verticalScale;
+        public final BlockPlacer placer;
 
         public Configuration(
                 float chance,

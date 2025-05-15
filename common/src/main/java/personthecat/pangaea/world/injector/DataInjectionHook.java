@@ -103,6 +103,7 @@ public final class DataInjectionHook {
         return ctx;
     }
 
+    @SuppressWarnings("ConstantConditions")
     private static Collection<Entry<ResourceKey<Injector>, Injector>> getInjectorsForPhase(Phase phase) {
         return PgRegistries.INJECTOR.entrySet().stream()
             .filter(e -> e.getValue().phase() == phase)

@@ -61,10 +61,6 @@ public final class DensityFeature extends GiantFeature<Configuration> {
     }
 
     public static class Configuration extends GiantFeatureConfiguration {
-        public final BlockPlacer placer;
-        public final ColumnProvider column;
-        public final List<DensityFunction> generators;
-
         private static final ColumnProvider DEFAULT_COLUMN = new DynamicColumnProvider(
             VerticalAnchor.aboveBottom(24), VerticalAnchor.absolute(54), DEFAULT_HARSHNESS);
         private static final MapCodec<List<DensityFunction>> GENERATORS_CODEC =
@@ -77,6 +73,9 @@ public final class DensityFeature extends GiantFeature<Configuration> {
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
+        public final BlockPlacer placer;
+        public final ColumnProvider column;
+        public final List<DensityFunction> generators;
 
         protected Configuration(
                 BlockPlacer placer,

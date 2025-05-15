@@ -116,16 +116,6 @@ public class ChainFeature extends GiantFeature<Configuration> {
     }
 
     public static class Configuration extends GiantFeatureConfiguration {
-        private final ChunkFilter chunkFilter;
-        private final FloatProvider systemChance;
-        private final IntProvider count;
-        private final IntProvider range;
-        private final IntProvider systemDensity;
-        private final HeightProvider height;
-        private final ChainPathConfig<?> path;
-        private final ChainLinkConfig<?> link;
-        private final ChainLinkConfig<?> hub;
-
         private static final ChunkFilter DEFAULT_CHUNK_FILTER = ChanceChunkFilter.of(0.15F);
         private static final FloatProvider DEFAULT_SYSTEM_CHANCE = ConstantFloat.of(0.25F);
         private static final IntProvider DEFAULT_COUNT = VeryBiasedToBottomInt.of(0, 7);
@@ -147,6 +137,15 @@ public class ChainFeature extends GiantFeature<Configuration> {
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
+        private final ChunkFilter chunkFilter;
+        private final FloatProvider systemChance;
+        private final IntProvider count;
+        private final IntProvider range;
+        private final IntProvider systemDensity;
+        private final HeightProvider height;
+        private final ChainPathConfig<?> path;
+        private final ChainLinkConfig<?> link;
+        private final ChainLinkConfig<?> hub;
 
         public Configuration(
                 ChunkFilter chunkFilter,

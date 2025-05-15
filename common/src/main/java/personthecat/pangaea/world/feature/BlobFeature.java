@@ -93,14 +93,6 @@ public final class BlobFeature extends GiantFeature<Configuration> {
     }
 
     public static class Configuration extends GiantFeatureConfiguration {
-        public final BlockPlacer placer;
-        public final IntProvider radius;
-        public final DensityCutoff cutoff;
-        public final HeightProvider height;
-        public final ColumnProvider column;
-        public final ChunkFilter chunkFilter;
-        public final List<DensityFunction> generators;
-
         private static final HeightProvider DEFAULT_HEIGHT =
             UniformHeight.of(VerticalAnchor.absolute(-32), VerticalAnchor.absolute(32));
         private static final ColumnProvider DEFAULT_COLUMN = new DynamicColumnProvider(
@@ -121,6 +113,14 @@ public final class BlobFeature extends GiantFeature<Configuration> {
         );
         public static final MapCodec<Configuration> CODEC =
             FastNoiseDensity.as3dCodec(DIRECT_CODEC);
+
+        public final BlockPlacer placer;
+        public final IntProvider radius;
+        public final DensityCutoff cutoff;
+        public final HeightProvider height;
+        public final ColumnProvider column;
+        public final ChunkFilter chunkFilter;
+        public final List<DensityFunction> generators;
 
         protected Configuration(
                 BlockPlacer placer,

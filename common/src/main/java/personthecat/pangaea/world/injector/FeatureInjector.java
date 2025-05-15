@@ -34,7 +34,6 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.nullable;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 
 public record FeatureInjector(InjectionMap<Modifications> injections) implements Injector {
-
     private static final MapCodec<FeatureInjector> DIRECT_CODEC =
         InjectionMap.codecOfEasyList(Modifications.CODEC.codec())
             .fieldOf("inject")

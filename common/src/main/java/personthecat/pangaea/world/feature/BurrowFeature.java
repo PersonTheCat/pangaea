@@ -82,16 +82,6 @@ public class BurrowFeature extends GiantFeature<Configuration> {
     }
 
     public static class Configuration extends GiantFeatureConfiguration {
-        public final FloatProvider radius;
-        public final FloatProvider stretch;
-        public final FloatProvider target;
-        public final FloatProvider exponent;
-        public final FloatProvider shift;
-        public final BlockPlacer placer;
-        public final ColumnProvider column;
-        public final DensityFunction map;
-        public final DensityFunction offset;
-
         private static final ColumnProvider DEFAULT_COLUMN = new DynamicColumnProvider(
             VerticalAnchor.absolute(5), VerticalAnchor.absolute(35), DEFAULT_HARSHNESS);
         private static final FastNoise DEFAULT_MAP_NOISE =
@@ -115,6 +105,15 @@ public class BurrowFeature extends GiantFeature<Configuration> {
             union(PangaeaFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
+        public final FloatProvider radius;
+        public final FloatProvider stretch;
+        public final FloatProvider target;
+        public final FloatProvider exponent;
+        public final FloatProvider shift;
+        public final BlockPlacer placer;
+        public final ColumnProvider column;
+        public final DensityFunction map;
+        public final DensityFunction offset;
 
         public Configuration(
                 FloatProvider radius,

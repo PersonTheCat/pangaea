@@ -32,15 +32,14 @@ public class TestFeature extends PangaeaFeature<Configuration> {
     }
 
     public static class Configuration extends PangaeaFeatureConfiguration {
-        public final BlockPlacer placer;
-        public final ColumnProvider column;
-
         public static final MapCodec<Configuration> CODEC = codecOf(
             field(BlockPlacer.CODEC, "placer", c -> c.placer),
             field(ColumnProvider.CODEC, "column", c -> c.column),
             union(PangaeaFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
+        public final BlockPlacer placer;
+        public final ColumnProvider column;
 
         protected Configuration(
                 BlockPlacer placer, ColumnProvider column, PangaeaFeatureConfiguration source) {
