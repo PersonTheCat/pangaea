@@ -14,13 +14,13 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.pangaea.serialization.codec.PgCodecs.floatRangeFix;
 
-public class EllipsoidLink extends ChainLink {
+public class SphereLink extends ChainLink {
     private final double chance;
     private final double radius;
     private final double floorLevel;
     private final double verticalScale;
 
-    protected EllipsoidLink(RandomSource rand, Config config) {
+    protected SphereLink(RandomSource rand, Config config) {
         super(config);
         this.chance = config.chance.sample(rand);
         this.radius = config.radius.sample(rand);
@@ -87,7 +87,7 @@ public class EllipsoidLink extends ChainLink {
         FloatProvider floorLevel,
         FloatProvider verticalScale,
         BlockPlacer placer
-    ) implements ChainLinkConfig<EllipsoidLink> {
+    ) implements ChainLinkConfig<SphereLink> {
         private static final FloatProvider DEFAULT_CHANCE = ConstantFloat.of(0.75F);
         private static final FloatProvider DEFAULT_RADIUS = UniformFloat.of(2, 3);
         private static final FloatProvider DEFAULT_FLOOR = UniformFloat.of(-1, -0.4F);
@@ -103,8 +103,8 @@ public class EllipsoidLink extends ChainLink {
         );
 
         @Override
-        public EllipsoidLink instance(PangaeaContext ctx, RandomSource rand) {
-            return new EllipsoidLink(rand, this);
+        public SphereLink instance(PangaeaContext ctx, RandomSource rand) {
+            return new SphereLink(rand, this);
         }
 
         @Override

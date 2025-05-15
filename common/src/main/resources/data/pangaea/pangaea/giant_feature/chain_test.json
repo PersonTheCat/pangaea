@@ -14,7 +14,7 @@
     "horizontality": 0.1
   },
   "link": {
-    "type": "pangaea:ellipsoid",
+    "type": "pangaea:sphere",
     "floor": [ -1.0, -0.5 ],
     "radius": [ 1.5, 2.5 ],
     "placer": {
@@ -23,7 +23,7 @@
     }
   },
   "hub": {
-    "type": "pangaea:ellipsoid",
+    "type": "pangaea:sphere",
     "floor": [ -1.0, -0.5 ],
     "radius": [ 4.0, 7.0 ],
     "vertical_scale": 0.5,
