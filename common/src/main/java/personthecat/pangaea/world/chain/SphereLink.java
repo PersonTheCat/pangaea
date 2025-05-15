@@ -6,12 +6,14 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.ConstantFloat;
 import net.minecraft.util.valueproviders.FloatProvider;
 import net.minecraft.util.valueproviders.UniformFloat;
+import personthecat.catlib.serialization.codec.CapturingCodec.Receiver;
 import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.placer.BlockPlacer;
 
+import static personthecat.catlib.serialization.codec.CapturingCodec.receive;
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.defaultTry;
 import static personthecat.pangaea.serialization.codec.PgCodecs.floatRangeFix;
 
 public class SphereLink extends ChainLink {
@@ -92,13 +94,14 @@ public class SphereLink extends ChainLink {
         private static final FloatProvider DEFAULT_RADIUS = UniformFloat.of(2, 3);
         private static final FloatProvider DEFAULT_FLOOR = UniformFloat.of(-1, -0.4F);
         private static final FloatProvider DEFAULT_SCALE = ConstantFloat.of(1);
+        private static final Receiver<BlockPlacer> DEFAULT_PLACER = receive("placer");
 
         public static final MapCodec<Config> CODEC = codecOf(
             defaulted(floatRangeFix(0, 1), "chance", DEFAULT_CHANCE, Config::chance),
             defaulted(floatRangeFix(0, 32), "radius", DEFAULT_RADIUS, Config::radius),
             defaulted(floatRangeFix(-1, 1), "floor_level", DEFAULT_FLOOR, Config::floorLevel),
             defaulted(floatRangeFix(0, 32), "vertical_scale", DEFAULT_SCALE, Config::verticalScale),
-            field(BlockPlacer.CODEC, "placer", Config::placer),
+            defaultTry(BlockPlacer.CODEC, "placer", DEFAULT_PLACER, Config::placer),
             Config::new
         );
 

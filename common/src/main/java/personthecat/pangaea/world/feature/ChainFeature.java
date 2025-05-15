@@ -12,6 +12,7 @@ import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import net.minecraft.world.level.levelgen.heightproviders.UniformHeight;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.serialization.codec.CapturingCodec;
 import personthecat.pangaea.world.chain.ChainLink;
 import personthecat.pangaea.world.chain.ChainLinkConfig;
 import personthecat.pangaea.world.chain.ChainPath;
@@ -20,8 +21,10 @@ import personthecat.pangaea.world.feature.ChainFeature.Configuration;
 import personthecat.pangaea.world.filter.ChanceChunkFilter;
 import personthecat.pangaea.world.filter.ChunkFilter;
 import personthecat.pangaea.world.level.PangaeaContext;
+import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.provider.VeryBiasedToBottomInt;
 
+import static personthecat.catlib.serialization.codec.CapturingCodec.capture;
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
@@ -124,7 +127,7 @@ public class ChainFeature extends GiantFeature<Configuration> {
         private static final HeightProvider DEFAULT_HEIGHT =
             UniformHeight.of(VerticalAnchor.aboveBottom(8), VerticalAnchor.absolute(180));
 
-        public static final MapCodec<Configuration> CODEC = codecOf(
+        private static final MapCodec<Configuration> DIRECT_CODEC = codecOf(
             defaulted(ChunkFilter.CODEC, "chunk_filter", DEFAULT_CHUNK_FILTER, c -> c.chunkFilter),
             defaulted(floatRangeFix(0, 1), "system_chance", DEFAULT_SYSTEM_CHANCE, c -> c.systemChance),
             defaulted(IntProvider.codec(0, 128), "count", DEFAULT_COUNT, c -> c.count),
@@ -137,6 +140,9 @@ public class ChainFeature extends GiantFeature<Configuration> {
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
+        public static final MapCodec<Configuration> CODEC =
+            CapturingCodec.of(DIRECT_CODEC).capturing(capture("placer", BlockPlacer.CODEC));
+
         private final ChunkFilter chunkFilter;
         private final FloatProvider systemChance;
         private final IntProvider count;
