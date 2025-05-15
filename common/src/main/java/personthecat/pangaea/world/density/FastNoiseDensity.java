@@ -1,27 +1,30 @@
 package personthecat.pangaea.world.density;
 
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunction.SimpleFunction;
 import org.jetbrains.annotations.NotNull;
-import personthecat.catlib.serialization.codec.UnionCodec;
+import personthecat.catlib.serialization.codec.CapturingCodec;
+import personthecat.catlib.serialization.codec.CapturingCodec.Receiver;
 import personthecat.fastnoise.FastNoise;
 import personthecat.pangaea.serialization.codec.NoiseCodecs;
 
-import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
+import static personthecat.catlib.serialization.codec.CapturingCodec.receive;
+import static personthecat.catlib.serialization.codec.CapturingCodec.supply;
+import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.CodecUtils.ofEnum;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.defaultTry;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 
 public record FastNoiseDensity(
         FastNoise noise, Mode mode, double minValue, double maxValue) implements SimpleFunction {
-    public static final MapCodec<FastNoiseDensity> CODEC = createCodec(Mode.SCALED);
-    public static final MapCodec<FastNoiseDensity> CODEC_2D = createCodec(Mode.SCALED_2D);
-    public static final Codec<DensityFunction> DEFAULT_2D =
-        defaultType(
-            DensityFunction.HOLDER_HELPER_CODEC, CODEC_2D.codec(), (d, o) -> d instanceof FastNoiseDensity);
+    private static final Receiver<Mode> DEFAULT_MODE = receive("mode", Mode.SCALED_2D);
+    public static final MapCodec<FastNoiseDensity> CODEC = codecOf(
+        union(NoiseCodecs.NOISE_CODEC, FastNoiseDensity::noise),
+        defaultTry(ofEnum(Mode.class), "mode", DEFAULT_MODE, FastNoiseDensity::mode),
+        FastNoiseDensity::create
+    );
 
     public static FastNoiseDensity create(FastNoise noise, Mode mode) {
         final var builder = noise.toBuilder();
@@ -30,11 +33,8 @@ public record FastNoiseDensity(
         return new FastNoiseDensity(noise, mode, min, max);
     }
 
-    public static MapCodec<FastNoiseDensity> createCodec(Mode defaultMode) {
-        final var modeCodec = ofEnum(Mode.class).optionalFieldOf("mode", defaultMode);
-        return UnionCodec.builder(NoiseCodecs.NOISE_CODEC, modeCodec).create(
-            d -> DataResult.success(Pair.of(d.noise, d.mode)),
-            p -> DataResult.success(create(p.getFirst(), p.getSecond())));
+    public static <A> MapCodec<A> as3dCodec(MapCodec<A> codec) {
+        return CapturingCodec.of(codec).capturing(supply("mode", Mode.SCALED));
     }
 
     @Override
@@ -65,6 +65,6 @@ public record FastNoiseDensity(
         SCALED,
         SCALED_2D,
         BOOL,
-        BOOL_2D;
+        BOOL_2D
     }
 }

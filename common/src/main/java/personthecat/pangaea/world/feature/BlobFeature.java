@@ -105,9 +105,9 @@ public final class BlobFeature extends GiantFeature<Configuration> {
             UniformHeight.of(VerticalAnchor.absolute(-32), VerticalAnchor.absolute(32));
         private static final ColumnProvider DEFAULT_COLUMN = new DynamicColumnProvider(
             VerticalAnchor.bottom(), VerticalAnchor.top(), DEFAULT_HARSHNESS);
-        private static final Codec<DensityFunction> NOISE_CODEC =
-            defaultType(AutoWrapDensity.HELPER_CODEC, FastNoiseDensity.CODEC.codec());
-        public static final MapCodec<Configuration> CODEC = codecOf(
+        private static final MapCodec<List<DensityFunction>> GENERATORS_CODEC =
+            FastNoiseDensity.as3dCodec(easyList(AutoWrapDensity.HELPER_CODEC).fieldOf("generators"));
+        private static final MapCodec<Configuration> DIRECT_CODEC = codecOf(
             field(BlockPlacer.CODEC, "placer", c -> c.placer),
             defaulted(IntProvider.CODEC, "radius", UniformInt.of(24, 48), c -> c.radius),
             defaulted(Codec.doubleRange(0, 1), "cutoff", 0.8, c -> c.cutoff.min()),
@@ -115,10 +115,12 @@ public final class BlobFeature extends GiantFeature<Configuration> {
             defaulted(HeightProvider.CODEC, "height", DEFAULT_HEIGHT, c -> c.height),
             defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
             defaulted(ChunkFilter.CODEC, "chunk_filter", new ChanceChunkFilter(0.02), c -> c.chunkFilter),
-            field(easyList(NOISE_CODEC), "generators", c -> c.generators),
+            union(GENERATORS_CODEC, c -> c.generators),
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
+        public static final MapCodec<Configuration> CODEC =
+            FastNoiseDensity.as3dCodec(DIRECT_CODEC);
 
         protected Configuration(
                 BlockPlacer placer,

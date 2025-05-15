@@ -21,7 +21,7 @@ public class DensityController implements SimpleFunction {
     private static final DensityFunction DEFAULT_FILLER = DensityFunctions.constant(-1000000);
     private static final DensityCutoff DEFAULT_UPPER_CUTOFF = new DensityCutoff(255, 255, 0.1);
     private static final DensityCutoff DEFAULT_LOWER_CUTOFF = new DensityCutoff(-64, -64, 0.1);
-    public static final MapCodec<DensityController> CODEC = codecOf(
+    private static final MapCodec<DensityController> DIRECT_CODEC = codecOf(
         defaulted(DensityFunction.HOLDER_HELPER_CODEC, "surface", DEFAULT_SURFACE, c -> c.unwrapMain().surface),
         defaulted(DensityList.Min.LIST_CODEC, "entrances", DEFAULT_ENTRANCES, c -> c.unwrapMain().entrances),
         defaulted(DensityCutoff.CODEC, "upper_cutoff", DEFAULT_UPPER_CUTOFF, c -> c.unwrapMain().upperCutoff),
@@ -34,6 +34,7 @@ public class DensityController implements SimpleFunction {
         defaulted(Codec.DOUBLE, "primary_scale", 0.64, c -> c.primaryScale),
         DensityController::new
     );
+    public static final MapCodec<DensityController> CODEC = FastNoiseDensity.as3dCodec(DIRECT_CODEC);
     private final DensityFunction main;
     private final DensityFunction globalCaverns;
     private final double primaryScale;

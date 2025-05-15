@@ -1,6 +1,5 @@
 package personthecat.pangaea.world.feature;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.DensityFunction;
@@ -17,7 +16,6 @@ import personthecat.pangaea.world.provider.DynamicColumnProvider;
 import java.util.List;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
 import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
@@ -69,12 +67,13 @@ public final class DensityFeature extends GiantFeature<Configuration> {
 
         private static final ColumnProvider DEFAULT_COLUMN = new DynamicColumnProvider(
             VerticalAnchor.aboveBottom(24), VerticalAnchor.absolute(54), DEFAULT_HARSHNESS);
-        private static final Codec<DensityFunction> NOISE_CODEC =
-            defaultType(AutoWrapDensity.HELPER_CODEC, FastNoiseDensity.CODEC.codec());
+        private static final MapCodec<List<DensityFunction>> GENERATORS_CODEC =
+            FastNoiseDensity.as3dCodec(easyList(AutoWrapDensity.HELPER_CODEC).fieldOf("generators"));
+
         public static final MapCodec<Configuration> CODEC = codecOf(
             field(BlockPlacer.CODEC, "placer", c -> c.placer),
             defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
-            field(easyList(NOISE_CODEC), "generators", c -> c.generators),
+            union(GENERATORS_CODEC, c -> c.generators),
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );

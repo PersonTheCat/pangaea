@@ -110,7 +110,7 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
 
     private <T> DataResult<DensityFunction> decodeNoise(DynamicOps<T> ops, T noise, MapLike<T> input) {
         if (NoiseCodecs.TYPE.decode(ops, noise).isSuccess()) {
-            return asParent(FastNoiseDensity.CODEC_2D.decode(ops, input));
+            return asParent(FastNoiseDensity.CODEC.decode(ops, input));
         }
         if (input.get("shift_x") != null) {
             return asParent(DensityFunctions.ShiftedNoise.CODEC.codec().decode(ops, input));
