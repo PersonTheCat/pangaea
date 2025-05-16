@@ -15,21 +15,17 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.BiomePredicate;
-import personthecat.catlib.data.DimensionPredicate;
+import personthecat.catlib.serialization.codec.CaptureCategory;
 import personthecat.catlib.serialization.codec.CapturingCodec;
-import personthecat.catlib.serialization.codec.CapturingCodec.Receiver;
 import personthecat.pangaea.serialization.codec.FeatureCodecs;
-import personthecat.pangaea.world.density.AutoWrapDensity;
+import personthecat.pangaea.world.feature.ConditionConfiguration;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static personthecat.catlib.serialization.codec.CapturingCodec.capture;
-import static personthecat.catlib.serialization.codec.CapturingCodec.receive;
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.defaultTry;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.nullable;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 
@@ -40,11 +36,9 @@ public record FeatureInjector(InjectionMap<Modifications> injections) implements
             .xmap(FeatureInjector::new, FeatureInjector::injections);
 
     public static final MapCodec<FeatureInjector> CODEC =
-        CapturingCodec.of(DIRECT_CODEC).capturing(
-            capture("dimensions", DimensionPredicate.CODEC),
-            capture("biomes", BiomePredicate.CODEC),
-            capture("bounds", AutoWrapDensity.HELPER_CODEC),
-            capture("step", Decoration.CODEC));
+        CapturingCodec.of(DIRECT_CODEC)
+            .capturing(ConditionConfiguration.CATEGORY.captors())
+            .capturing(Modifications.CATEGORY.captors());
 
     @Override
     public void inject(ResourceKey<Injector> key, InjectionContext ctx) {
@@ -62,17 +56,15 @@ public record FeatureInjector(InjectionMap<Modifications> injections) implements
             ConfiguredFeature<?, ?> feature,
             @Nullable InjectionMap<List<PlacementModifier>> placement) {
 
-        private static final Receiver<BiomePredicate> DEFAULT_BIOMES =
-            receive("biomes", BiomePredicate.ALL_BIOMES);
-        private static final Receiver<Decoration> DEFAULT_STEP =
-            receive("step", Decoration.RAW_GENERATION);
+        private static final CaptureCategory<Modifications> CATEGORY =
+            CaptureCategory.get("Modifications");
 
         private static final Codec<InjectionMap<List<PlacementModifier>>> PLACEMENT_CODEC =
             InjectionMap.codecOfMapOrList(SimplePlacementModifier.DEFAULTED_LIST_CODEC);
 
         public static final MapCodec<Modifications> CODEC = codecOf(
-            defaultTry(BiomePredicate.CODEC, "biomes", DEFAULT_BIOMES, Modifications::biomes),
-            defaultTry(Decoration.CODEC, "step", DEFAULT_STEP, Modifications::step),
+            CATEGORY.defaulted(BiomePredicate.CODEC, "biomes", BiomePredicate.ALL_BIOMES, Modifications::biomes),
+            CATEGORY.defaulted(Decoration.CODEC, "step", Decoration.RAW_GENERATION, Modifications::step),
             union(FeatureCodecs.FLAT_CONFIG, Modifications::feature),
             nullable(PLACEMENT_CODEC, "placement", Modifications::placement),
             Modifications::new

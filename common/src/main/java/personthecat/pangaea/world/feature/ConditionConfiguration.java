@@ -9,12 +9,10 @@ import net.minecraft.world.level.levelgen.DensityFunction.SinglePointContext;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import personthecat.catlib.data.BiomePredicate;
 import personthecat.catlib.data.DimensionPredicate;
-import personthecat.catlib.serialization.codec.CapturingCodec.Receiver;
+import personthecat.catlib.serialization.codec.CaptureCategory;
 import personthecat.pangaea.world.density.AutoWrapDensity;
 
-import static personthecat.catlib.serialization.codec.CapturingCodec.receive;
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.defaultTry;
 
 public record ConditionConfiguration(
         DimensionPredicate dimensions,
@@ -23,23 +21,15 @@ public record ConditionConfiguration(
         double distanceFromBounds,
         double boundaryWidth) {
 
-    private static final Receiver<DimensionPredicate> DEFAULT_DIMENSIONS =
-        receive("dimensions", DimensionPredicate.ALL_DIMENSIONS);
-    private static final Receiver<BiomePredicate> DEFAULT_BIOMES =
-        receive("biomes", BiomePredicate.ALL_BIOMES);
-    private static final Receiver<DensityFunction> DEFAULT_BOUNDS =
-        receive("bounds", DensityFunctions.constant(1));
-    private static final Receiver<Double> DEFAULT_DISTANCE =
-        receive("distance_from_bounds", 8.0);
-    private static final Receiver<Double> DEFAULT_WIDTH =
-        receive("boundary_width", 16.0);
+    public static final CaptureCategory<ConditionConfiguration> CATEGORY =
+        CaptureCategory.get("ConditionConfiguration");
 
     public static final MapCodec<ConditionConfiguration> CODEC = codecOf(
-        defaultTry(DimensionPredicate.CODEC, "dimensions", DEFAULT_DIMENSIONS, ConditionConfiguration::dimensions),
-        defaultTry(BiomePredicate.CODEC, "biomes", DEFAULT_BIOMES, ConditionConfiguration::biomes),
-        defaultTry(AutoWrapDensity.HELPER_CODEC, "bounds", DEFAULT_BOUNDS, ConditionConfiguration::bounds),
-        defaultTry(Codec.DOUBLE, "distance_from_bounds", DEFAULT_DISTANCE, ConditionConfiguration::distanceFromBounds),
-        defaultTry(Codec.DOUBLE, "boundary_width", DEFAULT_WIDTH, ConditionConfiguration::boundaryWidth),
+        CATEGORY.defaulted(DimensionPredicate.CODEC, "dimensions", DimensionPredicate.ALL_DIMENSIONS, ConditionConfiguration::dimensions),
+        CATEGORY.defaulted(BiomePredicate.CODEC, "biomes", BiomePredicate.ALL_BIOMES, ConditionConfiguration::biomes),
+        CATEGORY.defaulted(AutoWrapDensity.HELPER_CODEC, "bounds", DensityFunctions.constant(1), ConditionConfiguration::bounds),
+        CATEGORY.defaulted(Codec.DOUBLE, "distance_from_bounds", 8.0, ConditionConfiguration::distanceFromBounds),
+        CATEGORY.defaulted(Codec.DOUBLE, "boundary_width", 16.0, ConditionConfiguration::boundaryWidth),
         ConditionConfiguration::new
     );
 
