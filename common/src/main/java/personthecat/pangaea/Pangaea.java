@@ -40,6 +40,7 @@ import personthecat.pangaea.world.feature.ChainFeature;
 import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.DensityFeature;
 import personthecat.pangaea.world.feature.GiantSphereFeature;
+import personthecat.pangaea.world.feature.RavineFeature;
 import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.feature.TestFeature;
 import personthecat.pangaea.world.feature.TunnelFeature;
@@ -189,7 +190,8 @@ public abstract class Pangaea {
             .register("density", DensityFeature.INSTANCE)
             .register("burrow", BurrowFeature.INSTANCE)
             .register("chain", ChainFeature.INSTANCE)
-            .register("temporary_tunnel", TunnelFeature.INSTANCE);
+            .register("temporary_tunnel", TunnelFeature.INSTANCE)
+            .register("temporary_ravine", RavineFeature.INSTANCE);
     }
 
     private static void enableDebugFeatures() {
