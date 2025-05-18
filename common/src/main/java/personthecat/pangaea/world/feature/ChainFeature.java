@@ -1,5 +1,6 @@
 package personthecat.pangaea.world.feature;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -68,7 +69,7 @@ public class ChainFeature extends GiantFeature<Configuration> {
                     this.generateHub(ctx, cfg, localRand, path);
                     branches += cfg.systemDensity.sample(rand);
                 }
-                this.traversePath(ctx, localRand, path, link, border, 0, range);
+                this.traversePath(ctx, cfg, localRand, path, link, border, 0, range);
             }
         }
     }
@@ -83,8 +84,8 @@ public class ChainFeature extends GiantFeature<Configuration> {
     }
 
     protected void traversePath(
-            PangaeaContext ctx, RandomSource rand, ChainPath path, ChainLink link, Border border, int idx, int end) {
-        final int branchIndex = rand.nextInt(end / 2) + end / 4;
+            PangaeaContext ctx, Configuration cfg, RandomSource rand, ChainPath path, ChainLink link, Border border, int idx, int end) {
+        final int branchIndex = cfg.enableBranches ? rand.nextInt(end / 2) + end / 4 : -1;
 
         for (int i = idx; i < end; i++) {
             path.next(ctx, rand, i, end);
@@ -93,12 +94,12 @@ public class ChainFeature extends GiantFeature<Configuration> {
                 var localRand = RandomSource.create(rand.nextLong());
                 var fork = path.fork(ctx, localRand);
                 fork.redirect(path.yaw() - Mth.HALF_PI, path.pitch() / 3.0F);
-                this.traversePath(ctx, localRand, fork, link, border, i, end);
+                this.traversePath(ctx, cfg, localRand, fork, link, border, i, end);
 
                 localRand = RandomSource.create(rand.nextLong());
                 fork = path.fork(ctx, localRand);
                 fork.redirect(path.yaw() + Mth.HALF_PI, path.pitch() / 3.0F);
-                this.traversePath(ctx, localRand, fork, link, border, i, end);
+                this.traversePath(ctx, cfg, localRand, fork, link, border, i, end);
                 return;
             }
             if (!canReach(ctx, path, link, idx, end)) {
@@ -137,6 +138,7 @@ public class ChainFeature extends GiantFeature<Configuration> {
             field(ChainPathConfig.CODEC, "path", c -> c.path),
             field(ChainLinkConfig.CODEC, "link", c -> c.link),
             nullable(ChainLinkConfig.CODEC, "hub", c -> c.hub),
+            defaulted(Codec.BOOL, "enable_branches", true, c -> c.enableBranches),
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
@@ -152,6 +154,7 @@ public class ChainFeature extends GiantFeature<Configuration> {
         private final ChainPathConfig<?> path;
         private final ChainLinkConfig<?> link;
         private final ChainLinkConfig<?> hub;
+        private final boolean enableBranches;
 
         public Configuration(
                 ChunkFilter chunkFilter,
@@ -163,6 +166,7 @@ public class ChainFeature extends GiantFeature<Configuration> {
                 ChainPathConfig<?> path,
                 ChainLinkConfig<?> link,
                 @Nullable ChainLinkConfig<?> hub,
+                boolean enableBranches,
                 GiantFeatureConfiguration parent) {
             super(parent);
             this.chunkFilter = chunkFilter;
@@ -174,6 +178,7 @@ public class ChainFeature extends GiantFeature<Configuration> {
             this.path = path;
             this.link = link;
             this.hub = hub != null ? hub : link;
+            this.enableBranches = enableBranches;
         }
     }
 }

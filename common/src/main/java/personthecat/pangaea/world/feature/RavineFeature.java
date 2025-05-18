@@ -25,6 +25,9 @@ public class RavineFeature extends GiantFeature<Configuration> {
     @Override
     protected void place(PangaeaContext ctx, Configuration cfg, ChunkPos pos, Border border) {
         final var rand = ctx.rand;
+        if (rand.nextFloat() > cfg.chance) {
+            return;
+        }
         final int rangeBlocks = (this.getRangeChunks() * 2 - 1) << 4;
         final double x = pos.getBlockX(rand.nextInt(16));
         final double y = cfg.height.sample(rand, ctx);
@@ -141,6 +144,7 @@ public class RavineFeature extends GiantFeature<Configuration> {
 
     public static class Configuration extends GiantFeatureConfiguration {
         public static final MapCodec<Configuration> CODEC = codecOf(
+            field(Codec.FLOAT, "chance", c -> c.chance),
             field(HeightProvider.CODEC, "height", c -> c.height),
             field(FloatProvider.CODEC, "pitch", c -> c.pitch),
             field(FloatProvider.CODEC, "vertical_scale", c -> c.verticalScale),
@@ -154,6 +158,7 @@ public class RavineFeature extends GiantFeature<Configuration> {
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         );
+        public final float chance;
         public final HeightProvider height;
         public final FloatProvider pitch;
         public final FloatProvider verticalScale;
@@ -166,6 +171,7 @@ public class RavineFeature extends GiantFeature<Configuration> {
         public final BlockPlacer placer;
 
         public Configuration(
+                float chance,
                 HeightProvider height,
                 FloatProvider pitch,
                 FloatProvider verticalScale,
@@ -178,6 +184,7 @@ public class RavineFeature extends GiantFeature<Configuration> {
                 BlockPlacer placer,
                 GiantFeatureConfiguration parent) {
             super(parent, false);
+            this.chance = chance;
             this.height = height;
             this.pitch = pitch;
             this.verticalScale = verticalScale;

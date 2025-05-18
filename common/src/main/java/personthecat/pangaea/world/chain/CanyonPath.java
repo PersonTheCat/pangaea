@@ -78,7 +78,7 @@ public class CanyonPath extends ChainPath {
         FloatProvider pitch
     ) implements ChainPathConfig<CanyonPath> {
         private static final FloatProvider DEFAULT_TAMENESS = ConstantFloat.of(0.05F);
-        private static final FloatProvider DEFAULT_THICKNESS = TrapezoidFloat.of(0, 5, 2);
+        private static final FloatProvider DEFAULT_THICKNESS = TrapezoidFloat.of(0, 4, 1.5F);
         private static final FloatProvider DEFAULT_PITCH = UniformFloat.of(-0.125F, 0.125F);
         public static final MapCodec<Config> CODEC = codecOf(
             defaulted(FloatProvider.CODEC, "verticality", DEFAULT_TAMENESS, Config::verticality),
