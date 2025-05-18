@@ -25,6 +25,8 @@ import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.serialization.codec.StructuralFloatProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralHeightProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralIntProviderCodec;
+import personthecat.pangaea.world.chain.CanyonLink;
+import personthecat.pangaea.world.chain.CanyonPath;
 import personthecat.pangaea.world.chain.SphereLink;
 import personthecat.pangaea.world.chain.TunnelPath;
 import personthecat.pangaea.world.density.DensityController;
@@ -180,9 +182,11 @@ public abstract class Pangaea {
             .register("union", UnionChunkFilter.CODEC)
             .register("structural", StructuralChunkFilterCodec.INSTANCE);
         PgRegistries.LINK_TYPE.createRegister(ID)
-            .register("sphere", SphereLink.Config.CODEC);
+            .register("sphere", SphereLink.Config.CODEC)
+            .register("canyon", CanyonLink.Config.CODEC);
         PgRegistries.PATH_TYPE.createRegister(ID)
-            .register("tunnel", TunnelPath.Config.CODEC);
+            .register("tunnel", TunnelPath.Config.CODEC)
+            .register("canyon", CanyonPath.Config.CODEC);
         CommonRegistries.FEATURE.createRegister(ID)
             .register("test", TestFeature.INSTANCE)
             .register("giant_sphere", GiantSphereFeature.INSTANCE)

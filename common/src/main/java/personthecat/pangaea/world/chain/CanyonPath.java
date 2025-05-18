@@ -5,23 +5,22 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.ConstantFloat;
 import net.minecraft.util.valueproviders.FloatProvider;
+import net.minecraft.util.valueproviders.TrapezoidFloat;
 import net.minecraft.util.valueproviders.UniformFloat;
 import personthecat.pangaea.world.level.PangaeaContext;
-import personthecat.pangaea.world.provider.BiasedToBottomFloat;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.pangaea.serialization.codec.PgCodecs.floatRangeFix;
 
-public class TunnelPath extends ChainPath {
-    private boolean extraPitch;
+public class CanyonPath extends ChainPath {
     private float verticality;
     private float horizontality;
     private float yawChange;
     private float pitchChange;
     private float thickness;
 
-    protected TunnelPath(Config cfg) {
+    protected CanyonPath(Config cfg) {
         super(cfg);
     }
 
@@ -33,9 +32,6 @@ public class TunnelPath extends ChainPath {
         this.verticality = config.verticality.sample(rand);
         this.horizontality = config.horizontality.sample(rand);
         this.thickness = config.thickness.sample(rand);
-        if (rand.nextInt(10) == 0) {
-            this.thickness *= rand.nextFloat() * rand.nextFloat() * 1.5F + 1.0F;
-        }
     }
 
     @Override
@@ -45,11 +41,11 @@ public class TunnelPath extends ChainPath {
         this.x += Mth.cos(this.yaw) * cosPitch;
         this.y += Mth.sin(this.pitch);
         this.z += Mth.sin(this.yaw) * cosPitch;
-        this.pitch *= this.extraPitch ? 0.92F : 0.7F;
+        this.pitch *= 0.7F;
         this.pitch += this.pitchChange * this.verticality;
         this.yaw += this.yawChange * this.horizontality;
-        this.pitchChange *= 0.9F;
-        this.yawChange *= 0.75F;
+        this.pitchChange *= 0.8F;
+        this.yawChange *= 0.5F;
         this.pitchChange += (rand.nextFloat() - rand.nextFloat()) * rand.nextFloat() * 2.0F;
         this.yawChange += (rand.nextFloat() - rand.nextFloat()) * rand.nextFloat() * 4.0F;
     }
@@ -57,14 +53,13 @@ public class TunnelPath extends ChainPath {
     @Override
     public void reset(PangaeaContext ctx, RandomSource rand, float x, float y, float z) {
         super.reset(ctx, rand, x, y, z);
-        this.extraPitch = rand.nextInt(6) == 0;
         this.yawChange = 0;
         this.pitchChange = 0;
     }
 
     @Override
     public ChainPath fork(PangaeaContext ctx, RandomSource rand) {
-        final var fork = (TunnelPath) super.fork(ctx, rand);
+        final var fork = (CanyonPath) super.fork(ctx, rand);
         fork.verticality = this.verticality;
         fork.horizontality = this.horizontality;
         fork.thickness = rand.nextFloat() * 0.5F + 0.5F;
@@ -81,9 +76,9 @@ public class TunnelPath extends ChainPath {
         FloatProvider horizontality,
         FloatProvider thickness,
         FloatProvider pitch
-    ) implements ChainPathConfig<TunnelPath> {
-        private static final FloatProvider DEFAULT_TAMENESS = ConstantFloat.of(0.1F);
-        private static final FloatProvider DEFAULT_THICKNESS = BiasedToBottomFloat.of(0, 2);
+    ) implements ChainPathConfig<CanyonPath> {
+        private static final FloatProvider DEFAULT_TAMENESS = ConstantFloat.of(0.05F);
+        private static final FloatProvider DEFAULT_THICKNESS = TrapezoidFloat.of(0, 5, 2);
         private static final FloatProvider DEFAULT_PITCH = UniformFloat.of(-0.125F, 0.125F);
         public static final MapCodec<Config> CODEC = codecOf(
             defaulted(FloatProvider.CODEC, "verticality", DEFAULT_TAMENESS, Config::verticality),
@@ -94,8 +89,8 @@ public class TunnelPath extends ChainPath {
         );
 
         @Override
-        public TunnelPath instance(PangaeaContext ctx, RandomSource rand) {
-            return new TunnelPath(this);
+        public CanyonPath instance(PangaeaContext ctx, RandomSource rand) {
+            return new CanyonPath(this);
         }
 
         @Override

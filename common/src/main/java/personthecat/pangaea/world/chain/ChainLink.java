@@ -10,7 +10,6 @@ public abstract class ChainLink {
         this.config = config;
     }
 
-    public void next(PangaeaContext ctx, RandomSource rand, ChainPath path, int idx, int end) {}
     public abstract void place(PangaeaContext ctx, RandomSource rand, ChainPath path, int idx, int end);
     public abstract double radius();
 
