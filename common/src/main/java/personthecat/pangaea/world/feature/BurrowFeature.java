@@ -9,6 +9,7 @@ import net.minecraft.world.level.levelgen.VerticalAnchor;
 import personthecat.fastnoise.FastNoise;
 import personthecat.fastnoise.data.WarpType;
 import personthecat.pangaea.data.MutableFunctionContext;
+import personthecat.pangaea.serialization.codec.PangaeaCodec;
 import personthecat.pangaea.world.density.AutoWrapDensity;
 import personthecat.pangaea.world.density.FastNoiseDensity;
 import personthecat.pangaea.world.feature.BurrowFeature.Configuration;
@@ -18,8 +19,6 @@ import personthecat.pangaea.world.provider.ColumnProvider;
 import personthecat.pangaea.world.provider.DynamicColumnProvider;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 import static personthecat.pangaea.world.density.DensityCutoff.DEFAULT_HARSHNESS;
 
@@ -92,19 +91,19 @@ public class BurrowFeature extends GiantFeature<Configuration> {
             FastNoiseDensity.create(DEFAULT_MAP_NOISE, FastNoiseDensity.Mode.SCALED_2D);
         private static final DensityFunction DEFAULT_OFFSET =
             FastNoiseDensity.create(DEFAULT_OFFSET_NOISE, FastNoiseDensity.Mode.SCALED_2D);
-        public static final MapCodec<Configuration> CODEC = codecOf(
-            defaulted(FloatProvider.codec(1, 24), "radius", ConstantFloat.of(4.5F), c -> c.radius),
-            defaulted(FloatProvider.codec(0, 64), "stretch", ConstantFloat.of(1), c -> c.stretch),
-            defaulted(FloatProvider.codec(-1, 1), "target", ConstantFloat.of(0.1F), c -> c.target),
-            defaulted(FloatProvider.CODEC, "exponent", ConstantFloat.of(4), c -> c.exponent),
-            defaulted(FloatProvider.codec(-1, 1), "shift", ConstantFloat.of(0.1F), c -> c.shift),
-            field(BlockPlacer.CODEC, "placer", c -> c.placer),
-            defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
-            defaulted(AutoWrapDensity.HELPER_CODEC, "map", DEFAULT_MAP, c -> c.map),
-            defaulted(AutoWrapDensity.HELPER_CODEC, "offset", DEFAULT_OFFSET, c -> c.offset),
+        public static final MapCodec<Configuration> CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+            cat.defaulted(FloatProvider.codec(1, 24), "radius", ConstantFloat.of(4.5F), c -> c.radius),
+            cat.defaulted(FloatProvider.codec(0, 64), "stretch", ConstantFloat.of(1), c -> c.stretch),
+            cat.defaulted(FloatProvider.codec(-1, 1), "target", ConstantFloat.of(0.1F), c -> c.target),
+            cat.defaulted(FloatProvider.CODEC, "exponent", ConstantFloat.of(4), c -> c.exponent),
+            cat.defaulted(FloatProvider.codec(-1, 1), "shift", ConstantFloat.of(0.1F), c -> c.shift),
+            cat.field(BlockPlacer.CODEC, "placer", c -> c.placer),
+            cat.defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
+            cat.defaulted(AutoWrapDensity.HELPER_CODEC, "map", DEFAULT_MAP, c -> c.map),
+            cat.defaulted(AutoWrapDensity.HELPER_CODEC, "offset", DEFAULT_OFFSET, c -> c.offset),
             union(PangaeaFeatureConfiguration.CODEC, c -> c),
             Configuration::new
-        );
+        ));
         public final FloatProvider radius;
         public final FloatProvider stretch;
         public final FloatProvider target;

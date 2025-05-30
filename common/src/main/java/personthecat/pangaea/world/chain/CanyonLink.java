@@ -7,14 +7,11 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.ConstantFloat;
 import net.minecraft.util.valueproviders.FloatProvider;
 import net.minecraft.util.valueproviders.UniformFloat;
-import personthecat.catlib.serialization.codec.CapturingCodec.Receiver;
+import personthecat.pangaea.serialization.codec.PangaeaCodec;
 import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.placer.BlockPlacer;
 
-import static personthecat.catlib.serialization.codec.CapturingCodec.receive;
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.defaultTry;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.pangaea.serialization.codec.PgCodecs.floatRangeFix;
 
 public class CanyonLink extends ChainLink {
@@ -121,18 +118,17 @@ public class CanyonLink extends ChainLink {
         private static final int DEFAULT_SMOOTHNESS = 3;
         private static final float DEFAULT_DEFAULT_FACTOR = 1.0F;
         private static final float DEFAULT_CENTER_FACTOR = 0.0F;
-        private static final Receiver<BlockPlacer> DEFAULT_PLACER = receive("placer");
 
-        public static final MapCodec<Config> CODEC = codecOf(
-            defaulted(floatRangeFix(0, 1), "chance", DEFAULT_CHANCE, Config::chance),
-            defaulted(floatRangeFix(0, 32), "radius", DEFAULT_RADIUS, Config::radius),
-            defaulted(floatRangeFix(0, 32), "vertical_scale", DEFAULT_SCALE, Config::verticalScale),
-            defaulted(Codec.INT, "width_smoothness", DEFAULT_SMOOTHNESS, Config::widthSmoothness),
-            defaulted(Codec.FLOAT, "vertical_radius_default_factor", DEFAULT_DEFAULT_FACTOR, Config::verticalRadiusDefaultFactor),
-            defaulted(Codec.FLOAT, "vertical_radius_center_factor", DEFAULT_CENTER_FACTOR, Config::verticalRadiusCenterFactor),
-            defaultTry(BlockPlacer.CODEC, "placer", DEFAULT_PLACER, Config::placer),
+        public static final MapCodec<Config> CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+            cat.defaulted(floatRangeFix(0, 1), "chance", DEFAULT_CHANCE, Config::chance),
+            cat.defaulted(floatRangeFix(0, 32), "radius", DEFAULT_RADIUS, Config::radius),
+            cat.defaulted(floatRangeFix(0, 32), "vertical_scale", DEFAULT_SCALE, Config::verticalScale),
+            cat.defaulted(Codec.INT, "width_smoothness", DEFAULT_SMOOTHNESS, Config::widthSmoothness),
+            cat.defaulted(Codec.FLOAT, "vertical_radius_default_factor", DEFAULT_DEFAULT_FACTOR, Config::verticalRadiusDefaultFactor),
+            cat.defaulted(Codec.FLOAT, "vertical_radius_center_factor", DEFAULT_CENTER_FACTOR, Config::verticalRadiusCenterFactor),
+            cat.field(BlockPlacer.CODEC, "placer", Config::placer),
             Config::new
-        );
+        ));
 
         @Override
         public CanyonLink instance(PangaeaContext ctx, RandomSource rand) {

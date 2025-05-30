@@ -13,7 +13,8 @@ import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import net.minecraft.world.level.levelgen.heightproviders.UniformHeight;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.serialization.codec.CapturingCodec;
+import personthecat.catlib.serialization.codec.capture.CaptureCategory;
+import personthecat.pangaea.serialization.codec.PangaeaCodec;
 import personthecat.pangaea.world.chain.ChainLink;
 import personthecat.pangaea.world.chain.ChainLinkConfig;
 import personthecat.pangaea.world.chain.ChainPath;
@@ -25,11 +26,8 @@ import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.provider.VeryBiasedToBottomInt;
 
-import static personthecat.catlib.serialization.codec.CapturingCodec.capture;
+import static personthecat.catlib.serialization.codec.capture.CapturingCodec.capture;
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.nullable;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 import static personthecat.pangaea.serialization.codec.PgCodecs.floatRangeFix;
 
@@ -128,22 +126,10 @@ public class ChainFeature extends GiantFeature<Configuration> {
         private static final HeightProvider DEFAULT_HEIGHT =
             UniformHeight.of(VerticalAnchor.aboveBottom(8), VerticalAnchor.absolute(180));
 
-        private static final MapCodec<Configuration> DIRECT_CODEC = codecOf(
-            defaulted(ChunkFilter.CODEC, "chunk_filter", DEFAULT_CHUNK_FILTER, c -> c.chunkFilter),
-            defaulted(floatRangeFix(0, 1), "system_chance", DEFAULT_SYSTEM_CHANCE, c -> c.systemChance),
-            defaulted(IntProvider.codec(0, 128), "count", DEFAULT_COUNT, c -> c.count),
-            defaulted(IntProvider.codec(0, 1024), "range", DEFAULT_RANGE, c -> c.range),
-            defaulted(IntProvider.codec(0, 128), "system_density", DEFAULT_SYSTEM_DENSITY, c -> c.systemDensity),
-            defaulted(HeightProvider.CODEC, "height", DEFAULT_HEIGHT, c -> c.height),
-            field(ChainPathConfig.CODEC, "path", c -> c.path),
-            field(ChainLinkConfig.CODEC, "link", c -> c.link),
-            nullable(ChainLinkConfig.CODEC, "hub", c -> c.hub),
-            defaulted(Codec.BOOL, "enable_branches", true, c -> c.enableBranches),
-            union(GiantFeatureConfiguration.CODEC, c -> c),
-            Configuration::new
-        );
         public static final MapCodec<Configuration> CODEC =
-            CapturingCodec.of(DIRECT_CODEC).capturing(capture("placer", BlockPlacer.CODEC));
+            PangaeaCodec.build(Configuration::createCodec)
+                .capturing(capture("placer", BlockPlacer.CODEC))
+                .mapCodec();
 
         private final ChunkFilter chunkFilter;
         private final FloatProvider systemChance;
@@ -179,6 +165,23 @@ public class ChainFeature extends GiantFeature<Configuration> {
             this.link = link;
             this.hub = hub != null ? hub : link;
             this.enableBranches = enableBranches;
+        }
+
+        private static MapCodec<Configuration> createCodec(CaptureCategory<Configuration> cat) {
+            return codecOf(
+                cat.defaulted(cat.configure(ChunkFilter.CODEC), "chunk_filter", DEFAULT_CHUNK_FILTER, c -> c.chunkFilter),
+                cat.defaulted(floatRangeFix(0, 1), "system_chance", DEFAULT_SYSTEM_CHANCE, c -> c.systemChance),
+                cat.defaulted(IntProvider.codec(0, 128), "count", DEFAULT_COUNT, c -> c.count),
+                cat.defaulted(IntProvider.codec(0, 1024), "range", DEFAULT_RANGE, c -> c.range),
+                cat.defaulted(IntProvider.codec(0, 128), "system_density", DEFAULT_SYSTEM_DENSITY, c -> c.systemDensity),
+                cat.defaulted(HeightProvider.CODEC, "height", DEFAULT_HEIGHT, c -> c.height),
+                cat.field(cat.configure(ChainPathConfig.CODEC), "path", c -> c.path),
+                cat.field(cat.configure(ChainLinkConfig.CODEC), "link", c -> c.link),
+                cat.nullable(cat.configure(ChainLinkConfig.CODEC), "hub", c -> c.hub),
+                cat.defaulted(Codec.BOOL, "enable_branches", true, c -> c.enableBranches),
+                union(GiantFeatureConfiguration.CODEC, c -> c),
+                Configuration::new
+            );
         }
     }
 }

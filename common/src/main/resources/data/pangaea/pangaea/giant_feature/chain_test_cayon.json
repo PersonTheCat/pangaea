@@ -23,5 +23,23 @@
       "target": "#overworld_carver_replaceables",
       "place": "cave_air"
     }
+  },
+  "backup": {
+    "type": "pangaea:chain",
+    "preset": "ravine",
+    "biomes": [
+      "#is_forest"
+    ],
+    "placer": {
+      "target": "#overworld_carver_replaceables",
+      "place": "cave_air"
+    },
+    "chunk_filter": 0.005,
+    "height": {
+      "bottom": [ 8, 60 ]
+    },
+    "link": {
+      "radius": [ 1.5, 2.5 ]
+    }
   }
 }

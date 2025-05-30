@@ -7,6 +7,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import net.minecraft.world.level.levelgen.heightproviders.UniformHeight;
+import personthecat.pangaea.serialization.codec.PangaeaCodec;
 import personthecat.pangaea.world.feature.GiantSphereFeature.Configuration;
 import personthecat.pangaea.world.filter.ChanceChunkFilter;
 import personthecat.pangaea.world.filter.ChunkFilter;
@@ -14,8 +15,6 @@ import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.placer.BlockPlacer;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 
 public final class GiantSphereFeature extends GiantFeature<Configuration> {
@@ -61,14 +60,14 @@ public final class GiantSphereFeature extends GiantFeature<Configuration> {
     public static class Configuration extends GiantFeatureConfiguration {
         private static final HeightProvider DEFAULT_HEIGHT =
             UniformHeight.of(VerticalAnchor.absolute(-32), VerticalAnchor.absolute(32));
-        public static final MapCodec<Configuration> CODEC = codecOf(
-            field(BlockPlacer.CODEC, "placer", c -> c.placer),
-            defaulted(IntProvider.CODEC, "radius", UniformInt.of(18, 24), c -> c.radius),
-            defaulted(HeightProvider.CODEC, "height", DEFAULT_HEIGHT, c -> c.height),
-            defaulted(ChunkFilter.CODEC, "chunk_filter", new ChanceChunkFilter(0.15), c -> c.chunkFilter),
+        public static final MapCodec<Configuration> CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+            cat.field(BlockPlacer.CODEC, "placer", c -> c.placer),
+            cat.defaulted(IntProvider.CODEC, "radius", UniformInt.of(18, 24), c -> c.radius),
+            cat.defaulted(HeightProvider.CODEC, "height", DEFAULT_HEIGHT, c -> c.height),
+            cat.defaulted(ChunkFilter.CODEC, "chunk_filter", new ChanceChunkFilter(0.15), c -> c.chunkFilter),
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
-        );
+        ));
         public final BlockPlacer placer;
         public final IntProvider radius;
         public final HeightProvider height;

@@ -20,11 +20,13 @@ import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.registry.PgRegistries;
+import personthecat.pangaea.serialization.codec.PangaeaCodec;
 import personthecat.pangaea.serialization.codec.StructuralChunkFilterCodec;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
 import personthecat.pangaea.serialization.codec.StructuralFloatProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralHeightProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralIntProviderCodec;
+import personthecat.pangaea.serialization.preset.ChainFeaturePresets;
 import personthecat.pangaea.world.chain.CanyonLink;
 import personthecat.pangaea.world.chain.CanyonPath;
 import personthecat.pangaea.world.chain.SphereLink;
@@ -110,6 +112,7 @@ public abstract class Pangaea {
     protected final void init() {
         Cfg.register();
         updateRegistries();
+        registerPresets();
     }
 
     protected final void commonSetup() {
@@ -196,6 +199,12 @@ public abstract class Pangaea {
             .register("chain", ChainFeature.INSTANCE)
             .register("temporary_tunnel", TunnelFeature.INSTANCE)
             .register("temporary_ravine", RavineFeature.INSTANCE);
+    }
+
+    private static void registerPresets() {
+        PangaeaCodec.get(ChainFeature.Configuration.class)
+            .addPreset("ravine", ChainFeaturePresets.RAVINE)
+            .addPreset("tunnel", ChainFeaturePresets.TUNNEL);
     }
 
     private static void enableDebugFeatures() {

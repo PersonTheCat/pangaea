@@ -5,8 +5,8 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import personthecat.pangaea.data.MutableFunctionContext;
+import personthecat.pangaea.serialization.codec.PangaeaCodec;
 import personthecat.pangaea.world.density.AutoWrapDensity;
-import personthecat.pangaea.world.density.FastNoiseDensity;
 import personthecat.pangaea.world.feature.DensityFeature.Configuration;
 import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.placer.BlockPlacer;
@@ -17,10 +17,9 @@ import java.util.List;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 import static personthecat.pangaea.world.density.DensityCutoff.DEFAULT_HARSHNESS;
+import static personthecat.pangaea.world.density.FastNoiseDensity.as3dCodec;
 
 public final class DensityFeature extends GiantFeature<Configuration> {
     public static final DensityFeature INSTANCE = new DensityFeature();
@@ -63,16 +62,14 @@ public final class DensityFeature extends GiantFeature<Configuration> {
     public static class Configuration extends GiantFeatureConfiguration {
         private static final ColumnProvider DEFAULT_COLUMN = new DynamicColumnProvider(
             VerticalAnchor.aboveBottom(24), VerticalAnchor.absolute(54), DEFAULT_HARSHNESS);
-        private static final MapCodec<List<DensityFunction>> GENERATORS_CODEC =
-            FastNoiseDensity.as3dCodec(easyList(AutoWrapDensity.HELPER_CODEC).fieldOf("generators"));
 
-        public static final MapCodec<Configuration> CODEC = codecOf(
-            field(BlockPlacer.CODEC, "placer", c -> c.placer),
-            defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
-            union(GENERATORS_CODEC, c -> c.generators),
+        public static final MapCodec<Configuration> CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+            cat.field(BlockPlacer.CODEC, "placer", c -> c.placer),
+            cat.defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
+            cat.field(easyList(as3dCodec(AutoWrapDensity.HELPER_CODEC)), "generators", c -> c.generators),
             union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
-        );
+        ));
         public final BlockPlacer placer;
         public final ColumnProvider column;
         public final List<DensityFunction> generators;
