@@ -19,7 +19,7 @@ import personthecat.pangaea.mixin.accessor.BlockStateMatchTestAccessor;
 import personthecat.pangaea.mixin.accessor.TagMatchTestAccessor;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 
-import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
+import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
 
 public final class PatternRuleTestCodec implements Codec<RuleTest> {
     public static final Codec<RuleTest> INSTANCE = new PatternRuleTestCodec();
@@ -27,7 +27,7 @@ public final class PatternRuleTestCodec implements Codec<RuleTest> {
     private PatternRuleTestCodec() {}
 
     public static Codec<RuleTest> wrap(Codec<RuleTest> codec) {
-        return defaultType(codec, INSTANCE, (test, o) -> Pattern.hasMatcherForRule(test));
+        return simpleEither(codec, INSTANCE).withEncoder(test -> Pattern.hasMatcherForRule(test) ? INSTANCE : codec);
     }
 
     @Override

@@ -46,8 +46,8 @@ public final class BlockPlacerBuilder extends MapCodec<BlockPlacer> {
     private BlockPlacerBuilder() {}
 
     public static Codec<BlockPlacer> wrap(Codec<BlockPlacer> codec) {
-        return defaultType(codec, INSTANCE.codec(),
-            (p, o) -> Cfg.encodeStructuralBlockPlacers() && canBeStructural(p));
+        return defaultType(codec, INSTANCE,
+            (o, p) -> Cfg.encodeStructuralBlockPlacers() && canBeStructural(p));
     }
 
     private static boolean canBeStructural(BlockPlacer p) {

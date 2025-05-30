@@ -18,8 +18,8 @@ import static personthecat.pangaea.world.injector.InjectorUtil.swapNoiseRouter;
 @Log4j2
 public record CavernInjector(InjectionMap<DensityFunction> modifications) implements Injector {
     private static final Codec<DensityFunction> DENSITY_CODEC =
-        defaultType(DensityFunction.DIRECT_CODEC, asParent(DensityController.CODEC.codec()),
-            (f, ops) -> f instanceof DensityController);
+        defaultType(DensityFunction.DIRECT_CODEC, asParent(DensityController.CODEC),
+            (ops, f) -> f instanceof DensityController);
     public static final MapCodec<CavernInjector> CODEC =
         MapCodec.assumeMapUnsafe(InjectionMap.codecOfMap(DENSITY_CODEC))
             .xmap(CavernInjector::new, i -> i.modifications);

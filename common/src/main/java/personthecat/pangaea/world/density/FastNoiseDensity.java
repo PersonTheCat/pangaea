@@ -1,17 +1,18 @@
 package personthecat.pangaea.world.density;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunction.SimpleFunction;
 import org.jetbrains.annotations.NotNull;
-import personthecat.catlib.serialization.codec.CapturingCodec;
-import personthecat.catlib.serialization.codec.CapturingCodec.Receiver;
+import personthecat.catlib.serialization.codec.capture.CapturingCodec;
+import personthecat.catlib.serialization.codec.capture.Receiver;
 import personthecat.fastnoise.FastNoise;
 import personthecat.pangaea.serialization.codec.NoiseCodecs;
 
-import static personthecat.catlib.serialization.codec.CapturingCodec.receive;
-import static personthecat.catlib.serialization.codec.CapturingCodec.supply;
+import static personthecat.catlib.serialization.codec.capture.CapturingCodec.receive;
+import static personthecat.catlib.serialization.codec.capture.CapturingCodec.supply;
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.CodecUtils.ofEnum;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaultTry;
@@ -33,8 +34,16 @@ public record FastNoiseDensity(
         return new FastNoiseDensity(noise, mode, min, max);
     }
 
+    public static <A> Codec<A> as3dCodec(Codec<A> codec) {
+        return as3dBuilder().build(codec);
+    }
+
     public static <A> MapCodec<A> as3dCodec(MapCodec<A> codec) {
-        return CapturingCodec.of(codec).capturing(supply("mode", Mode.SCALED));
+        return as3dBuilder().build(codec);
+    }
+
+    private static CapturingCodec.Builder as3dBuilder() {
+        return CapturingCodec.builder().capturing(supply("mode", Mode.SCALED));
     }
 
     @Override

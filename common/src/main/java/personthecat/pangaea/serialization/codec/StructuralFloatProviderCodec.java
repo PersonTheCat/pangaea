@@ -24,8 +24,8 @@ public class StructuralFloatProviderCodec extends MapCodec<FloatProvider> {
     private StructuralFloatProviderCodec() {}
 
     public static Codec<FloatProvider> wrap(Codec<FloatProvider> codec) {
-        return defaultType(codec, INSTANCE.codec(),
-            (p, o) -> Cfg.encodeStructuralFloatProviders() && canBeStructural(p));
+        return defaultType(codec, INSTANCE,
+            (o, p) -> Cfg.encodeStructuralFloatProviders() && canBeStructural(p));
     }
 
     private static boolean canBeStructural(FloatProvider p) {

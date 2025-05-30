@@ -33,8 +33,8 @@ public class InferredTypeDispatcher<K, V> extends MapCodec<V> {
         return (typeGetter, codecGetter) ->
             defaultType(
                 handle.codec().dispatch(typeGetter, codecGetter),
-                new InferredTypeDispatcher<>(handle, type, codecGetter).codec(),
-                (a, ops) -> PgCodecs.inferFromPath(handle, type, ops) != null);
+                new InferredTypeDispatcher<>(handle, type, codecGetter),
+                (ops, a) -> PgCodecs.inferFromPath(handle, type, ops) != null);
     }
 
     @Override

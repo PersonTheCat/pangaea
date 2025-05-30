@@ -9,7 +9,7 @@ import net.minecraft.world.level.levelgen.DensityFunction.SinglePointContext;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import personthecat.catlib.data.BiomePredicate;
 import personthecat.catlib.data.DimensionPredicate;
-import personthecat.catlib.serialization.codec.CaptureCategory;
+import personthecat.catlib.serialization.codec.capture.CaptureCategory;
 import personthecat.pangaea.world.density.AutoWrapDensity;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;

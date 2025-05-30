@@ -17,6 +17,9 @@ import personthecat.pangaea.serialization.codec.ColorCodecs;
 import java.util.function.Function;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.optional;
 
 // priority: very high since we are completely replacing the codec, allowing others to modify it
 @Mixin(value = BiomeSpecialEffects.class, priority = -1000)
@@ -28,18 +31,18 @@ public class BiomeSpecialEffectsMixin {
         remap = false)
     private static Codec<BiomeSpecialEffects> replaceCodec(Function<?, ?> builder, Operation<Codec<BiomeSpecialEffects>> original) {
         return codecOf(
-            ColorCodecs.COLOR_INT.fieldOf("fog_color").forGetter(BiomeSpecialEffects::getFogColor),
-            ColorCodecs.COLOR_INT.fieldOf("water_color").forGetter(BiomeSpecialEffects::getWaterColor),
-            ColorCodecs.COLOR_INT.fieldOf("water_fog_color").forGetter(BiomeSpecialEffects::getWaterFogColor),
-            ColorCodecs.COLOR_INT.fieldOf("sky_color").forGetter(BiomeSpecialEffects::getSkyColor),
-            ColorCodecs.COLOR_INT.optionalFieldOf("foliage_color").forGetter(BiomeSpecialEffects::getFoliageColorOverride),
-            ColorCodecs.COLOR_INT.optionalFieldOf("grass_color").forGetter(BiomeSpecialEffects::getGrassColorOverride),
-            GrassColorModifier.CODEC.optionalFieldOf("grass_color_modifier", GrassColorModifier.NONE).forGetter(BiomeSpecialEffects::getGrassColorModifier),
-            AmbientParticleSettings.CODEC.optionalFieldOf("particle").forGetter(BiomeSpecialEffects::getAmbientParticleSettings),
-            SoundEvent.CODEC.optionalFieldOf("ambient_sound").forGetter(BiomeSpecialEffects::getAmbientLoopSoundEvent),
-            AmbientMoodSettings.CODEC.optionalFieldOf("mood_sound").forGetter(BiomeSpecialEffects::getAmbientMoodSettings),
-            AmbientAdditionsSettings.CODEC.optionalFieldOf("additions_sound").forGetter(BiomeSpecialEffects::getAmbientAdditionsSettings),
-            Music.CODEC.optionalFieldOf("music").forGetter(BiomeSpecialEffects::getBackgroundMusic),
+            field(ColorCodecs.COLOR_INT, "fog_color", BiomeSpecialEffects::getFogColor),
+            field(ColorCodecs.COLOR_INT, "water_color", BiomeSpecialEffects::getWaterColor),
+            field(ColorCodecs.COLOR_INT, "water_fog_color", BiomeSpecialEffects::getWaterFogColor),
+            field(ColorCodecs.COLOR_INT, "sky_color", BiomeSpecialEffects::getSkyColor),
+            optional(ColorCodecs.COLOR_INT, "foliage_color", BiomeSpecialEffects::getFoliageColorOverride),
+            optional(ColorCodecs.COLOR_INT, "grass_color", BiomeSpecialEffects::getGrassColorOverride),
+            defaulted(GrassColorModifier.CODEC, "grass_color_modifier", GrassColorModifier.NONE, BiomeSpecialEffects::getGrassColorModifier),
+            optional(AmbientParticleSettings.CODEC, "particle", BiomeSpecialEffects::getAmbientParticleSettings),
+            optional(SoundEvent.CODEC, "ambient_sound", BiomeSpecialEffects::getAmbientLoopSoundEvent),
+            optional(AmbientMoodSettings.CODEC, "mood_sound", BiomeSpecialEffects::getAmbientMoodSettings),
+            optional(AmbientAdditionsSettings.CODEC, "additions_sound", BiomeSpecialEffects::getAmbientAdditionsSettings),
+            optional(Music.CODEC, "music", BiomeSpecialEffects::getBackgroundMusic),
             BiomeSpecialEffects::new
         ).codec();
     }

@@ -15,8 +15,8 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.BiomePredicate;
-import personthecat.catlib.serialization.codec.CaptureCategory;
-import personthecat.catlib.serialization.codec.CapturingCodec;
+import personthecat.catlib.serialization.codec.capture.CaptureCategory;
+import personthecat.catlib.serialization.codec.capture.CapturingCodec;
 import personthecat.pangaea.serialization.codec.FeatureCodecs;
 import personthecat.pangaea.world.feature.ConditionConfiguration;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
@@ -36,9 +36,10 @@ public record FeatureInjector(InjectionMap<Modifications> injections) implements
             .xmap(FeatureInjector::new, FeatureInjector::injections);
 
     public static final MapCodec<FeatureInjector> CODEC =
-        CapturingCodec.of(DIRECT_CODEC)
+        CapturingCodec.builder()
             .capturing(ConditionConfiguration.CATEGORY.captors())
-            .capturing(Modifications.CATEGORY.captors());
+            .capturing(Modifications.CATEGORY.captors())
+            .build(DIRECT_CODEC);
 
     @Override
     public void inject(ResourceKey<Injector> key, InjectionContext ctx) {

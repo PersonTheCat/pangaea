@@ -24,8 +24,8 @@ public class StructuralIntProviderCodec extends MapCodec<IntProvider> {
     private StructuralIntProviderCodec() {}
 
     public static Codec<IntProvider> wrap(Codec<IntProvider> codec) {
-        return defaultType(codec, INSTANCE.codec(),
-            (p, o) -> Cfg.encodeStructuralIntProviders() && canBeStructural(p));
+        return defaultType(codec, INSTANCE,
+            (o, p) -> Cfg.encodeStructuralIntProviders() && canBeStructural(p));
     }
 
     private static boolean canBeStructural(IntProvider p) {

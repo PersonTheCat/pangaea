@@ -29,7 +29,11 @@ import personthecat.pangaea.world.provider.SurfaceVerticalAnchor;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static personthecat.catlib.serialization.codec.CodecUtils.*;
+import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
+import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
+import static personthecat.catlib.serialization.codec.CodecUtils.ofEnum;
+import static personthecat.catlib.serialization.codec.CodecUtils.simpleAny;
+import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 
@@ -46,13 +50,13 @@ public final class PatternHeightCodecs {
     private PatternHeightCodecs() {}
 
     public static Codec<HeightProvider> wrapHeight(Codec<HeightProvider> codec) {
-        return defaultType(codec, HEIGHT_CODEC,
-            (h, o) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromHeightProvider(h).isSuccess());
+        return simpleEither(codec, HEIGHT_CODEC).withEncoder(h ->
+            Cfg.encodePatternHeightProvider() && HeightInfo.fromHeightProvider(h).isSuccess() ? HEIGHT_CODEC : codec);
     }
 
     public static Codec<ColumnProvider> wrapColumn(Codec<ColumnProvider> codec) {
-        return defaultType(codec, COLUMN_CODEC,
-            (b, o) -> Cfg.encodePatternHeightProvider() && HeightInfo.fromColumnProvider(b).isSuccess());
+        return simpleEither(codec, COLUMN_CODEC).withEncoder(p ->
+            Cfg.encodePatternHeightProvider() && HeightInfo.fromColumnProvider(p).isSuccess() ? COLUMN_CODEC : codec);
     }
 
     private record HeightInfo(HeightRange range, Distribution distribution) {

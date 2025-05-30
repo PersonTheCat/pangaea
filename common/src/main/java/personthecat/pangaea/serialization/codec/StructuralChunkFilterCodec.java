@@ -28,8 +28,8 @@ public class StructuralChunkFilterCodec extends MapCodec<ChunkFilter> {
     private StructuralChunkFilterCodec() {}
 
     public static Codec<ChunkFilter> wrap(Codec<ChunkFilter> codec) {
-        return defaultType(codec, INSTANCE.codec(),
-            (f, o) -> Cfg.encodeStructuralChunkFilters() && canBeStructural(f));
+        return defaultType(codec, INSTANCE,
+            (o, f) -> Cfg.encodeStructuralChunkFilters() && canBeStructural(f));
     }
 
     private static boolean canBeStructural(ChunkFilter f) {

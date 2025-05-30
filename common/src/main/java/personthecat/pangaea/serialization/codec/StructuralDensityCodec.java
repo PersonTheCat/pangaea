@@ -27,8 +27,8 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
     private StructuralDensityCodec() {}
 
     public static Codec<DensityFunction> wrap(Codec<DensityFunction> codec) {
-        return defaultType(codec, INSTANCE.codec(),
-            (f, o) -> Cfg.encodeStructuralDensity() && canBeStructural(f));
+        return defaultType(codec, INSTANCE,
+            (o, f) -> Cfg.encodeStructuralDensity() && canBeStructural(f));
     }
 
     private static boolean canBeStructural(DensityFunction f) {

@@ -25,8 +25,8 @@ public class StructuralHeightProviderCodec extends MapCodec<HeightProvider> {
     private StructuralHeightProviderCodec() {}
 
     public static Codec<HeightProvider> wrap(Codec<HeightProvider> codec) {
-        return defaultType(codec, INSTANCE.codec(),
-            (p, o) -> Cfg.encodeStructuralHeight() && canBeStructural(p));
+        return defaultType(codec, INSTANCE,
+            (o, p) -> Cfg.encodeStructuralHeight() && canBeStructural(p));
     }
 
     private static boolean canBeStructural(HeightProvider p) {
