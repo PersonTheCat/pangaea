@@ -16,8 +16,8 @@ import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.BiomePredicate;
 import personthecat.catlib.serialization.codec.capture.CaptureCategory;
-import personthecat.catlib.serialization.codec.capture.CapturingCodec;
 import personthecat.pangaea.serialization.codec.FeatureCodecs;
+import personthecat.pangaea.serialization.codec.PangaeaCodec;
 import personthecat.pangaea.world.feature.ConditionConfiguration;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
@@ -26,20 +26,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.nullable;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 
 public record FeatureInjector(InjectionMap<Modifications> injections) implements Injector {
-    private static final MapCodec<FeatureInjector> DIRECT_CODEC =
-        InjectionMap.codecOfEasyList(Modifications.CODEC.codec())
-            .fieldOf("inject")
-            .xmap(FeatureInjector::new, FeatureInjector::injections);
-
     public static final MapCodec<FeatureInjector> CODEC =
-        CapturingCodec.builder()
-            .capturing(ConditionConfiguration.CATEGORY.captors())
-            .capturing(Modifications.CATEGORY.captors())
-            .build(DIRECT_CODEC);
+        PangaeaCodec.build(FeatureInjector::createCodec)
+            .capturing(CaptureCategory.get(ConditionConfiguration.class).captors())
+            .capturing(CaptureCategory.get(Modifications.class).captors())
+            .mapCodec();
 
     @Override
     public void inject(ResourceKey<Injector> key, InjectionContext ctx) {
@@ -51,25 +45,28 @@ public record FeatureInjector(InjectionMap<Modifications> injections) implements
         return CODEC;
     }
 
+    private static MapCodec<FeatureInjector> createCodec(CaptureCategory<FeatureInjector> cat) {
+        return InjectionMap.codecOfEasyList(Modifications.CODEC.codec())
+            .fieldOf("inject")
+            .xmap(FeatureInjector::new, FeatureInjector::injections);
+    }
+
     public record Modifications(
             BiomePredicate biomes,
             Decoration step,
             ConfiguredFeature<?, ?> feature,
             @Nullable InjectionMap<List<PlacementModifier>> placement) {
 
-        private static final CaptureCategory<Modifications> CATEGORY =
-            CaptureCategory.get("Modifications");
-
         private static final Codec<InjectionMap<List<PlacementModifier>>> PLACEMENT_CODEC =
             InjectionMap.codecOfMapOrList(SimplePlacementModifier.DEFAULTED_LIST_CODEC);
 
-        public static final MapCodec<Modifications> CODEC = codecOf(
-            CATEGORY.defaulted(BiomePredicate.CODEC, "biomes", BiomePredicate.ALL_BIOMES, Modifications::biomes),
-            CATEGORY.defaulted(Decoration.CODEC, "step", Decoration.RAW_GENERATION, Modifications::step),
+        public static final MapCodec<Modifications> CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+            cat.defaulted(BiomePredicate.CODEC, "biomes", BiomePredicate.ALL_BIOMES, Modifications::biomes),
+            cat.defaulted(Decoration.CODEC, "step", Decoration.RAW_GENERATION, Modifications::step),
             union(FeatureCodecs.FLAT_CONFIG, Modifications::feature),
-            nullable(PLACEMENT_CODEC, "placement", Modifications::placement),
+            cat.nullable(PLACEMENT_CODEC, "placement", Modifications::placement),
             Modifications::new
-        );
+        ));
 
         public void inject(ResourceLocation id, InjectionContext ctx) {
             final var step = this.step;
