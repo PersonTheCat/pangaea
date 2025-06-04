@@ -1,7 +1,7 @@
 {
   "type": "pangaea:blob",
   "biomes": [
-    "#is_forest"
+    "!#is_forest"
   ],
   "placer": {
     "target": "#overworld_carver_replaceables",

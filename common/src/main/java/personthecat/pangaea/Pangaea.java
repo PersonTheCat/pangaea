@@ -29,6 +29,7 @@ import personthecat.pangaea.serialization.codec.StructuralIntProviderCodec;
 import personthecat.pangaea.serialization.preset.ChainFeaturePresets;
 import personthecat.pangaea.world.chain.CanyonLink;
 import personthecat.pangaea.world.chain.CanyonPath;
+import personthecat.pangaea.world.chain.ChasmLink;
 import personthecat.pangaea.world.chain.SphereLink;
 import personthecat.pangaea.world.chain.TunnelPath;
 import personthecat.pangaea.world.density.DensityController;
@@ -186,7 +187,8 @@ public abstract class Pangaea {
             .register("structural", StructuralChunkFilterCodec.INSTANCE);
         PgRegistries.LINK_TYPE.createRegister(ID)
             .register("sphere", SphereLink.Config.CODEC)
-            .register("canyon", CanyonLink.Config.CODEC);
+            .register("canyon", CanyonLink.Config.CODEC)
+            .register("chasm", ChasmLink.Config.CODEC);
         PgRegistries.PATH_TYPE.createRegister(ID)
             .register("tunnel", TunnelPath.Config.CODEC)
             .register("canyon", CanyonPath.Config.CODEC);
@@ -204,7 +206,8 @@ public abstract class Pangaea {
     private static void registerPresets() {
         PangaeaCodec.get(ChainFeature.Configuration.class)
             .addPreset("ravine", ChainFeaturePresets.RAVINE)
-            .addPreset("tunnel", ChainFeaturePresets.TUNNEL);
+            .addPreset("tunnel", ChainFeaturePresets.TUNNEL)
+            .addPreset("chasm", ChainFeaturePresets.CHASM);
     }
 
     private static void enableDebugFeatures() {

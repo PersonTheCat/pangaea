@@ -10,6 +10,7 @@ import personthecat.pangaea.world.chain.CanyonLink;
 import personthecat.pangaea.world.chain.CanyonPath;
 import personthecat.pangaea.world.chain.ChainLinkConfig;
 import personthecat.pangaea.world.chain.ChainPathConfig;
+import personthecat.pangaea.world.chain.ChasmLink;
 import personthecat.pangaea.world.chain.SphereLink;
 import personthecat.pangaea.world.chain.TunnelPath;
 import personthecat.pangaea.world.filter.ChanceChunkFilter;
@@ -41,5 +42,14 @@ public class ChainFeaturePresets {
         suggestType("path", ChainPathConfig.class, TunnelPath.Config.CODEC),
         suggestType("link", ChainLinkConfig.class, SphereLink.Config.CODEC),
         suggestType("hub", ChainLinkConfig.class, TUNNEL_HUB_CODEC)
+    );
+
+    public static final List<Captor<?>> CHASM = List.of(
+        supply("chunk_filter", ChanceChunkFilter.of(0.01)),
+        supply("system_chance", ConstantFloat.of(0)),
+        supply("count", ConstantInt.of(1)),
+        supply("enable_branches", false),
+        suggestType("path", ChainPathConfig.class, CanyonPath.Config.CODEC),
+        suggestType("link", ChainLinkConfig.class, ChasmLink.Config.CODEC)
     );
 }

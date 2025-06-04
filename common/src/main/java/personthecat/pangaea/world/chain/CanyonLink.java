@@ -82,7 +82,7 @@ public class CanyonLink extends ChainLink {
                     final double dY = ((double) aY - 0.5 - y) / rY;
                     final int yO = aY - minY;
 
-                    if ((dX * dX + dZ * dZ) * mut[yO - 1] + dY * dY / 6.0 < 1.0) {
+                    if ((dX * dX + dZ * dZ) * this.mut[yO - 1] + dY * dY / 6.0 < 1.0) {
                         placer.placeUnchecked(ctx, aX, aY, aZ);
                     }
                 }
@@ -113,7 +113,7 @@ public class CanyonLink extends ChainLink {
         BlockPlacer placer
     ) implements ChainLinkConfig<CanyonLink> {
         private static final FloatProvider DEFAULT_CHANCE = ConstantFloat.of(0.75F);
-        private static final FloatProvider DEFAULT_RADIUS = UniformFloat.of(2, 3);
+        private static final FloatProvider DEFAULT_RADIUS = UniformFloat.of(1.5F, 2.5F);
         private static final FloatProvider DEFAULT_SCALE = ConstantFloat.of(3.0F);
         private static final int DEFAULT_SMOOTHNESS = 3;
         private static final float DEFAULT_DEFAULT_FACTOR = 1.0F;

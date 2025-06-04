@@ -2,7 +2,7 @@ package personthecat.pangaea.world.chain;
 
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import personthecat.pangaea.world.feature.Border;
+import org.joml.Vector3f;
 import personthecat.pangaea.world.level.PangaeaContext;
 
 public abstract class ChainPath {
@@ -67,6 +67,14 @@ public abstract class ChainPath {
 
     public final float pitch() {
         return this.pitch;
+    }
+
+    public final Vector3f direction() {
+        final float cosPitch = Mth.cos(this.pitch);
+        final float x = Mth.cos(this.yaw) * cosPitch;
+        final float y = Mth.sin(this.pitch);
+        final float z = Mth.sin(this.yaw) * cosPitch;
+        return new Vector3f(x, y, z);
     }
 
     public final ChainPathConfig<? extends ChainPath> config() {
