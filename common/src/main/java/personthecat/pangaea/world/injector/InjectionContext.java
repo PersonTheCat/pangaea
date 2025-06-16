@@ -5,7 +5,6 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.level.biome.Biome;
 import personthecat.catlib.data.BiomePredicate;
 import personthecat.catlib.event.world.FeatureModificationContext;
-import personthecat.catlib.registry.DynamicRegistries;
 
 import java.util.ArrayList;
 import java.util.List;

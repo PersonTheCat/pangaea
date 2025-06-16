@@ -6,6 +6,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.Util;
 import personthecat.catlib.data.FloatRange;
+import personthecat.catlib.serialization.codec.capture.CapturingCodec;
+import personthecat.catlib.serialization.codec.capture.Key;
 import personthecat.fastnoise.FastNoise;
 import personthecat.fastnoise.data.DistanceType;
 import personthecat.fastnoise.data.Float3;
@@ -15,14 +17,16 @@ import personthecat.fastnoise.data.NoiseBuilder;
 import personthecat.fastnoise.data.NoiseType;
 import personthecat.fastnoise.data.ReturnType;
 import personthecat.fastnoise.data.WarpType;
+import personthecat.pangaea.util.SeedSupport;
 
 import java.util.List;
 
-import static personthecat.catlib.serialization.codec.CodecUtils.dynamic;
+import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
+import static personthecat.catlib.serialization.codec.CodecUtils.filter;
 import static personthecat.catlib.serialization.codec.CodecUtils.ofEnum;
 import static personthecat.catlib.serialization.codec.CodecUtils.simpleAny;
-import static personthecat.catlib.serialization.codec.DynamicField.field;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 
 public class NoiseCodecs {
     public static final Codec<NoiseType> TYPE = ofEnum(NoiseType.class);
@@ -31,6 +35,7 @@ public class NoiseCodecs {
     public static final Codec<DistanceType> DISTANCE = ofEnum(DistanceType.class);
     public static final Codec<ReturnType> RETURN = ofEnum(ReturnType.class);
     public static final Codec<MultiType> MULTI = ofEnum(MultiType.class);
+    private static final Key<NoiseBuilder> CATEGORY_KEY = Key.of("NoiseBuilder");
 
     private static final Codec<Float3> FLOAT_3 = Util.make(() -> {
         final Codec<Float3> single = Codec.FLOAT.xmap(f -> new Float3(f, f, f), f3 -> f3.x);
@@ -46,54 +51,172 @@ public class NoiseCodecs {
             .withEncoder(f3 -> f3.x == f3.y && f3.y == f3.z ? single : array);
     });
 
-    public static final MapCodec<FastNoise> NOISE_CODEC =
-        MapCodec.<NoiseBuilder>recursive("NoiseBuilder", builder -> dynamic(FastNoise::builder).create(
-            field(TYPE, "noise", NoiseBuilder::type, NoiseBuilder::type),
-            field(FRACTAL, "fractal", NoiseBuilder::fractal, NoiseBuilder::fractal),
-            field(WARP, "warp", NoiseBuilder::warp, NoiseBuilder::warp),
-            field(DISTANCE, "distance", NoiseBuilder::distance, NoiseBuilder::distance),
-            field(RETURN, "return", NoiseBuilder::cellularReturn, NoiseBuilder::cellularReturn),
-            field(MULTI, "multi", NoiseBuilder::multi, NoiseBuilder::multi),
-            field(builder, "noise_lookup", NoiseBuilder::noiseLookup, NoiseBuilder::noiseLookup),
-            field(easyList(builder), "reference", b -> List.of(b.references()), NoiseBuilder::references),
-            field(Codec.INT, "seed", NoiseBuilder::seed, NoiseBuilder::seed),
-            field(FLOAT_3, "frequency", NoiseCodecs::getFrequency, NoiseCodecs::setFrequency),
-            field(Codec.INT, "octaves", NoiseBuilder::octaves, NoiseBuilder::octaves),
-            field(FLOAT_3, "lacunarity", NoiseCodecs::getLacunarity, NoiseCodecs::setLacunarity),
-            field(Codec.FLOAT, "gain", NoiseBuilder::gain, NoiseBuilder::gain),
-            field(Codec.FLOAT, "ping_pong_strength", NoiseBuilder::pingPongStrength, NoiseBuilder::pingPongStrength),
-            field(FLOAT_3, "jitter", NoiseCodecs::getJitter, NoiseCodecs::setJitter),
-            field(FLOAT_3, "warp_amplitude", NoiseCodecs::getWarpAmplitude, NoiseCodecs::setWarpAmplitude),
-            field(FLOAT_3, "warp_frequency", NoiseCodecs::getWarpFrequency, NoiseCodecs::setWarpFrequency),
-            field(FLOAT_3, "offset", NoiseCodecs::getOffset, NoiseCodecs::setOffset),
-            field(Codec.BOOL, "invert", NoiseBuilder::invert, NoiseBuilder::invert),
-            field(FloatRange.CODEC, "range", NoiseCodecs::getRange, NoiseCodecs::setRange),
-            field(FloatRange.CODEC, "threshold", NoiseCodecs::getThreshold, NoiseCodecs::setThreshold)
-        ).applyFilters((key) -> switch (key) {
-            case "reference" -> NoiseCodecs::isWrapperType;
-            case "octaves", "gain", "lacunarity" -> NoiseCodecs::isFractal;
-            case "ping_pong_strength" -> NoiseCodecs::isPingPong;
-            case "jitter" -> NoiseCodecs::isCellular;
-            case "warp_amplitude", "warp_frequency" -> NoiseCodecs::isWarped;
-            default -> null;
-        }).validate(b -> {
-            if (isWrapperType(b, null) && b.references().length == 0) {
-                return DataResult.error(() -> "Must provide a reference for wrapper type: " + b.type(), b);
-            } else if (isWrapperType(b, null) && containsUpdatedFrequency(b.references())) {
-                return DataResult.error(() -> "Non-default frequency in reference will get ignored, move it up");
-            } else if (b.type() == NoiseType.MULTI && isWrappedAutomatically(b)) {
-                return DataResult.error(() -> "Multi noise cannot be warped or have a fractal effect (yet)", b);
-            } else if (b.type() == NoiseType.MULTI && b.references().length == 0) {
-                return DataResult.error(() -> "Must provided references for multi type", b);
-            } else if (b.cellularReturn() == ReturnType.NOISE_LOOKUP && b.noiseLookup() == null) {
-                return DataResult.error(() -> "Must provide a noiseLookup for return type: NOISE_LOOKUP", b);
-            } else if (b.warp() == WarpType.NOISE_LOOKUP && b.noiseLookup() == null) {
-                return DataResult.error(() -> "Must provide a noiseLookup for warp type: NOISE_LOOKUP", b);
-            } else if (b.cellularReturn() == ReturnType.NOISE_LOOKUP && b.warp() == WarpType.NOISE_LOOKUP) {
-                return DataResult.error(() -> "Conflicting noiseLookup (cellularReturn, warp). Use type == WARPED", b);
-            }
-            return DataResult.success(b);
-        })).xmap(NoiseBuilder::build, FastNoise::toBuilder);
+    private static final Codec<NoiseBuilder> RECURSIVE_CODEC =
+        Codec.recursive("NoiseBuilder", nope -> NoiseCodecs.BUILDER_CODEC.codec());
+
+    private static final MapCodec<NoiseBuilder> PING_PONG_CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+        cat.defaulted(Codec.FLOAT, "ping_pong_strength", 2.0F, NoiseBuilder::pingPongStrength),
+        NoiseCodecs::pingPongBuilder
+    ));
+
+    private static final MapCodec<NoiseBuilder> FRACTAL_CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+        cat.defaulted(FRACTAL, "fractal", FractalType.NONE, NoiseBuilder::fractal),
+        cat.defaulted(Codec.INT, "octaves", 3, NoiseBuilder::octaves),
+        cat.defaulted(Codec.FLOAT, "gain", 0.5F, NoiseBuilder::gain),
+        cat.defaulted(FLOAT_3, "lacunarity", float3(2.0F), NoiseCodecs::getLacunarity),
+        union(filter(PING_PONG_CODEC, b -> b.fractal() == FractalType.PING_PONG), b -> b),
+        NoiseCodecs::fractalBuilder
+    ));
+
+    private static final MapCodec<NoiseBuilder> NOISE_LOOKUP_CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+        cat.nullable(RECURSIVE_CODEC, "noise_lookup", NoiseBuilder::noiseLookup),
+        NoiseCodecs::lookupBuilder
+    ));
+
+    private static final MapCodec<NoiseBuilder> WARP_CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+        cat.defaulted(WARP, "warp", WarpType.NONE, NoiseBuilder::warp),
+        cat.defaulted(FLOAT_3, "warp_frequency", float3(0.075F), NoiseCodecs::getWarpFrequency),
+        cat.defaulted(FLOAT_3, "warp_amplitude", float3(5.0F), NoiseCodecs::getWarpAmplitude),
+        union(filter(NOISE_LOOKUP_CODEC, b -> b.warp() == WarpType.NOISE_LOOKUP), b -> b),
+        NoiseCodecs::warpBuilder
+    ));
+
+    private static final MapCodec<NoiseBuilder> CELLULAR_CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+        cat.defaulted(DISTANCE, "distance", DistanceType.EUCLIDEAN, NoiseBuilder::distance),
+        cat.defaulted(RETURN, "return", ReturnType.CELL_VALUE, NoiseBuilder::cellularReturn),
+        cat.defaulted(FLOAT_3, "jitter", float3(1.0F), NoiseCodecs::getJitter),
+        union(filter(NOISE_LOOKUP_CODEC, b -> b.cellularReturn() == ReturnType.NOISE_LOOKUP), b -> b),
+        NoiseCodecs::cellularBuilder
+    ));
+
+    private static final MapCodec<NoiseBuilder> REFERENCE_CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+        cat.defaulted(easyList(RECURSIVE_CODEC), "reference", List.of(), b -> List.of(b.references())),
+        NoiseCodecs::referenceBuilder
+    ));
+
+    private static final MapCodec<NoiseBuilder> MULTI_CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+        cat.defaulted(MULTI, "multi", MultiType.SUM, NoiseBuilder::multi),
+        union(REFERENCE_CODEC, b -> b),
+        NoiseCodecs::multiBuilder
+    ));
+
+    private static final MapCodec<NoiseBuilder> BUILDER_CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+        cat.defaulted(TYPE, "noise", NoiseType.SIMPLEX, NoiseBuilder::type),
+        cat.defaulted(Codec.INT, "seed", 1337, NoiseBuilder::seed),
+        cat.defaulted(FLOAT_3, "frequency", float3(0.01F), NoiseCodecs::getFrequency),
+        cat.defaulted(FLOAT_3, "offset", float3(0.0F), NoiseCodecs::getOffset),
+        cat.defaulted(Codec.BOOL, "invert", false, NoiseBuilder::invert),
+        cat.defaulted(FloatRange.CODEC, "range", FloatRange.of(-1.0F, 1.0F), NoiseCodecs::getRange),
+        cat.defaulted(FloatRange.CODEC, "threshold", FloatRange.of(0.0F, 1.0F), NoiseCodecs::getThreshold),
+        union(filter(REFERENCE_CODEC, b -> isWrapperType(b.type())), b -> b),
+        union(filter(FRACTAL_CODEC, b -> b.type() == NoiseType.FRACTAL || b.fractal() != FractalType.NONE), b -> b),
+        union(filter(WARP_CODEC, b -> b.type() == NoiseType.WARPED || b.warp() != WarpType.NONE), b -> b),
+        union(filter(CELLULAR_CODEC, b -> b.type() == NoiseType.CELLULAR), b -> b),
+        union(filter(MULTI_CODEC, b -> b.type() == NoiseType.MULTI), b -> b),
+        NoiseCodecs::builderBuilder
+    ));
+
+    public static final MapCodec<FastNoise> NOISE_CODEC = Util.make(() -> {
+        final var codec = BUILDER_CODEC.validate(NoiseCodecs::validateBuilder)
+            .xmap(NoiseBuilder::build, FastNoise::toBuilder);
+        return CapturingCodec.builder()
+            .capturing(SeedSupport.captureAsInt(Key.<Integer>of("seed").qualified(CATEGORY_KEY)))
+            .build(codec);
+    });
+
+    private static NoiseBuilder pingPongBuilder(float pingPongStrength) {
+        return FastNoise.builder().pingPongStrength(pingPongStrength);
+    }
+
+    private static NoiseBuilder fractalBuilder(
+            FractalType fractal, int octaves, float gain, Float3 lacunarity, NoiseBuilder pingPongSettings) {
+        final var builder = FastNoise.builder().fractal(fractal).octaves(octaves).gain(gain).pingPongStrength(pingPongSettings.pingPongStrength());
+        setLacunarity(builder, lacunarity);
+        return builder;
+    }
+
+    private static NoiseBuilder warpBuilder(WarpType warp, Float3 warpAmplitude, Float3 warpFrequency, NoiseBuilder lookupSettings) {
+        final var builder = FastNoise.builder().warp(warp).noiseLookup(lookupSettings.noiseLookup());
+        setWarpAmplitude(builder, warpAmplitude);
+        setWarpFrequency(builder, warpFrequency);
+        return builder;
+    }
+
+    private static NoiseBuilder lookupBuilder(NoiseBuilder noiseLookup) {
+        return FastNoise.builder().noiseLookup(noiseLookup);
+    }
+
+    private static NoiseBuilder cellularBuilder(DistanceType distance, ReturnType returnType, Float3 jitter, NoiseBuilder lookupSettings) {
+        final var builder = FastNoise.builder().distance(distance).cellularReturn(returnType).noiseLookup(lookupSettings.noiseLookup());
+        setJitter(builder, jitter);
+        return builder;
+    }
+
+    private static NoiseBuilder referenceBuilder(List<NoiseBuilder> references) {
+        return FastNoise.builder().references(references);
+    }
+
+    private static NoiseBuilder multiBuilder(MultiType multi, NoiseBuilder referenceSettings) {
+        return FastNoise.builder().multi(multi).references(referenceSettings.references());
+    }
+
+    private static NoiseBuilder builderBuilder(
+            NoiseType noise, int seed, Float3 frequency, Float3 offset, boolean invert, FloatRange range, FloatRange threshold,
+            NoiseBuilder referenceSettings, NoiseBuilder fractalSettings, NoiseBuilder warpSettings, NoiseBuilder cellularSettings,
+            NoiseBuilder multiSettings) {
+        final var builder = FastNoise.builder().type(noise).seed(seed).invert(invert);
+        setFrequency(builder, frequency);
+        setOffset(builder, offset);
+        setRange(builder, range);
+        setThreshold(builder, threshold);
+
+        // reference settings
+        if (referenceSettings.references().length != 0) {
+            builder.references(referenceSettings.references());
+        }
+        // fractal settings
+        builder.fractal(fractalSettings.fractal()).gain(fractalSettings.gain()).pingPongStrength(fractalSettings.pingPongStrength())
+            .lacunarityX(fractalSettings.lacunarityX()).lacunarityY(fractalSettings.lacunarityY()).lacunarityZ(fractalSettings.lacunarityZ());
+
+        // warp settings
+        builder.warp(warpSettings.warp()).warpFrequencyX(warpSettings.warpFrequencyX()).warpFrequencyY(warpSettings.warpFrequencyY())
+            .warpFrequencyZ(warpSettings.warpFrequencyZ()).warpAmplitudeX(warpSettings.warpAmplitudeX()).warpAmplitudeY(warpSettings.warpAmplitudeY())
+            .warpAmplitudeZ(warpSettings.warpAmplitudeZ());
+        if (warpSettings.noiseLookup() != null) {
+            builder.noiseLookup(warpSettings.noiseLookup());
+        }
+        // cellular settings
+        builder.distance(cellularSettings.distance()).cellularReturn(cellularSettings.cellularReturn()).jitterX(cellularSettings.jitterX())
+            .jitterY(cellularSettings.jitterY()).jitterZ(cellularSettings.jitterZ());
+        if (cellularSettings.noiseLookup() != null) {
+            builder.noiseLookup(cellularSettings.noiseLookup());
+        }
+        // multi settings
+        builder.multi(multiSettings.multi());
+        if (multiSettings.references().length != 0) {
+            builder.references(multiSettings.references());
+        }
+        return builder;
+    }
+
+    private static DataResult<NoiseBuilder> validateBuilder(final NoiseBuilder b) {
+        if (isWrapperType(b.type()) && b.references().length == 0) {
+            return DataResult.error(() -> "Must provide a reference for wrapper type: " + b.type(), b);
+        } else if (isWrapperType(b.type()) && containsUpdatedFrequency(b.references())) {
+            return DataResult.error(() -> "Non-default frequency in reference will get ignored, move it up");
+        } else if (b.type() == NoiseType.MULTI && isWrappedAutomatically(b)) {
+            return DataResult.error(() -> "Multi noise cannot be warped or have a fractal effect (yet)", b);
+        } else if (b.type() == NoiseType.MULTI && b.references().length == 0) {
+            return DataResult.error(() -> "Must provided references for multi type", b);
+        } else if (b.cellularReturn() == ReturnType.NOISE_LOOKUP && b.noiseLookup() == null) {
+            return DataResult.error(() -> "Must provide a noise_lookup for return type: NOISE_LOOKUP", b);
+        } else if (b.warp() == WarpType.NOISE_LOOKUP && b.noiseLookup() == null) {
+            return DataResult.error(() -> "Must provide a noise_lookup for warp type: NOISE_LOOKUP", b);
+        } else if (b.cellularReturn() == ReturnType.NOISE_LOOKUP && b.warp() == WarpType.NOISE_LOOKUP) {
+            return DataResult.error(() -> "Conflicting noiseLookup (cellularReturn, warp). Use type == WARPED", b);
+        }
+        return DataResult.success(b);
+    }
 
     private static Float3 getFrequency(final NoiseBuilder b) {
         return new Float3(b.frequencyX(), b.frequencyY(), b.frequencyZ());
@@ -143,28 +266,12 @@ public class NoiseCodecs {
         b.offsetX(f3.x).offsetY(f3.y).offsetZ(f3.z);
     }
 
-    private static <T> boolean isWrapperType(final NoiseBuilder b, final T any) {
-        return b.type() == NoiseType.FRACTAL || b.type() == NoiseType.WARPED;
+    private static boolean isWrapperType(final NoiseType type) {
+        return type == NoiseType.FRACTAL || type == NoiseType.WARPED;
     }
 
     private static boolean isWrappedAutomatically(final NoiseBuilder b) {
         return b.fractal() != FractalType.NONE || b.warp() != WarpType.NONE;
-    }
-
-    private static <T> boolean isFractal(final NoiseBuilder b, final T any) {
-        return b.fractal() != FractalType.NONE;
-    }
-
-    private static <T> boolean isPingPong(final NoiseBuilder b, final T any) {
-        return b.fractal() == FractalType.PING_PONG;
-    }
-    
-    private static <T> boolean isCellular(final NoiseBuilder b, final T any) {
-        return b.type() == NoiseType.CELLULAR;
-    }
-
-    private static <T> boolean isWarped(final NoiseBuilder b, final T any) {
-        return b.warp() != WarpType.NONE;
     }
 
     private static FloatRange getRange(final NoiseBuilder b) {
@@ -190,5 +297,9 @@ public class NoiseCodecs {
             }
         }
         return false;
+    }
+
+    private static Float3 float3(float value) {
+        return new Float3(value, value, value);
     }
 }

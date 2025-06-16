@@ -27,6 +27,7 @@ import personthecat.pangaea.serialization.codec.StructuralFloatProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralHeightProviderCodec;
 import personthecat.pangaea.serialization.codec.StructuralIntProviderCodec;
 import personthecat.pangaea.serialization.preset.ChainFeaturePresets;
+import personthecat.pangaea.util.SeedSupport;
 import personthecat.pangaea.world.chain.CanyonLink;
 import personthecat.pangaea.world.chain.CanyonPath;
 import personthecat.pangaea.world.chain.ChasmLink;
@@ -123,8 +124,9 @@ public abstract class Pangaea {
                 log.info("Upgrade detected. Welcome to Pangaea {}", VERSION);
             }
         });
-        DataInjectionHook.setup();
+        SeedSupport.setup();
         enableDebugFeatures();
+        DataInjectionHook.setup();
     }
 
     private static void updateRegistries() {
@@ -226,14 +228,14 @@ public abstract class Pangaea {
     }
 
     private static void removeAllFeatures() {
-        FeatureModificationEvent.global().register(ctx -> {
+        FeatureModificationEvent.register(ctx -> {
             log.info("Clearing features from biome: {}", ctx.getName());
             ctx.removeFeature(feature -> true);
         });
     }
 
     private static void removeAllCarvers() {
-        FeatureModificationEvent.global().register(ctx -> {
+        FeatureModificationEvent.register(ctx -> {
             log.info("Clearing carvers from biome: {}", ctx.getName());
             ctx.removeCarver(carver -> true);
         });
@@ -244,7 +246,7 @@ public abstract class Pangaea {
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("interval_placement"), IntervalPlacementModifier.TYPE);
         DynamicRegistries.CONFIGURED_FEATURE.deferredRegister(MOD.id("configured_debug_weight"), CONFIGURED_DEBUG_WEIGHT);
         DynamicRegistries.PLACED_FEATURE.deferredRegister(MOD.id("placed_debug_weight"), PLACED_DEBUG_WEIGHT);
-        FeatureModificationEvent.global().register(ctx -> ctx.addFeature(Decoration.TOP_LAYER_MODIFICATION, PLACED_DEBUG_WEIGHT));
+        FeatureModificationEvent.register(ctx -> ctx.addFeature(Decoration.TOP_LAYER_MODIFICATION, PLACED_DEBUG_WEIGHT));
     }
 
     private static void enableRoads() {
@@ -252,7 +254,7 @@ public abstract class Pangaea {
         DynamicRegistries.CONFIGURED_FEATURE.deferredRegister(MOD.id("configured_road"), CONFIGURED_ROAD);
         DynamicRegistries.PLACED_FEATURE.deferredRegister(MOD.id("placed_road"), PLACED_ROAD);
 
-        FeatureModificationEvent.global().register(ctx -> ctx.addFeature(Decoration.RAW_GENERATION, PLACED_ROAD));
+        FeatureModificationEvent.register(ctx -> ctx.addFeature(Decoration.RAW_GENERATION, PLACED_ROAD));
     }
 
     protected final void shutdown(final MinecraftServer server) {
