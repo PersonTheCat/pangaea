@@ -2,6 +2,7 @@ package personthecat.pangaea.world.road;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.biome.Climate.Sampler;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.data.MutableFunctionContext;
@@ -16,12 +17,14 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 public class AStar {
+  protected static final double ONE_BLOCK_DEPTH = 1.0 / 128.0;
   protected static final Stopwatch sw = new Stopwatch();
   protected final PriorityQueue<Candidate> openList;
   protected final BitSet closedSet;
   protected final Long2ObjectMap<Cell> cellDetails;
   protected Sampler sampler;
   protected NoiseGraph graph;
+  protected Point src;
   protected Point found;
 
   public AStar(final NoiseGraph graph) {
@@ -54,27 +57,30 @@ public class AStar {
   }
 
   protected List<Point> doSearch(final Point src, final Destination dest) {
+    this.src = src;
     int x = src.x;
     int z = src.z;
+    double n = this.sampler.depth().compute(new MutableFunctionContext(x, 0, z));
 
     this.setDetails(x, z, new Cell(x, z, 0, 0));
-    this.open(0.0, x, z);
+    this.open(0.0, x, z, n);
 
     int len = 0;
     while (this.hasNext() && len++ < Road.MAX_LENGTH) {
       final Candidate c = this.next();
       x = c.x;
       z = c.z;
+      n = c.n;
       this.close(x, z);
 
-      if (this.checkDirection(dest, 2, x, z, x - 2, z)
-          || this.checkDirection(dest, 2, x, z, x + 2, z)
-          || this.checkDirection(dest, 2, x, z, x , z + 2)
-          || this.checkDirection(dest, 2, x, z, x, z - 2)
-          || this.checkDirection(dest, 2.83, x, z, x - 2, z + 2)
-          || this.checkDirection(dest, 2.83, x, z, x - 2, z - 2)
-          || this.checkDirection(dest, 2.83, x, z, x + 2, z + 2)
-          || this.checkDirection(dest, 2.83, x, z, x + 2, z - 2)) {
+      if (this.checkDirection(dest, n,2, x, z, x - 2, z)
+          || this.checkDirection(dest, n, 2, x, z, x + 2, z)
+          || this.checkDirection(dest, n, 2, x, z, x, z + 2)
+          || this.checkDirection(dest, n, 2, x, z, x, z - 2)
+          || this.checkDirection(dest, n, 2.83, x, z, x - 2, z + 2)
+          || this.checkDirection(dest, n, 2.83, x, z, x - 2, z - 2)
+          || this.checkDirection(dest, n, 2.83, x, z, x + 2, z + 2)
+          || this.checkDirection(dest, n, 2.83, x, z, x + 2, z - 2)) {
         return this.tracePath();
       }
     }
@@ -89,8 +95,8 @@ public class AStar {
     this.cellDetails.put((((long) x) << 32) | (z & 0xFFFFFFFFL), cell);
   }
 
-  private void open(final double priority, final int x, final int z) {
-    this.openList.offer(new Candidate(priority, x, z));
+  private void open(final double priority, final int x, final int z, final double n) {
+    this.openList.offer(new Candidate(priority, x, z, n));
   }
 
   private boolean hasNext() {
@@ -113,7 +119,7 @@ public class AStar {
     return this.closedSet.get(xO * (RoadRegion.LEN / 2) + zO);
   }
 
-  private boolean checkDirection(Destination dest, double d, int pX, int pZ, int x, int z) {
+  private boolean checkDirection(Destination dest, double sH, double d, int pX, int pZ, int x, int z) {
     final double h = dest.distance(x, z, 2);
     if (h < 2) {
       this.setParentIndex(x, z, pX, pZ);
@@ -123,16 +129,22 @@ public class AStar {
     if (this.isClosed(x, z)) {
       return false;
     }
-    final double weight = TmpRoadUtils.getWeight(this.graph, this.sampler, new MutableFunctionContext().at(x, z));
+    final var pos = new MutableFunctionContext(x, 0, z);
+    final double eH = this.sampler.depth().compute(pos);
+    if (Math.abs(sH - eH) > 2 * ONE_BLOCK_DEPTH) { // avoid walls of greater than 2 blocks' height
+      return false;
+    }
+    final double weight = TmpRoadUtils.getWeight(this.graph, this.sampler, pos);
     if (weight > 100) {
       return false;
     }
     final Cell cell = this.getDetails(x, z);
-    final double g = getG(cell) + d;
-    final double r = getCurve(x, z);
-    double f = g + h + r + weight;
+    final double g = getG(cell) + d; // total length travelled (not distance s to e)
+    final double r = getCurve(x, z); // sin wave to avoid straight lines
+    final double c = angleChange(this.src, pX, pZ, x, z); // prefer less change in direction
+    double f = g + h + r + c + weight;
     if (cell == null || cell.f > f) {
-      this.open(f, x, z);
+      this.open(f, x, z, eH);
       this.setDetails(x, z, new Cell(pX, pZ, f, g));
     }
     return false;
@@ -169,10 +181,16 @@ public class AStar {
   }
 
   protected static double getCurve(final int x, final int z) { // will take: dest, h
-    return Math.sin(x * z);
+    return Mth.sin(x * z);
   }
 
-  protected record Candidate(double priority, int x, int z) {}
+  protected static double angleChange(Point src, int x1, int z1, int x2, int z2) {
+    final float angleFromSource = (float) Mth.atan2(z1 - src.z, x1 - src.x);
+    final float currentAngle = (float) Mth.atan2(z2 - z1, x2 - x1);
+    return Mth.degreesDifferenceAbs(angleFromSource, currentAngle);
+  }
+
+  protected record Candidate(double priority, int x, int z, double n) {}
 
   protected static class Cell {
     int pX;

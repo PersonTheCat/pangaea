@@ -2,6 +2,7 @@ package personthecat.pangaea.world.road;
 
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.biome.Climate.Sampler;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.data.MutableFunctionContext;
@@ -164,8 +165,8 @@ public abstract class RoadGenerator {
     for (int i = 0; i < Cfg.maxBranches(); i++) {
       final double aO = a + Math.PI / 2 + rand.nextFloat() * Math.PI;
       final double d = min + rand.nextInt(max - min + 1);
-      final int xO = (int) (cX + d * Math.cos(aO));
-      final int zO = (int) (cZ + d * Math.sin(aO));
+      final int xO = (int) (cX + d * Mth.cos((float) aO));
+      final int zO = (int) (cZ + d * Mth.sin((float) aO));
       final Point s = this.getNearestSuitable(sampler, new Point(xO, zO));
       if (s == null) {
         continue;
@@ -183,31 +184,25 @@ public abstract class RoadGenerator {
   }
 
   protected Road getMainRoad(RoadRegion region, Sampler sampler, Point src, Random rand) {
-    final float a = rand.nextFloat() * TAU; // any angle
     final int minL = Cfg.minRoadLength();
     final int maxL = Cfg.maxRoadLength();
     final int d = minL + rand.nextInt(maxL - minL);
-    final int aX = (int) (src.x + d * Math.cos(a));
-    final int aZ = (int) (src.z + d * Math.sin(a));
-    final Point e = new Point(aX, aZ);
-    if (this.isTooClose(region, src, e, d)) {
-      return null;
-    }
-    final Point dest = this.getNearestSuitable(sampler, e);
-    return dest == null ? null : this.trace(sampler, src, dest);
+    final Road r = this.trace(sampler, src, Destination.distanceFrom(src, d));
+    return r == null || this.isTooClose(region, r) ? null : r;
   }
 
-  protected boolean isTooClose(RoadRegion region, Point src, Point dest, int d) {
-    final int cX1 = (src.x + dest.x) / 2;
-    final int cZ1 = (src.z + dest.z) / 2;
-    final int r1 = d / 2;
+  protected boolean isTooClose(RoadRegion region, Road r) {
+    final RoadVertex cv1 = r.vertices()[r.vertices().length / 2];
+    final int cX1 = cv1.x;
+    final int cZ1 = cv1.z;
+    final int r1 = r.length() / 2;
 
     for (final RoadNetwork n : region) {
-      final Road r = n.getMainRoad();
-      final RoadVertex cv = r.vertices()[r.vertices().length / 2];
-      final int cX2 = cv.x;
-      final int cZ2 = cv.z;
-      final int r2 = r.length() / 2;
+      final Road m = n.getMainRoad();
+      final RoadVertex cv2 = m.vertices()[m.vertices().length / 2];
+      final int cX2 = cv2.x;
+      final int cZ2 = cv2.z;
+      final int r2 = m.length() / 2;
       // too close if >30% overlap
       if (Utils.distance(cX1, cZ1, cX2, cZ2) <= (r1 + r2) * 0.7) {
         return true;

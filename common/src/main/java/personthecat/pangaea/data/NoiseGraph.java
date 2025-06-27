@@ -8,6 +8,7 @@ import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.Climate.Sampler;
 import net.minecraft.world.level.levelgen.DensityFunction.SinglePointContext;
 import net.minecraft.world.level.levelgen.DensityFunction.FunctionContext;
+import net.minecraft.world.level.levelgen.NoiseRouterData;
 import org.jetbrains.annotations.Nullable;
 import personthecat.pangaea.util.Utils;
 import personthecat.pangaea.world.feature.PositionalBiomePredicate;
@@ -75,12 +76,107 @@ public class NoiseGraph {
         final float lXuZ = this.getOrComputeDepth(sampler, data, cX, cZ, lX, lZ + 4);
         final float uXlZ = this.getOrComputeDepth(sampler, data, cX, cZ, lX + 4, lZ);
 
+        final float tX = (rX - lX) / 4F;
+        final float tZ = (rZ - lZ) / 4F;
+
+        final float l = Utils.lerp(lXlZ, lXuZ, tX);
+        final float r = Utils.lerp(uXlZ, uXuZ, tX);
+
+        return Utils.lerp(l, r, tZ);
+    }
+
+    public float getApproximateContinentalness(Sampler sampler, int x, int z) {
+        final int cX = x >> 4;
+        final int cZ = z >> 4;
+        final int rX = x & 15;
+        final int rZ = z & 15;
+        final int lX = lowerEighth(rX);
+        final int lZ = lowerEighth(rZ);
+        final Samples data = this.getData(cX, cZ);
+        return this.getOrComputeContinentalness(sampler, data, cX, cZ, lX, lZ);
+    }
+
+    public float getContinentalness(Sampler sampler, FunctionContext ctx) {
+        return this.getContinentalness(sampler, ctx.blockX(), ctx.blockZ());
+    }
+
+    public float getContinentalness(Sampler sampler, int x, int z) {
+        final int cX = x >> 4;
+        final int cZ = z >> 4;
+        final int rX = x & 15;
+        final int rZ = z & 15;
+        final int lX = lowerEighth(rX);
+        final int lZ = lowerEighth(rZ);
+        final Samples data = this.getData(cX, cZ);
+
+        final float lXlZ = this.getOrComputeContinentalness(sampler, data, cX, cZ, lX, lZ);
+        if (rX == lX && rZ == lZ) {
+            return lXlZ;
+        }
+        final float uXuZ = this.getOrComputeContinentalness(sampler, data, cX, cZ, lX + 8, lZ + 8);
+        final float lXuZ = this.getOrComputeContinentalness(sampler, data, cX, cZ, lX, lZ + 8);
+        final float uXlZ = this.getOrComputeContinentalness(sampler, data, cX, cZ, lX + 8, lZ);
+
+        final float tX = (rX - lX) / (lX == 0 ? 8F : 7F); // distance between samples is either 7 or 8
+        final float tZ = (rZ - lZ) / (lZ == 0 ? 8F : 7F);
+
+        final float l = Utils.lerp(lXlZ, lXuZ, tX);
+        final float r = Utils.lerp(uXlZ, uXuZ, tX);
+        return Utils.lerp(l, r, tZ);
+    }
+
+    public float getApproximatePv(Sampler sampler, int x, int z) {
+        return NoiseRouterData.peaksAndValleys(this.getApproximateWeirdness(sampler, x, z));
+    }
+
+    public float getPv(Sampler sampler, FunctionContext ctx) {
+        return NoiseRouterData.peaksAndValleys(this.getWeirdness(sampler, ctx));
+    }
+
+    public float getPv(Sampler sampler, int x, int z) {
+        return NoiseRouterData.peaksAndValleys(this.getWeirdness(sampler, x, z));
+    }
+
+    public float getApproximateWeirdness(Sampler sampler, int x, int z) {
+        final int cX = x >> 4;
+        final int cZ = z >> 4;
+        final int rX = x & 15;
+        final int rZ = z & 15;
+        final int lX = lowerThird(rX);
+        final int lZ = lowerThird(rZ);
+        final Samples data = this.getData(cX, cZ);
+        return this.getOrComputeWeirdness(sampler, data, cX, cZ, lX, lZ);
+    }
+
+    public float getWeirdness(Sampler sampler, FunctionContext ctx) {
+        return this.getWeirdness(sampler, ctx.blockX(), ctx.blockZ());
+    }
+
+    public float getWeirdness(Sampler sampler, int x, int z) {
+        final int cX = x >> 4;
+        final int cZ = z >> 4;
+        final int rX = x & 15;
+        final int rZ = z & 15;
+        final int lX = lowerThird(rX);
+        final int lZ = lowerThird(rZ);
+        final Samples data = this.getData(cX, cZ);
+
+        final float lXlZ = this.getOrComputeWeirdness(sampler, data, cX, cZ, lX, lZ);
+        if (rX == lX && rZ == lZ) {
+            return lXlZ;
+        }
+        // could be optimized by doing a 1-dimensional lerp on either edge
+        final int uX = Math.min(15, lX + 3);
+        final int uZ = Math.min(15, lZ + 3);
+        final float uXuZ = this.getOrComputeWeirdness(sampler, data, cX, cZ, uX, uZ);
+        final float lXuZ = this.getOrComputeWeirdness(sampler, data, cX, cZ, lX, uZ);
+        final float uXlZ = this.getOrComputeWeirdness(sampler, data, cX, cZ, uX, lZ);
+
         final float tX = (rX - lX) / 3F;
         final float tZ = (rZ - lZ) / 3F;
 
         final float l = Utils.lerp(lXlZ, lXuZ, tX);
         final float r = Utils.lerp(uXlZ, uXuZ, tX);
-
         return Utils.lerp(l, r, tZ);
     }
 
@@ -203,6 +299,24 @@ public class NoiseGraph {
             data.setD(rX, rZ, d);
         }
         return d;
+    }
+
+    protected float getOrComputeContinentalness(Sampler sampler, Samples data, int cX, int cZ, int rX, int rZ) {
+        float c = data.getC(rX, rZ);
+        if (c == 0) {
+            c = (float) sampler.continentalness().compute(new SinglePointContext((cX << 4) + rX, 0, (cZ << 4) + rZ));
+            data.setC(rX, rZ, c);
+        }
+        return c;
+    }
+
+    protected float getOrComputeWeirdness(Sampler sampler, Samples data, int cX, int cZ, int rX, int rZ) {
+        float c = data.getW(rX, rZ);
+        if (c == 0) {
+            c = (float) sampler.weirdness().compute(new SinglePointContext((cX << 4) + rX, 0, (cZ << 4) + rZ));
+            data.setW(rX, rZ, c);
+        }
+        return c;
     }
 
     protected Holder<Biome> getOrComputeBiome(BiomeManager biomes, Samples data, int rX, int rZ, int aX, int aZ) {
@@ -352,18 +466,18 @@ public class NoiseGraph {
      *     C D E F 0 1 2 3 4 5 6 7 8 9 A B C D E F 0 1 2 3 4
      * </pre>
      * <h3>
-     *   pv
+     *   w
      * </h3>
      * <p>
-     *   Raw Peeks-and-Valley noise calculated at every 3rd block.
+     *   Raw weirdness noise calculated at every 3rd block.
      * </p>
      * <h4>
      *   Structure
      * </h4>
      * <p>
-     *   This field captures the raw PV noise at every 4th block. This
-     *   interval is higher than that of PV primarily because we need
-     *   higher accuracy in avoiding rivers to reduce obvious jagged
+     *   This field captures the raw weirdness noise at every 4th block.
+     *   This interval is higher than that of depth primarily because we
+     *   need higher accuracy in avoiding rivers to reduce obvious jagged
      *   edges.
      * </p>
      * <p>
@@ -396,11 +510,55 @@ public class NoiseGraph {
      *   0 X - - X - - X - - X - - X - - X
      *     0 1 2 3 4 5 6 7 8 9 A B C D E F
      * </pre>
+     <h3>
+     *   c
+     * </h3>
+     * <p>
+     *   Raw continentalness noise calculated at every 3rd block.
+     * </p>
+     * <h4>
+     *   Structure
+     * </h4>
+     * <p>
+     *   This field captures the raw continentalness at every 8 blocks.
+     *   This interval is lower than most because typically fluctuates
+     *   very slowly.
+     * </p>
+     * <p>
+     *   We can access the approximate value by getting the nearest
+     *   relative coordinate at intervals of 3, then offsetting to
+     *   the appropriate row by x and adding z.
+     * </p>
+     * <pre>
+     *   i = round(rx / 3) * 6 + round(rz / 3)
+     * </pre>
+     * <h4>
+     *   Visualization
+     * </h4>
+     * <pre>
+     *   F X               X             X
+     *   E |
+     *   D |
+     *   C |
+     *   B |
+     *   A |
+     *   9 |
+     *   8 X               x             X
+     *   7 |
+     *   6 |
+     *   5 |
+     *   4 |
+     *   3 |
+     *   2 |
+     *   1 |
+     *   0 X - - - - - - - X - - - - - - X
+     *     0 1 2 3 4 5 6 7 8 9 A B C D E F
+     * </pre>
      */
-    public record Samples(float[] sd, float[] d, float[] pv, float[] e, Holder<Biome>[] biomes) {
+    public record Samples(float[] sd, float[] d, float[] w, float[] c, Holder<Biome>[] biomes) {
         @SuppressWarnings("unchecked")
         public Samples() {
-            this(new float[64], new float[49], new float[36], new float[0], new Holder[5]);
+            this(new float[64], new float[49], new float[36], new float[9], new Holder[5]);
         }
 
         public float getSd(int rX, int rZ) {
@@ -419,20 +577,20 @@ public class NoiseGraph {
             this.d[indexInterval4o4(rX, rZ)] = f;
         }
 
-        public float getPv(int rX, int rZ) {
-            throw new UnsupportedOperationException("todo");
+        public float getW(int rX, int rZ) {
+            return this.w[indexInterval3(rX, rZ)];
         }
 
-        public void setPv(int rX, int rZ, float f) {
-            throw new UnsupportedOperationException("todo");
+        public void setW(int rX, int rZ, float f) {
+            this.w[indexInterval3(rX, rZ)] = f;
         }
 
-        public float getE(int rX, int rZ) {
-            throw new UnsupportedOperationException("todo");
+        public float getC(int rX, int rZ) {
+            return this.c[indexInterval8(rX, rZ)];
         }
 
-        public void setE(int rX, int rZ, float e) {
-            throw new UnsupportedOperationException("todo");
+        public void setC(int rX, int rZ, float f) {
+            this.c[indexInterval8(rX, rZ)] = f;
         }
 
         public @Nullable Holder<Biome> getBiome(int rX, int rZ) {
@@ -444,16 +602,32 @@ public class NoiseGraph {
         }
     }
 
+    static int lowerThird(int i) {
+        return i / 3 * 3;
+    }
+
     protected static int lowerQuarter(int i) {
         return i >> 2 << 2;
+    }
+
+    protected static int lowerEighth(int i) {
+        return i >> 3 << 3;
     }
 
     protected static int indexInterval2(int x, int z) {
         return ((x >> 1) << 3) + (z >> 1);
     }
 
+    static int indexInterval3(int x, int z) {
+        return x / 3 * 6 + z / 3;
+    }
+
     protected static int indexInterval4o4(int x, int z) {
         return ((x + 4) >> 2) * 7 + ((z + 4) >> 2);
+    }
+
+    protected static int indexInterval8(int x, int z) {
+        return ((x + 1) >> 3) * 3 + ((z + 1) >> 3);
     }
 
     protected static int indexSpread5(int x, int z) {

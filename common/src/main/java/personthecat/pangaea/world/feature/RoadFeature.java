@@ -1,6 +1,5 @@
 package personthecat.pangaea.world.feature;
 
-import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.util.RandomSource;
@@ -17,7 +16,6 @@ import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.world.road.RoadRegion;
 import personthecat.pangaea.world.road.RoadVertex;
 
-@Log4j2
 public class RoadFeature extends Feature<NoneFeatureConfiguration> {
     public static final RoadFeature INSTANCE = new RoadFeature();
 
@@ -37,6 +35,9 @@ public class RoadFeature extends Feature<NoneFeatureConfiguration> {
         final var region = LevelExtras.getRoadMap(level).getRegion(sampler, rX, rZ);
         for (final var network : region) {
             if (!network.containsPoint(aX, aZ)) {
+                continue;
+            }
+            if (network.graph.distance(aX + 8, aZ + 8, 18) > 18) {
                 continue;
             }
             for (final var road : network.roads) {
@@ -63,9 +64,8 @@ public class RoadFeature extends Feature<NoneFeatureConfiguration> {
                 if (Math.sqrt(dX2 + dZ2) < vertex.radius) {
                     if (vertex.integrity == 1 || rand.nextFloat() <= vertex.integrity) {
                         final int y = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z) - 1;
-                        level.setBlock(pos.set(x, y, z), this.temporaryGetBlock(l), 2);
-                        if (level.getBlockState(pos.setY(y + 1)).is(Blocks.CAVE_AIR)) {
-                            log.info("Cave air @ {}", pos);
+                        if (level.getBlockState(pos.set(x, y, z)).isSolid()) {
+                            level.setBlock(pos.set(x, y, z), this.temporaryGetBlock(l), 2);
                         }
                     }
                 }
