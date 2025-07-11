@@ -86,6 +86,17 @@ import personthecat.pangaea.world.provider.ExactColumnProvider;
 import personthecat.pangaea.world.provider.VeryBiasedToBottomInt;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
+import personthecat.pangaea.world.weight.BiomeFilterWeight;
+import personthecat.pangaea.world.weight.ApproximateWeight;
+import personthecat.pangaea.world.weight.ConstantWeight;
+import personthecat.pangaea.world.weight.CutoffWeight;
+import personthecat.pangaea.world.weight.DensityWeight;
+import personthecat.pangaea.world.weight.InterpolatedWeight;
+import personthecat.pangaea.world.weight.MultipleWeight;
+import personthecat.pangaea.world.weight.NeverWeight;
+import personthecat.pangaea.world.weight.RouterWeight;
+import personthecat.pangaea.world.weight.SumWeight;
+import personthecat.pangaea.world.weight.WeightList;
 
 import java.util.List;
 
@@ -194,6 +205,29 @@ public abstract class Pangaea {
         PgRegistries.PATH_TYPE.createRegister(ID)
             .register("tunnel", TunnelPath.Config.CODEC)
             .register("canyon", CanyonPath.Config.CODEC);
+        PgRegistries.WEIGHT_TYPE.createRegister(ID)
+            .register("approximate_continentalness", ApproximateWeight.CONTINENTALNESS.codec())
+            .register("approximate_depth", ApproximateWeight.DEPTH.codec())
+            .register("approximate_pv", ApproximateWeight.PV.codec())
+            .register("approximate_weirdness", ApproximateWeight.WEIRDNESS.codec())
+            .register("biome", BiomeFilterWeight.CODEC)
+            .register("constant", ConstantWeight.CODEC)
+            .register("continents", RouterWeight.CONTINENTS.codec())
+            .register("cutoff", CutoffWeight.CODEC)
+            .register("density", DensityWeight.CODEC)
+            .register("erosion", RouterWeight.EROSION.codec())
+            .register("final_density", RouterWeight.FINAL_DENSITY.codec())
+            .register("initial_density", RouterWeight.INITIAL_DENSITY.codec())
+            .register("interpolated_continentalness", InterpolatedWeight.CONTINENTALNESS.codec())
+            .register("interpolated_depth", InterpolatedWeight.DEPTH.codec())
+            .register("interpolated_pv", InterpolatedWeight.PV.codec())
+            .register("interpolated_weirdness", InterpolatedWeight.WEIRDNESS.codec())
+            .register("multiple", MultipleWeight.CODEC)
+            .register("never", NeverWeight.CODEC)
+            .register("sum", SumWeight.CODEC)
+            .register("temperature", RouterWeight.TEMPERATURE.codec())
+            .register("vegetation", RouterWeight.VEGETATION.codec())
+            .register("list", WeightList.CODEC);
         CommonRegistries.FEATURE.createRegister(ID)
             .register("test", TestFeature.INSTANCE)
             .register("giant_sphere", GiantSphereFeature.INSTANCE)

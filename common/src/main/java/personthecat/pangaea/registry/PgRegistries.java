@@ -20,6 +20,7 @@ import personthecat.pangaea.world.filter.ChunkFilter;
 import personthecat.pangaea.world.injector.Injector;
 import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.provider.ColumnProvider;
+import personthecat.pangaea.world.weight.WeightFunction;
 
 public final class PgRegistries {
     public static final RegistryHandle<MapCodec<? extends Injector>> INJECTOR_TYPE = type(Keys.INJECTOR_TYPE);
@@ -28,6 +29,7 @@ public final class PgRegistries {
     public static final RegistryHandle<MapCodec<? extends ChunkFilter>> CHUNK_FILTER_TYPE = type(Keys.CHUNK_FILTER_TYPE);
     public static final RegistryHandle<MapCodec<? extends ChainLinkConfig<?>>> LINK_TYPE = type(Keys.LINK_TYPE);
     public static final RegistryHandle<MapCodec<? extends ChainPathConfig<?>>> PATH_TYPE = type(Keys.PATH_TYPE);
+    public static final RegistryHandle<MapCodec<? extends WeightFunction>> WEIGHT_TYPE = type(Keys.WEIGHT_TYPE);
 
     public static final RegistryHandle<Injector> INJECTOR = dynamic(Keys.INJECTOR, Injector.CODEC);
     public static final RegistryHandle<BiomeLayout> BIOME_LAYOUT = dynamic(Keys.BIOME_LAYOUT, BiomeLayout.CODEC.codec());
@@ -54,6 +56,7 @@ public final class PgRegistries {
         public static final ResourceKey<Registry<MapCodec<? extends ChunkFilter>>> CHUNK_FILTER_TYPE = key("chunk_filter_type");
         public static final ResourceKey<Registry<MapCodec<? extends ChainLinkConfig<?>>>> LINK_TYPE = key("chain_link_type");
         public static final ResourceKey<Registry<MapCodec<? extends ChainPathConfig<?>>>> PATH_TYPE = key("chain_path_type");
+        public static final ResourceKey<Registry<MapCodec<? extends WeightFunction>>> WEIGHT_TYPE = key("weight_type");
 
         public static final ResourceKey<Registry<Injector>> INJECTOR = key("injector");
         public static final ResourceKey<Registry<BiomeLayout>> BIOME_LAYOUT = key("layout");

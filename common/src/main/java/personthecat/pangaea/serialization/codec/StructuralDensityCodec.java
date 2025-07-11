@@ -8,6 +8,7 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
+import personthecat.catlib.serialization.codec.CodecUtils;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.world.density.DensityList;
 import personthecat.pangaea.world.density.FastNoiseDensity;
@@ -110,17 +111,12 @@ public class StructuralDensityCodec extends MapCodec<DensityFunction> {
 
     private <T> DataResult<DensityFunction> decodeNoise(DynamicOps<T> ops, T noise, MapLike<T> input) {
         if (NoiseCodecs.TYPE.decode(ops, noise).isSuccess()) {
-            return asParent(FastNoiseDensity.CODEC.decode(ops, input));
+            return CodecUtils.asParent(FastNoiseDensity.CODEC.decode(ops, input));
         }
         if (input.get("shift_x") != null) {
-            return asParent(DensityFunctions.ShiftedNoise.CODEC.codec().decode(ops, input));
+            return CodecUtils.asParent(DensityFunctions.ShiftedNoise.CODEC.codec().decode(ops, input));
         }
-        return asParent(DensityFunctions.Noise.CODEC.codec().decode(ops, input));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static DataResult<DensityFunction> asParent(DataResult<? extends DensityFunction> result) {
-        return (DataResult<DensityFunction>) result;
+        return CodecUtils.asParent(DensityFunctions.Noise.CODEC.codec().decode(ops, input));
     }
 
     @Override

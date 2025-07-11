@@ -17,6 +17,7 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseChunk;
+import net.minecraft.world.level.levelgen.NoiseRouter;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -42,6 +43,7 @@ public final class PangaeaContext extends WorldGenerationContext {
     public final NoiseGraph noise;
     public final WorldgenRandom rand;
     public final ServerLevel level;
+    public final NoiseRouter router;
     public final Climate.Sampler sampler;
     public final int chunkX;
     public final int chunkZ;
@@ -67,6 +69,7 @@ public final class PangaeaContext extends WorldGenerationContext {
         this.noise = LevelExtras.getNoiseGraph(level.getLevel());
         this.rand = rand;
         this.level = level.getLevel();
+        this.router = level.getLevel().getChunkSource().randomState().router();
         this.sampler = level.getLevel().getChunkSource().randomState().sampler();
         this.biomes = level.getBiomeManager().withDifferentSource((x, y, z) ->
             source.getNoiseBiome(x, y, z, this.sampler));

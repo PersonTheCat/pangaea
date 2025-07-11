@@ -63,7 +63,7 @@ public record AutoWrapDensity(DensityFunction density) implements DensityFunctio
 
     @Override
     public @NotNull KeyDispatchDataCodec<? extends DensityFunction> codec() {
-        return this.wrap().codec();
+        return this.density().codec();
     }
 
     private DensityFunction wrap() {

@@ -7,6 +7,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunction.SimpleFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
+import net.minecraft.world.level.levelgen.DensityFunctions.BlendDensity;
 import net.minecraft.world.level.levelgen.DensityFunctions.MarkerOrMarked;
 import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.serialization.codec.CodecUtils;
@@ -60,15 +61,19 @@ public class DensityController implements SimpleFunction {
         this.maxValue = this.computeMaxValue();
     }
 
-    private MainFunction unwrapMain() {
+    public MainFunction unwrapMain() {
         DensityFunction f = this.main;
-        while (f instanceof MarkerOrMarked m) {
-            f = m.wrapped();
+        while (true) {
+            switch (f) {
+                case MarkerOrMarked m -> f = m.wrapped();
+                case BlendDensity b -> f = b.input();
+                case MainFunction m -> {
+                    return m;
+                }
+                case null, default -> throw new IllegalStateException("Unexpected value in controller: " + f);
+            }
         }
-        if (f instanceof MainFunction m) {
-            return m;
-        }
-        throw new IllegalStateException("Unexpected value in controller: " + f);
+
     }
 
     @Override
@@ -115,10 +120,10 @@ public class DensityController implements SimpleFunction {
     }
 
     // abstracted so it may be interpolated / cached
-    protected static class MainFunction implements SimpleFunction {
+    public static class MainFunction implements SimpleFunction {
         private static final MapCodec<MainFunction> CODEC =
             MapCodec.assumeMapUnsafe(CodecUtils.neverCodec());
-        protected final DensityFunction surface;
+        public final DensityFunction surface;
         protected final DensityFunction entrances;
         protected final DensityCutoff upperCutoff;
         protected final DensityCutoff lowerCutoff;
