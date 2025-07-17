@@ -7,36 +7,26 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import personthecat.catlib.data.ResettableLazy;
 import personthecat.catlib.serialization.codec.capture.CaptureCategory;
-import personthecat.catlib.serialization.codec.capture.CapturingCodec;
 import personthecat.catlib.serialization.codec.capture.Captor;
 import personthecat.catlib.serialization.codec.capture.Key;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
-
-public class PangaeaCodec<A> implements Codec<A> {
+public final class PangaeaCodec<A> implements Codec<A> {
     private static final Map<Key<?>, PangaeaCodec<?>> CODECS = new ConcurrentHashMap<>();
     private final ResettableLazy<Codec<A>> base;
-    private final Map<String, List<Captor<?>>> presets;
-    private volatile Function<A, DataResult<String>> presetName;
-    private final List<Captor<?>> captors;
+    private final CodecAppenders appenders;
 
     private PangaeaCodec(Codec<A> base) {
         this.base = ResettableLazy.of(() -> this.generateCodec(base));
-        this.presets = new HashMap<>();
-        this.presetName = a -> DataResult.success("default");
-        this.captors = new ArrayList<>();
-        this.presets.put("default", List.of());
+        this.appenders = new CodecAppenders();
     }
 
     public static <A> PangaeaCodec<A> get(Class<A> type) {
@@ -81,22 +71,81 @@ public class PangaeaCodec<A> implements Codec<A> {
     }
 
     public PangaeaCodec<A> addPreset(String name, List<Captor<?>> preset) {
-        this.presets.put(name, preset);
-        return this.reset();
+        return this.configure(PresetAppender.class, c -> c.addPreset(name, preset));
     }
 
     public PangaeaCodec<A> addPresetNameFunction(Function<A, DataResult<String>> getter) {
-        this.presetName = getter;
+        return this.configure(PresetAppender.class, c -> c.setNameFunction(getter));
+    }
+
+    public PangaeaCodec<A> addCaptures(Captor<?>... captors) {
+        return this.addCaptures(List.of(captors));
+    }
+
+    public PangaeaCodec<A> addCaptures(Collection<? extends Captor<?>> captors) {
+        return this.configure(CaptureAppender.class, c -> c.addCaptors(captors));
+    }
+
+    @SafeVarargs
+    public final PangaeaCodec<A> addStructures(StructuralCodec.Structure<A>... structures) {
+        return this.addStructures(List.of(structures));
+    }
+
+    public PangaeaCodec<A> addStructures(Collection<? extends StructuralCodec.Structure<A>> structures) {
+        return this.configure(StructureAppender.class, c -> c.addStructures(structures));
+    }
+
+    public PangaeaCodec<A> addStructureCondition(BooleanSupplier condition) {
+        return this.configure(StructureAppender.class, c -> c.addEncodeCondition(condition));
+    }
+
+    @SafeVarargs
+    public final PangaeaCodec<A> addBuilderFields(BuilderCodec.BuilderField<A, ?, ?>... fields) {
+        return this.addBuilderFields(List.of(fields));
+    }
+
+    public PangaeaCodec<A> addBuilderFields(Collection<? extends BuilderCodec.BuilderField<A, ?, ?>> fields) {
+        return this.configure(BuilderAppender.class, c -> c.addFields(fields));
+    }
+
+    public PangaeaCodec<A> addBuilderCondition(BooleanSupplier condition) {
+        return this.configure(BuilderAppender.class, c -> c.addEncodeCondition(condition));
+    }
+
+    @SafeVarargs
+    public final PangaeaCodec<A> addFlags(BuilderCodec.BuilderField<A, ?, ?>... flags) {
+        return this.addFlags(List.of(flags));
+    }
+
+    public PangaeaCodec<A> addFlags(Collection<? extends BuilderCodec.BuilderField<A, ?, ?>> flags) {
+        return this.configure(FlagAppender.class, c -> c.addFlags(flags));
+    }
+
+    public PangaeaCodec<A> addFlagCondition(BooleanSupplier condition) {
+        return this.configure(FlagAppender.class, c -> c.addEncodeCondition(condition));
+    }
+
+    @SafeVarargs
+    public final PangaeaCodec<A> addPatterns(PatternCodec.Pattern<A>... patterns) {
+        return this.addPatterns(List.of(patterns));
+    }
+
+    public PangaeaCodec<A> addPatterns(Collection<? extends PatternCodec.Pattern<A>> patterns) {
+        return this.configure(PatternAppender.class, c -> c.addPatterns(patterns));
+    }
+
+    public PangaeaCodec<A> addPatternCondition(BooleanSupplier condition) {
+        return this.configure(PatternAppender.class, c -> c.addEncodeCondition(condition));
+    }
+
+    public PangaeaCodec<A> addGlobalCondition(BooleanSupplier condition) {
+        this.appenders.addGlobalCondition(condition);
         return this.reset();
     }
 
-    public PangaeaCodec<A> capturing(Captor<?>... captors) {
-        return this.capturing(List.of(captors));
-    }
-
-    public PangaeaCodec<A> capturing(Collection<Captor<?>> captors) {
-        this.captors.addAll(captors);
-        return this;
+    public <C extends CodecAppender> PangaeaCodec<A> configure(Class<C> type, Consumer<C> action) {
+        action.accept(this.appenders.get(type));
+        return this.reset();
     }
 
     private PangaeaCodec<A> reset() {
@@ -109,35 +158,6 @@ public class PangaeaCodec<A> implements Codec<A> {
     }
 
     private Codec<A> generateCodec(Codec<A> base) {
-        final MapCodec<A> baseMap = MapCodec.assumeMapUnsafe(base);
-        final var presets = this.compilePresets(baseMap);
-        if (presets.size() > 1) {
-            final var dispatcher = Codec.STRING
-                .partialDispatch("preset", this.presetName, s -> getPreset(presets, s));
-            base = defaultType("preset", dispatcher, baseMap);
-        }
-        if (!this.captors.isEmpty()) {
-            base = CapturingCodec.builder().capturing(this.captors).build(base);
-        }
-        return base;
-    }
-
-    private Map<String, MapCodec<A>> compilePresets(MapCodec<A> base) {
-        return mapValues(this.presets, p -> CapturingCodec.builder().capturing(p).build(base));
-    }
-
-    private static <K, V, R> Map<K, R> mapValues(Map<K, V> map, Function<V, R> mapper) {
-        if (map.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        return map.entrySet().stream()
-            .map(e -> Pair.of(e.getKey(), mapper.apply(e.getValue())))
-            .collect(Pair.toMap());
-    }
-
-    private static <A> DataResult<MapCodec<A>> getPreset(Map<String, MapCodec<A>> presets, String name) {
-        return Optional.ofNullable(presets.get(name))
-            .map(DataResult::success)
-            .orElseGet(() -> DataResult.error(() -> "No preset named '" + name + "', options: " + presets.keySet()));
+        return this.appenders.generate(base);
     }
 }

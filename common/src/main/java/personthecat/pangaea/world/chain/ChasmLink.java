@@ -121,7 +121,7 @@ public class ChasmLink extends ChainLink {
 
         public static final MapCodec<Config> CODEC =
             PangaeaCodec.build(Config::createCodec)
-                .capturing(/* NoiseCodecs.CATEGORY.createPreset(DEFAULT_NOISE) */)
+                .addCaptures(/* NoiseCodecs.CATEGORY.createPreset(DEFAULT_NOISE) */)
                 .mapCodec();
 
         @Override

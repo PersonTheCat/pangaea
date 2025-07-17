@@ -20,6 +20,7 @@ import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.registry.PgRegistries;
+import personthecat.pangaea.serialization.codec.CodecAppenders;
 import personthecat.pangaea.serialization.codec.PangaeaCodec;
 import personthecat.pangaea.serialization.codec.StructuralChunkFilterCodec;
 import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
@@ -126,6 +127,7 @@ public abstract class Pangaea {
         Cfg.register();
         updateRegistries();
         registerPresets();
+        CodecAppenders.bootstrap();
     }
 
     protected final void commonSetup() {

@@ -31,8 +31,8 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 public record FeatureInjector(InjectionMap<Modifications> injections) implements Injector {
     public static final MapCodec<FeatureInjector> CODEC =
         PangaeaCodec.build(FeatureInjector::createCodec)
-            .capturing(CaptureCategory.get(ConditionConfiguration.class).captors())
-            .capturing(CaptureCategory.get(Modifications.class).captors())
+            .addCaptures(CaptureCategory.get(ConditionConfiguration.class).captors())
+            .addCaptures(CaptureCategory.get(Modifications.class).captors())
             .mapCodec();
 
     @Override

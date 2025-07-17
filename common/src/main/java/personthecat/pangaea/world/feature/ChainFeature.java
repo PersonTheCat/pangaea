@@ -128,7 +128,7 @@ public class ChainFeature extends GiantFeature<Configuration> {
 
         public static final MapCodec<Configuration> CODEC =
             PangaeaCodec.build(Configuration::createCodec)
-                .capturing(capture("placer", BlockPlacer.CODEC))
+                .addCaptures(capture("placer", BlockPlacer.CODEC))
                 .mapCodec();
 
         private final ChunkFilter chunkFilter;

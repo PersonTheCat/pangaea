@@ -1,8 +1,13 @@
 package personthecat.pangaea.test;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JavaOps;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.platform.commons.util.ExceptionUtils;
+import personthecat.catlib.serialization.codec.XjsOps;
+import xjs.data.Json;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -10,10 +15,44 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.junit.jupiter.api.AssertionFailureBuilder.assertionFailure;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public final class TestUtils {
     private static final Map<Class<?>, Object> RELOADED_INSTANCE_MAP = new ConcurrentHashMap<>();
 
     private TestUtils() {}
+
+    public static <A> DataResult<A> parse(Codec<A> subject, String json) {
+        return subject.parse(XjsOps.INSTANCE, Json.parse(json));
+    }
+
+    public static <T> DataResult<Object> encode(Codec<T> codec, T value) {
+        return codec.encodeStart(JavaOps.INSTANCE, value);
+    }
+
+    public static <T> void assertSuccess(T expected, DataResult<T> actual) {
+        if (!actual.isSuccess()) {
+            assertionFailure().message(getMessage(actual)).actual("error").expected("success").buildAndThrow();
+        }
+        assertEquals(expected, actual.getOrThrow());
+    }
+
+    public static <T> void assertError(DataResult<T> actual) {
+        if (!actual.isError()) {
+            assertionFailure().message("parsed: " + actual.getOrThrow()).actual("success").expected("error").buildAndThrow();
+        }
+    }
+
+    public static void assertContains(String s, String contains) {
+        if (!s.contains(contains)) {
+            assertionFailure().message("actual does not contain expected").actual(s).expected(contains).buildAndThrow();
+        }
+    }
+
+    public static String getMessage(DataResult<?> result) {
+        return result.error().orElseThrow().message();
+    }
 
     public static Method getMethod(Class<?> clazz, String name, Class<?>... args) {
         try {
