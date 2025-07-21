@@ -1,4 +1,4 @@
-package personthecat.pangaea.serialization.codec;
+package personthecat.pangaea.serialization.codec.appender;
 
 import com.mojang.serialization.Codec;
 

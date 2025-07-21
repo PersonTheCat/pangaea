@@ -7,6 +7,8 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
+import net.minecraft.world.level.levelgen.DensityFunction;
+import net.minecraft.world.level.levelgen.DensityFunctions;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -14,26 +16,27 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.defaultType;
 import static personthecat.catlib.serialization.codec.CodecUtils.ifMap;
 
 public class BuilderCodec<A> extends MapCodec<A> {
-    private final List<BuilderField<A, ?, ?>> fields;
+    private final List<BuilderField<A, ?>> fields;
     private final BooleanSupplier encode;
     private final @Nullable MapCodec<A> union;
 
-    public BuilderCodec(List<BuilderField<A, ?, ?>> fields) {
+    public BuilderCodec(List<BuilderField<A, ?>> fields) {
         this(fields, () -> true);
     }
 
-    public BuilderCodec(List<BuilderField<A, ?, ?>> fields, BooleanSupplier encode) {
+    public BuilderCodec(List<BuilderField<A, ?>> fields, BooleanSupplier encode) {
         this(fields, encode, null);
     }
 
     private BuilderCodec(
-            List<BuilderField<A, ?, ?>> fields, BooleanSupplier encode, @Nullable MapCodec<A> union) {
+            List<BuilderField<A, ?>> fields, BooleanSupplier encode, @Nullable MapCodec<A> union) {
         this.fields = fields;
         this.encode = encode;
         this.union = union;
@@ -54,8 +57,8 @@ public class BuilderCodec<A> extends MapCodec<A> {
     }
 
     private boolean hasFieldForInput(A input) {
-        for (final BuilderField<A, ?, ?> f : this.fields) {
-            if (f.type().isInstance(input)) {
+        for (final BuilderField<A, ?> f : this.fields) {
+            if (f.filter(input)) {
                 return true;
             }
         }
@@ -73,7 +76,7 @@ public class BuilderCodec<A> extends MapCodec<A> {
         if (this.union != null) {
             result = this.union.decode(ops, map);
         }
-        for (final BuilderField<A, ?, ?> f : this.fields) {
+        for (final BuilderField<A, ?> f : this.fields) {
             result = f.append(result, ops, map);
         }
         if (result == null) {
@@ -85,7 +88,7 @@ public class BuilderCodec<A> extends MapCodec<A> {
     @Override
     public <T> RecordBuilder<T> encode(A input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
         unwrapping: while (true) {
-            for (final BuilderField<A, ?, ?> f : this.fields) {
+            for (final BuilderField<A, ?> f : this.fields) {
                 final var next = f.next(input, ops, prefix);
                 if (next.getFirst() == null) {
                     return prefix; // end
@@ -105,10 +108,10 @@ public class BuilderCodec<A> extends MapCodec<A> {
         return prefix.withErrorsFrom(DataResult.error(() -> "Not a buildable type: " + finalInput));
     }
 
-    public interface BuilderField<A, B extends A, T> {
-        Class<B> type();
-        B wrap(A a, T t);
-        Pair<@Nullable A, T> unwrap(B b);
+    public interface BuilderField<A, T> {
+        boolean filter(A a);
+        A wrap(A a, T t);
+        Pair<@Nullable A, T> unwrap(A a);
         MapCodec<Optional<T>> codec();
 
         default @Nullable <O> DataResult<A> append(@Nullable DataResult<A> result, DynamicOps<O> ops, MapLike<O> map) {
@@ -117,14 +120,14 @@ public class BuilderCodec<A> extends MapCodec<A> {
             }
             final var a = result != null ? result.getOrThrow() : null;
             return this.codec().decode(ops, map).mapOrElse(
-                o -> o.map(t -> DataResult.success((A) this.wrap(a, t))).orElse(result),
+                o -> o.map(t -> DataResult.success(this.wrap(a, t))).orElse(result),
                 e -> DataResult.error(e.messageSupplier())
             );
         }
 
         default <O> Pair<A, RecordBuilder<O>> next(A input, DynamicOps<O> ops, RecordBuilder<O> prefix) {
-            if (this.type().isInstance(input)) {
-                final var p = this.unwrap(this.type().cast(input));
+            if (this.filter(input)) {
+                final var p = this.unwrap(input);
                 final var a = p.getFirst();
                 final var t = p.getSecond();
                 return Pair.of(a, this.codec().encode(Optional.of(t), ops, prefix));
@@ -132,65 +135,79 @@ public class BuilderCodec<A> extends MapCodec<A> {
             return Pair.of(input, prefix);
         }
 
-        static <A, B extends A> Builder<A, B> of(Class<A> parent, Class<B> type) {
-            return new Builder<A, B>(parent, type);
+        static <A, B extends A> Builder<A> of(Class<A> parent, Class<B> type) {
+            return of(parent, type::isInstance);
         }
 
-        record Builder<A, B extends A>(Class<A> parent, Class<B> type) {
-            public <T> Parsing<A, B, T> parsingRequired(Codec<T> codec, String name) {
+        static <A> Builder<A> of(Class<A> parent, Predicate<A> filter) {
+            return new Builder<>(parent, filter);
+        }
+
+        record Builder<A>(Class<A> parent, Predicate<A> filter) {
+            public <T> Parsing<A, T> parsingRequired(Codec<T> codec, String name) {
                 return this.parsingRequired(codec, name, "'" + name + "' is required for builder pattern");
             }
 
-            public <T> Parsing<A, B, T> parsingRequired(Codec<T> codec, String name, String errorMessage) {
+            public <T> Parsing<A, T> parsingRequired(Codec<T> codec, String name, String errorMessage) {
                 return this.parsing(codec.fieldOf(name).flatXmap(
                     t -> DataResult.success(Optional.of(t)),
                     o -> o.map(DataResult::success).orElseGet(() -> DataResult.error(() -> errorMessage))
                 ));
             }
 
-            public <T> Parsing<A, B, T> parsing(Codec<T> codec, String name) {
+            public <T> Parsing<A, T> parsing(Codec<T> codec, String name) {
                 return this.parsing(codec.optionalFieldOf(name));
             }
 
-            public <T> Parsing<A, B, T> parsing(MapCodec<Optional<T>> codec) {
+            public <T> Parsing<A, T> parsing(MapCodec<Optional<T>> codec) {
                 return new Parsing<>(this, codec);
             }
         }
 
-        record Parsing<A, B extends A, T>(Builder<A, B> builder, MapCodec<Optional<T>> codec) {
-            public WithWrapper<A, B, T> wrap(BiFunction<T, A, B> wrapper) {
+        record Parsing<A, T>(Builder<A> builder, MapCodec<Optional<T>> codec) {
+            public WithWrapper<A, T> wrap(BiFunction<T, A, ? extends A> wrapper) {
                 return new WithWrapper<>(this, (a, t) -> wrapper.apply(t, a));
             }
         }
 
-        record WithWrapper<A, B extends A, T>(Parsing<A, B, T> parsing, BiFunction<A, T, B> wrapper) {
-            public WithUnwrapper<A, B, T> unwrap(Function<B, A> unwrapA, Function<B, T> unwrapT) {
-                return this.unwrap(b -> Pair.of(unwrapA.apply(b), unwrapT.apply(b)));
+        record WithWrapper<A, T>(Parsing<A, T> parsing, BiFunction<A, T, ? extends A> wrapper) {
+            public <B extends A> WithUnwrapper<A, T> unwrap(Function<B, A> unwrapA, Function<B, T> unwrapT) {
+                return this.unwrap((B b) -> Pair.of(unwrapA.apply(b), unwrapT.apply(b)));
             }
 
-            public WithUnwrapper<A, B, T> unwrap(Function<B, Pair<A, T>> unwrapper) {
-                return new WithUnwrapper<>(this, unwrapper);
+            public <B extends A> WithUnwrapper<A, T> unwrap(Function<B, Pair<A, T>> unwrapper) {
+                return new WithUnwrapper<>(this, asParent(unwrapper));
+            }
+
+            @SuppressWarnings("unchecked")
+            private static <A, B extends A, R> Function<A, R> asParent(Function<B, R> f) {
+                return (Function<A, R>) f;
             }
         }
 
-        record WithUnwrapper<A, B extends A, T>(
-                Class<B> type,
-                BiFunction<A, T, B> wrap,
-                Function<B, Pair<@Nullable A, T>> unwrap,
-                MapCodec<Optional<T>> codec) implements BuilderField<A, B, T> {
+        record WithUnwrapper<A, T>(
+                Predicate<A> filter,
+                BiFunction<A, T, ? extends A> wrap,
+                Function<A, Pair<@Nullable A, T>> unwrap,
+                MapCodec<Optional<T>> codec) implements BuilderField<A, T> {
 
-            public WithUnwrapper(WithWrapper<A, B, T> withWrapper, Function<B, Pair<A, T>> unwrapper) {
-                this(withWrapper.parsing.builder.type, withWrapper.wrapper, unwrapper, withWrapper.parsing.codec);
+            public WithUnwrapper(WithWrapper<A, T> ww, Function<A, Pair<A, T>> uw) {
+                this(ww.parsing.builder.filter, ww.wrapper, uw, ww.parsing.codec);
             }
 
             @Override
-            public B wrap(A a, T t) {
+            public A wrap(A a, T t) {
                 return this.wrap.apply(a, t);
             }
 
             @Override
-            public Pair<@Nullable A, T> unwrap(B b) {
-                return this.unwrap.apply(b);
+            public Pair<@Nullable A, T> unwrap(A a) {
+                return this.unwrap.apply(a);
+            }
+
+            @Override
+            public boolean filter(A a) {
+                return this.filter.test(a);
             }
         }
     }

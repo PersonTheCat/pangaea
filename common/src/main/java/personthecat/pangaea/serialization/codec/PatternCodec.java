@@ -8,7 +8,10 @@ import com.mojang.serialization.DynamicOps;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
+import static personthecat.catlib.serialization.codec.CodecUtils.asParent;
 import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
 
 public record PatternCodec<A>(List<Pattern<A>> patterns, BooleanSupplier encode) implements Codec<A> {
@@ -24,7 +27,7 @@ public record PatternCodec<A>(List<Pattern<A>> patterns, BooleanSupplier encode)
     public boolean hasPatternForInput(A input) {
         if (this.encode.getAsBoolean()) {
             for (final Pattern<A> p : this.patterns) {
-                if (p.type.isInstance(input)) {
+                if (p.filter.test(p.normalizer.apply(input))) {
                     return true;
                 }
             }
@@ -49,17 +52,30 @@ public record PatternCodec<A>(List<Pattern<A>> patterns, BooleanSupplier encode)
             return DataResult.error(() -> "Encoding patterns disabled for input: " + input);
         }
         for (final Pattern<A> p : this.patterns) {
-            if (p.type.isInstance(input)) {
-                return p.codec.encode(input, ops, prefix);
+            final var normalized = p.normalizer.apply(input);
+            if (p.filter.test(normalized)) {
+                return p.codec.encode(normalized, ops, prefix);
             }
         }
         return DataResult.error(() -> "No matching pattern for input: " + input);
     }
 
-    public record Pattern<A>(Codec<A> codec, Class<?> type) {
+    public record Pattern<A>(Codec<A> codec, UnaryOperator<A> normalizer, Predicate<A> filter) {
         @SuppressWarnings("unchecked")
         public static <A, B extends A, T> Function<A, T> get(Function<B, T> getter) {
             return a -> getter.apply((B) a);
+        }
+
+        public static <A> Pattern<A> of(Codec<? extends A> codec, Class<? extends A> type) {
+            return of(codec, type::isInstance);
+        }
+
+        public static <A> Pattern<A> of(Codec<? extends A> codec, Predicate<A> test) {
+            return new Pattern<>(asParent(codec), a -> a, test);
+        }
+
+        public Pattern<A> normalized(UnaryOperator<A> normalizer) {
+            return new Pattern<>(this.codec, normalizer, this.filter);
         }
     }
 }

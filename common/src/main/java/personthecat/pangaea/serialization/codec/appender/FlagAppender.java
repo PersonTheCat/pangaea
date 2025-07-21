@@ -1,6 +1,7 @@
-package personthecat.pangaea.serialization.codec;
+package personthecat.pangaea.serialization.codec.appender;
 
 import com.mojang.serialization.Codec;
+import personthecat.pangaea.serialization.codec.BuilderCodec;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,10 +11,10 @@ import java.util.function.BooleanSupplier;
 public final class FlagAppender implements CodecAppender {
     public static final int PRIORITY = PatternAppender.PRIORITY - 5_000;
     public static final Info<FlagAppender> INFO = FlagAppender::new;
-    private final List<BuilderCodec.BuilderField<?, ?, ?>> fields = new ArrayList<>();
+    private final List<BuilderCodec.BuilderField<?, ?>> fields = new ArrayList<>();
     private final Condition condition = new Condition();
 
-    public <A> void addFlags(Collection<? extends BuilderCodec.BuilderField<A, ?, ?>> fields) {
+    public <A> void addFlags(Collection<? extends BuilderCodec.BuilderField<A, ?>> fields) {
         this.fields.addAll(fields);
     }
 
@@ -25,7 +26,7 @@ public final class FlagAppender implements CodecAppender {
     @Override
     @SuppressWarnings("unchecked")
     public <A> Codec<A> append(Codec<A> codec) {
-        final var fields = (List<BuilderCodec.BuilderField<A, ?, ?>>) (Object) this.fields;
+        final var fields = (List<BuilderCodec.BuilderField<A, ?>>) (Object) this.fields;
         if (!fields.isEmpty()) {
             return new BuilderCodec<>(fields, this.condition.get()).asUnionOf(codec);
         }

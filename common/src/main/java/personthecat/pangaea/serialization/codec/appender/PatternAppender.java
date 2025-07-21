@@ -1,6 +1,7 @@
-package personthecat.pangaea.serialization.codec;
+package personthecat.pangaea.serialization.codec.appender;
 
 import com.mojang.serialization.Codec;
+import personthecat.pangaea.serialization.codec.PatternCodec;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +14,7 @@ public class PatternAppender implements CodecAppender {
     private final List<PatternCodec.Pattern<?>> patterns = new ArrayList<>();
     private final Condition condition = new Condition();
 
-    public <A> void addPatterns(Collection<? extends PatternCodec.Pattern<A>> patterns) {
+    public <A> void addPatterns(Collection<? extends PatternCodec.Pattern<? extends A>> patterns) {
         this.patterns.addAll(patterns);
     }
 

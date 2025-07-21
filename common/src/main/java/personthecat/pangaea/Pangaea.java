@@ -3,12 +3,17 @@ package personthecat.pangaea;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Holder;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.valueproviders.FloatProvider;
+import net.minecraft.util.valueproviders.IntProvider;
+import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
+import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import net.minecraft.world.level.levelgen.placement.HeightmapPlacement;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import personthecat.catlib.command.CommandRegistrationContext;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.lifecycle.GameReadyEvent;
@@ -20,13 +25,12 @@ import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
 import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.registry.PgRegistries;
-import personthecat.pangaea.serialization.codec.CodecAppenders;
+import personthecat.pangaea.serialization.codec.appender.CodecAppenders;
 import personthecat.pangaea.serialization.codec.PangaeaCodec;
-import personthecat.pangaea.serialization.codec.StructuralChunkFilterCodec;
-import personthecat.pangaea.serialization.codec.StructuralDensityCodec;
-import personthecat.pangaea.serialization.codec.StructuralFloatProviderCodec;
-import personthecat.pangaea.serialization.codec.StructuralHeightProviderCodec;
-import personthecat.pangaea.serialization.codec.StructuralIntProviderCodec;
+import personthecat.pangaea.serialization.extras.DefaultBuilderFields;
+import personthecat.pangaea.serialization.extras.DefaultCodecFlags;
+import personthecat.pangaea.serialization.extras.DefaultCodecPatterns;
+import personthecat.pangaea.serialization.extras.DefaultCodecStructures;
 import personthecat.pangaea.serialization.preset.ChainFeaturePresets;
 import personthecat.pangaea.util.SeedSupport;
 import personthecat.pangaea.world.chain.CanyonLink;
@@ -52,6 +56,7 @@ import personthecat.pangaea.world.feature.RoadFeature;
 import personthecat.pangaea.world.feature.TestFeature;
 import personthecat.pangaea.world.feature.TunnelFeature;
 import personthecat.pangaea.world.filter.ChanceChunkFilter;
+import personthecat.pangaea.world.filter.ChunkFilter;
 import personthecat.pangaea.world.filter.ClusterChunkFilter;
 import personthecat.pangaea.world.filter.DensityChunkFilter;
 import personthecat.pangaea.world.filter.FastNoiseChunkFilter;
@@ -70,6 +75,7 @@ import personthecat.pangaea.world.injector.OreInjector;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
+import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.placer.BlockPlacerList;
 import personthecat.pangaea.world.placer.ChanceBlockPlacer;
 import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
@@ -77,6 +83,7 @@ import personthecat.pangaea.world.placer.TargetedBlockPlacer;
 import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
 import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
 import personthecat.pangaea.world.provider.BiasedToBottomFloat;
+import personthecat.pangaea.world.provider.ColumnProvider;
 import personthecat.pangaea.world.provider.ConstantColumnProvider;
 import personthecat.pangaea.world.provider.DensityFloatProvider;
 import personthecat.pangaea.world.provider.DensityHeightProvider;
@@ -97,6 +104,7 @@ import personthecat.pangaea.world.weight.MultipleWeight;
 import personthecat.pangaea.world.weight.NeverWeight;
 import personthecat.pangaea.world.weight.RouterWeight;
 import personthecat.pangaea.world.weight.SumWeight;
+import personthecat.pangaea.world.weight.WeightFunction;
 import personthecat.pangaea.world.weight.WeightList;
 
 import java.util.List;
@@ -126,8 +134,8 @@ public abstract class Pangaea {
     protected final void init() {
         Cfg.register();
         updateRegistries();
-        registerPresets();
         CodecAppenders.bootstrap();
+        configureCodecs();
     }
 
     protected final void commonSetup() {
@@ -145,7 +153,6 @@ public abstract class Pangaea {
     private static void updateRegistries() {
         CommonRegistries.DENSITY_FUNCTION_TYPE.createRegister(ID)
             .register("controller", DensityController.CODEC)
-            .register("structural", StructuralDensityCodec.INSTANCE)
             .register("noise", FastNoiseDensity.CODEC)
             .register("min", DensityList.Min.CODEC)
             .register("max", DensityList.Max.CODEC)
@@ -156,16 +163,13 @@ public abstract class Pangaea {
             .register("weighted_list", WeightedListDensity.CODEC);
         CommonRegistries.FLOAT_PROVIDER_TYPE.createRegister(ID)
             .register("density", DensityFloatProvider.TYPE)
-            .register("structural", StructuralFloatProviderCodec.TYPE)
             .register("biased_to_bottom", BiasedToBottomFloat.TYPE);
         CommonRegistries.INT_PROVIDER_TYPE.createRegister(ID)
             .register("density", DensityIntProvider.TYPE)
-            .register("structural", StructuralIntProviderCodec.TYPE)
             .register("very_biased_to_bottom", VeryBiasedToBottomInt.TYPE);
         CommonRegistries.HEIGHT_PROVIDER_TYPE.createRegister(ID)
             .register("density", DensityHeightProvider.TYPE)
-            .register("density_offset", DensityOffsetHeightProvider.TYPE)
-            .register("structural", StructuralHeightProviderCodec.TYPE);
+            .register("density_offset", DensityOffsetHeightProvider.TYPE);
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.createRegister(ID)
             .register("simple", SimplePlacementModifier.TYPE)
             .register("surface_biome", SurfaceBiomeFilter.TYPE);
@@ -198,8 +202,7 @@ public abstract class Pangaea {
             .register("noise", FastNoiseChunkFilter.CODEC)
             .register("spawn_distance", SpawnDistanceChunkFilter.CODEC)
             .register("density", DensityChunkFilter.CODEC)
-            .register("union", UnionChunkFilter.CODEC)
-            .register("structural", StructuralChunkFilterCodec.INSTANCE);
+            .register("union", UnionChunkFilter.CODEC);
         PgRegistries.LINK_TYPE.createRegister(ID)
             .register("sphere", SphereLink.Config.CODEC)
             .register("canyon", CanyonLink.Config.CODEC)
@@ -241,11 +244,50 @@ public abstract class Pangaea {
             .register("temporary_ravine", RavineFeature.INSTANCE);
     }
 
-    private static void registerPresets() {
+    private static void configureCodecs() {
         PangaeaCodec.get(ChainFeature.Configuration.class)
             .addPreset("ravine", ChainFeaturePresets.RAVINE)
             .addPreset("tunnel", ChainFeaturePresets.TUNNEL)
             .addPreset("chasm", ChainFeaturePresets.CHASM);
+        PangaeaCodec.get(BlockPlacer.class)
+            .addBuilderFields(DefaultBuilderFields.PLACER)
+            .addBuilderCondition(Cfg::encodeStructuralBlockPlacers)
+            .addPatterns(DefaultCodecPatterns.PLACER)
+            .addPatternCondition(Cfg::encodePatternBlockPlacers);
+        PangaeaCodec.get(DensityFunction.class)
+            .addFlags(DefaultCodecFlags.DENSITY)
+            .addFlagCondition(Cfg::encodeDensityBuilders)
+            .addStructures(DefaultCodecStructures.DENSITY)
+            .addStructureCondition(Cfg::encodeStructuralDensity);
+        PangaeaCodec.get(FloatProvider.class)
+            .addStructures(DefaultCodecStructures.FLOAT)
+            .addStructureCondition(Cfg::encodeStructuralFloatProviders)
+            .addPatterns(DefaultCodecPatterns.FLOAT)
+            .addPatternCondition(Cfg::encodeRangeFloatProvider);
+        PangaeaCodec.get(IntProvider.class)
+            .addStructures(DefaultCodecStructures.INT)
+            .addStructureCondition(Cfg::encodeStructuralIntProviders)
+            .addPatterns(DefaultCodecPatterns.INT)
+            .addPatternCondition(Cfg::encodeRangeIntProvider);
+        PangaeaCodec.get(RuleTest.class)
+            .addPatterns(DefaultCodecPatterns.RULE_TEST)
+            .addPatternCondition(Cfg::encodePatternRuleTestCodec);
+        PangaeaCodec.get(ChunkFilter.class)
+            .addStructures(DefaultCodecStructures.CHUNK_FILTER)
+            .addStructureCondition(Cfg::encodeStructuralChunkFilters)
+            .addPatterns(DefaultCodecPatterns.CHUNK_FILTER)
+            .addPatternCondition(Cfg::encodePatternChunkFilters);
+        PangaeaCodec.get(WeightFunction.class)
+            .addStructures(DefaultCodecStructures.WEIGHT)
+            .addPatterns(DefaultCodecPatterns.WEIGHT);
+        PangaeaCodec.get(HeightProvider.class)
+            .addStructures(DefaultCodecStructures.HEIGHT)
+            .addStructureCondition(Cfg::encodeStructuralHeight)
+            .addPatterns(DefaultCodecPatterns.HEIGHT)
+            .addPatternCondition(Cfg::encodePatternHeightProvider);
+        PangaeaCodec.get(ColumnProvider.class)
+            .addPatterns(DefaultCodecPatterns.COLUMN)
+            .addPatternCondition(Cfg::encodePatternHeightProvider);
     }
 
     private static void enableDebugFeatures() {

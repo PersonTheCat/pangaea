@@ -6,9 +6,18 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import personthecat.catlib.data.ResettableLazy;
+import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.serialization.codec.capture.CaptureCategory;
 import personthecat.catlib.serialization.codec.capture.Captor;
 import personthecat.catlib.serialization.codec.capture.Key;
+import personthecat.pangaea.serialization.codec.appender.BuilderAppender;
+import personthecat.pangaea.serialization.codec.appender.CaptureAppender;
+import personthecat.pangaea.serialization.codec.appender.CodecAppender;
+import personthecat.pangaea.serialization.codec.appender.CodecAppenders;
+import personthecat.pangaea.serialization.codec.appender.FlagAppender;
+import personthecat.pangaea.serialization.codec.appender.PatternAppender;
+import personthecat.pangaea.serialization.codec.appender.PresetAppender;
+import personthecat.pangaea.serialization.codec.appender.StructureAppender;
 
 import java.util.Collection;
 import java.util.List;
@@ -50,14 +59,39 @@ public final class PangaeaCodec<A> implements Codec<A> {
 
     @SafeVarargs
     public static <A> PangaeaCodec<A> build(Function<CaptureCategory<A>, MapCodec<A>> builder, A... implicitType) {
-        final var type = Key.inferType(implicitType);
-        return build(Key.of(type.getSimpleName(), type), builder);
+        return build(inferKey(implicitType), builder);
     }
 
     public static <A> PangaeaCodec<A> build(Key<A> key, Function<CaptureCategory<A>, MapCodec<A>> builder) {
-        final var codec = new PangaeaCodec<>(builder.apply(CaptureCategory.get(key.name(), key.type())).codec());
+        return create(key, builder.apply(CaptureCategory.get(key.name(), key.type())).codec());
+    }
+
+    @SafeVarargs
+    public static <A> PangaeaCodec<A> forRegistry(
+            RegistryHandle<MapCodec<? extends A>> registry, Function<? super A, ? extends MapCodec<? extends A>> getter, A... implicitType) {
+        return forRegistry(inferKey(implicitType), registry, getter);
+    }
+
+    public static <A> PangaeaCodec<A> forRegistry(
+            Key<A> key, RegistryHandle<MapCodec<? extends A>> registry, Function<? super A, ? extends MapCodec<? extends A>> getter) {
+        return create(key, registry.codec().dispatch(getter, Function.identity()));
+    }
+
+    @SafeVarargs
+    public static <A> PangaeaCodec<A> create(Codec<A> base, A... implicitType) {
+        return create(inferKey(implicitType), base);
+    }
+
+    public static <A> PangaeaCodec<A> create(Key<A> key, Codec<A> base) {
+        final var codec = new PangaeaCodec<>(base);
         CODECS.put(key, codec);
         return codec;
+    }
+
+    @SafeVarargs
+    private static <A> Key<A> inferKey(A... implicitType) {
+        final var type = Key.inferType(implicitType);
+        return Key.of(type.getSimpleName(), type);
     }
 
     @Override
@@ -87,11 +121,11 @@ public final class PangaeaCodec<A> implements Codec<A> {
     }
 
     @SafeVarargs
-    public final PangaeaCodec<A> addStructures(StructuralCodec.Structure<A>... structures) {
+    public final PangaeaCodec<A> addStructures(StructuralCodec.Structure<? extends A>... structures) {
         return this.addStructures(List.of(structures));
     }
 
-    public PangaeaCodec<A> addStructures(Collection<? extends StructuralCodec.Structure<A>> structures) {
+    public PangaeaCodec<A> addStructures(Collection<? extends StructuralCodec.Structure<? extends A>> structures) {
         return this.configure(StructureAppender.class, c -> c.addStructures(structures));
     }
 
@@ -100,11 +134,11 @@ public final class PangaeaCodec<A> implements Codec<A> {
     }
 
     @SafeVarargs
-    public final PangaeaCodec<A> addBuilderFields(BuilderCodec.BuilderField<A, ?, ?>... fields) {
+    public final PangaeaCodec<A> addBuilderFields(BuilderCodec.BuilderField<A, ?>... fields) {
         return this.addBuilderFields(List.of(fields));
     }
 
-    public PangaeaCodec<A> addBuilderFields(Collection<? extends BuilderCodec.BuilderField<A, ?, ?>> fields) {
+    public PangaeaCodec<A> addBuilderFields(Collection<? extends BuilderCodec.BuilderField<A, ?>> fields) {
         return this.configure(BuilderAppender.class, c -> c.addFields(fields));
     }
 
@@ -113,11 +147,11 @@ public final class PangaeaCodec<A> implements Codec<A> {
     }
 
     @SafeVarargs
-    public final PangaeaCodec<A> addFlags(BuilderCodec.BuilderField<A, ?, ?>... flags) {
+    public final PangaeaCodec<A> addFlags(BuilderCodec.BuilderField<A, ?>... flags) {
         return this.addFlags(List.of(flags));
     }
 
-    public PangaeaCodec<A> addFlags(Collection<? extends BuilderCodec.BuilderField<A, ?, ?>> flags) {
+    public PangaeaCodec<A> addFlags(Collection<? extends BuilderCodec.BuilderField<A, ?>> flags) {
         return this.configure(FlagAppender.class, c -> c.addFlags(flags));
     }
 
@@ -126,11 +160,11 @@ public final class PangaeaCodec<A> implements Codec<A> {
     }
 
     @SafeVarargs
-    public final PangaeaCodec<A> addPatterns(PatternCodec.Pattern<A>... patterns) {
+    public final PangaeaCodec<A> addPatterns(PatternCodec.Pattern<? extends A>... patterns) {
         return this.addPatterns(List.of(patterns));
     }
 
-    public PangaeaCodec<A> addPatterns(Collection<? extends PatternCodec.Pattern<A>> patterns) {
+    public PangaeaCodec<A> addPatterns(Collection<? extends PatternCodec.Pattern<? extends A>> patterns) {
         return this.configure(PatternAppender.class, c -> c.addPatterns(patterns));
     }
 

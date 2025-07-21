@@ -1,6 +1,7 @@
-package personthecat.pangaea.serialization.codec;
+package personthecat.pangaea.serialization.codec.appender;
 
 import com.mojang.serialization.Codec;
+import personthecat.pangaea.serialization.codec.StructuralCodec;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +14,7 @@ public final class StructureAppender implements CodecAppender {
     private final List<StructuralCodec.Structure<?>> structures = new ArrayList<>();
     private final Condition condition = new Condition();
 
-    public <A> void addStructures(Collection<? extends StructuralCodec.Structure<A>> structure) {
+    public <A> void addStructures(Collection<? extends StructuralCodec.Structure<? extends A>> structure) {
         this.structures.addAll(structure);
     }
 
