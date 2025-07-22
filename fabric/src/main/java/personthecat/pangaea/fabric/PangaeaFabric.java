@@ -13,6 +13,7 @@ public class PangaeaFabric extends Pangaea implements ModInitializer {
     public void onInitialize() {
         this.init();
         this.commonSetup();
+        ServerLifecycleEvents.SERVER_STARTING.register(this::startup);
         ServerLifecycleEvents.SERVER_STOPPING.register(this::shutdown);
         GameReadyEvent.COMMON.register(this::manuallyRegisterEarlyDynamicRegistry);
     }

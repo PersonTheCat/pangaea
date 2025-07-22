@@ -22,31 +22,31 @@ import static personthecat.pangaea.test.TestUtils.encode;
 import static personthecat.pangaea.test.TestUtils.parse;
 
 public final class BuilderCodecTest {
-    private static final List<BuilderField<TestAppender, ?, ?>> FIELDS = List.of(
-        BuilderField.of(TestAppender.class, PrefixAppender.class)
+    private static final List<BuilderField<TestData, ?>> FIELDS = List.of(
+        BuilderField.of(TestData.class, PrefixAppender.class)
             .parsingRequired(Codec.STRING, "prefix")
             .wrap((p, a) -> new PrefixAppender(p))
             .unwrap(a -> null, PrefixAppender::prefix),
-        BuilderField.of(TestAppender.class, StringAppender.class)
+        BuilderField.of(TestData.class, StringAppender.class)
             .parsing(Codec.STRING, "add_s")
             .wrap((s, a) -> new StringAppender(a, s))
             .unwrap(StringAppender::next, StringAppender::s),
-        BuilderField.of(TestAppender.class, IntAppender.class)
+        BuilderField.of(TestData.class, IntAppender.class)
             .parsing(Codec.INT, "add_i")
             .wrap((i, a) -> new IntAppender(a, i))
             .unwrap(IntAppender::next, IntAppender::i));
-    private static final Codec<TestAppender> BUILDER_AS_DEFAULT =
-        new BuilderCodec<>(FIELDS).wrap(TestAppender.CODEC);
-    private static final Codec<TestAppender> BUILDER_AS_UNION =
-        new BuilderCodec<>(FIELDS).asUnionOf(TestAppender.CODEC);
+    private static final Codec<TestData> BUILDER_AS_DEFAULT =
+        new BuilderCodec<>(FIELDS).wrap(TestData.CODEC);
+    private static final Codec<TestData> BUILDER_AS_UNION =
+        new BuilderCodec<>(FIELDS).asUnionOf(TestData.CODEC);
 
     @BeforeAll
     public static void setup() {
-        Registry.register(TestAppender.REGISTRY, TestAppender.id("string"), StringAppender.CODEC);
-        Registry.register(TestAppender.REGISTRY, TestAppender.id("int"), IntAppender.CODEC);
-        Registry.register(TestAppender.REGISTRY, TestAppender.id("prefix"), PrefixAppender.CODEC);
-        Registry.register(TestAppender.REGISTRY, TestAppender.id("non_buildable"), NonBuildableAppender.CODEC);
-        TestAppender.REGISTRY.freeze();
+        TestData.register("string", StringAppender.CODEC);
+        TestData.register("int", IntAppender.CODEC);
+        TestData.register("prefix", PrefixAppender.CODEC);
+        TestData.register("non_buildable", NonBuildableAppender.CODEC);
+        TestData.freezeRegistry();
     }
 
     @Test
@@ -109,33 +109,41 @@ public final class BuilderCodecTest {
         assertSuccess(Map.of("type", "test:non_buildable", "b", true, "add_s", "xyz"), result);
     }
 
-    private interface TestAppender {
-        Registry<MapCodec<? extends TestAppender>> REGISTRY = createRegistry();
-        Codec<TestAppender> CODEC = createCodec();
+    private interface TestData {
+        Registry<MapCodec<? extends TestData>> REGISTRY = createRegistry();
+        Codec<TestData> CODEC = createCodec();
 
         String result();
-        MapCodec<? extends TestAppender> codec();
+        MapCodec<? extends TestData> codec();
 
-        private static Registry<MapCodec<? extends TestAppender>> createRegistry() {
+        static void register(String id, MapCodec<? extends TestData> codec) {
+            Registry.register(REGISTRY, id(id), codec);
+        }
+
+        static void freezeRegistry() {
+            REGISTRY.freeze();
+        }
+
+        private static Registry<MapCodec<? extends TestData>> createRegistry() {
             return new MappedRegistry<>(key(), Lifecycle.experimental());
         }
 
-        private static Codec<TestAppender> createCodec() {
-            return REGISTRY.byNameCodec().dispatch(TestAppender::codec, Function.identity());
+        private static Codec<TestData> createCodec() {
+            return REGISTRY.byNameCodec().dispatch(TestData::codec, Function.identity());
         }
 
-        private static ResourceKey<Registry<MapCodec<? extends TestAppender>>> key() {
+        private static ResourceKey<Registry<MapCodec<? extends TestData>>> key() {
             return ResourceKey.createRegistryKey(new ResourceLocation("test", "test"));
         }
 
-        private static ResourceKey<MapCodec<? extends TestAppender>> id(String path) {
+        private static ResourceKey<MapCodec<? extends TestData>> id(String path) {
             return ResourceKey.create(key(), new ResourceLocation("test", path));
         }
     }
 
-    private record StringAppender(TestAppender next, String s) implements TestAppender {
+    private record StringAppender(TestData next, String s) implements TestData {
         static final MapCodec<StringAppender> CODEC = codecOf(
-            FieldDescriptor.field(TestAppender.CODEC, "next", StringAppender::next),
+            FieldDescriptor.field(TestData.CODEC, "next", StringAppender::next),
             FieldDescriptor.field(Codec.STRING, "s", StringAppender::s),
             StringAppender::new
         );
@@ -151,9 +159,9 @@ public final class BuilderCodecTest {
         }
     }
 
-    private record IntAppender(TestAppender next, int i) implements TestAppender {
+    private record IntAppender(TestData next, int i) implements TestData {
         static final MapCodec<IntAppender> CODEC = codecOf(
-            FieldDescriptor.field(TestAppender.CODEC, "next", IntAppender::next),
+            FieldDescriptor.field(TestData.CODEC, "next", IntAppender::next),
             FieldDescriptor.field(Codec.INT, "i", IntAppender::i),
             IntAppender::new
         );
@@ -169,7 +177,7 @@ public final class BuilderCodecTest {
         }
     }
 
-    private record PrefixAppender(String prefix) implements TestAppender {
+    private record PrefixAppender(String prefix) implements TestData {
         static final MapCodec<PrefixAppender> CODEC =
             Codec.STRING.fieldOf("prefix").xmap(PrefixAppender::new, PrefixAppender::prefix);
 
@@ -184,7 +192,7 @@ public final class BuilderCodecTest {
         }
     }
 
-    private record NonBuildableAppender(boolean b) implements TestAppender {
+    private record NonBuildableAppender(boolean b) implements TestData {
         static final MapCodec<NonBuildableAppender> CODEC =
             Codec.BOOL.fieldOf("b").xmap(NonBuildableAppender::new, NonBuildableAppender::b);
 
@@ -194,7 +202,7 @@ public final class BuilderCodecTest {
         }
 
         @Override
-        public MapCodec<? extends TestAppender> codec() {
+        public MapCodec<? extends TestData> codec() {
             return CODEC;
         }
     }

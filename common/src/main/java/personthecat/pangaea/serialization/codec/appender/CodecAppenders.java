@@ -20,6 +20,7 @@ public final class CodecAppenders {
         register(StructureAppender.class, StructureAppender.INFO);
         register(BuilderAppender.class, BuilderAppender.INFO);
         register(FlagAppender.class, FlagAppender.INFO);
+        register(PatternAppender.class, PatternAppender.INFO);
     }
 
     public static <A extends CodecAppender> void register(Class<A> key, CodecAppender.Info<A> info) {

@@ -335,6 +335,13 @@ public abstract class Pangaea {
         FeatureModificationEvent.register(ctx -> ctx.addFeature(Decoration.RAW_GENERATION, PLACED_ROAD));
     }
 
+    // just pretend this doesn't exist until Roads are done
+    public static MinecraftServer SERVER; // DEBUG
+
+    protected final void startup(final MinecraftServer server) {
+        SERVER = server;
+    }
+
     protected final void shutdown(final MinecraftServer server) {
         RoadMap.clearAll(server);
     }

@@ -38,6 +38,11 @@ public final class TestUtils {
         assertEquals(expected, actual.getOrThrow());
     }
 
+    public static <T> void assertError(DataResult<T> actual, String partialMessage) {
+        assertError(actual);
+        assertContains(getMessage(actual), partialMessage);
+    }
+
     public static <T> void assertError(DataResult<T> actual) {
         if (!actual.isError()) {
             assertionFailure().message("parsed: " + actual.getOrThrow()).actual("success").expected("error").buildAndThrow();

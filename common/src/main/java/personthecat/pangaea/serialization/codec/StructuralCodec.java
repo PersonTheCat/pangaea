@@ -93,7 +93,7 @@ public class StructuralCodec<A> extends MapCodec<A> {
         }
 
         public Structure<A> withRequiredFields(String... required) {
-            return this.withTestPatterns(Stream.of(required).map(f -> Codec.unit(Unit.INSTANCE).fieldOf(f)).toArray(MapCodec[]::new));
+            return this.withTestPatterns(Stream.of(required).map(Codec.PASSTHROUGH::fieldOf).toArray(MapCodec[]::new));
         }
 
         public Structure<A> withTestPatterns(MapDecoder<?>... patterns) {
