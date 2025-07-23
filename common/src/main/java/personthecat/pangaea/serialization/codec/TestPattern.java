@@ -27,8 +27,8 @@ public interface TestPattern extends Predicate<Dynamic<?>>, Decoder<Unit> {
     TestPattern STRING_LIST = listOf(STRING);
     TestPattern NUMBER_LIST = listOf(NUMBER);
     TestPattern MAP_LIST = listOf(MAP);
-    TestPattern ID = matching("^(?:\\w+:)?\\w+$");
-    TestPattern STATE = matching("^(?:\\w+:)?\\w+\\[.*\\]$").or(mapContaining("Name"));
+    TestPattern ID = matching("(?:\\w+:)?\\w+");
+    TestPattern STATE = matching("(?:\\w+:)?\\w+\\[.*\\]").or(mapContaining("Name"));
     TestPattern ALWAYS = d -> true;
 
     static TestPattern listOf(TestPattern p) {
@@ -36,7 +36,7 @@ public interface TestPattern extends Predicate<Dynamic<?>>, Decoder<Unit> {
     }
 
     static TestPattern matching(@RegExp String pattern) {
-        return d -> d.asString().result().filter(Pattern.compile(pattern).asPredicate()).isPresent();
+        return d -> d.asString().result().filter(Pattern.compile(pattern).asMatchPredicate()).isPresent();
     }
 
     static TestPattern mapContaining(String... keys) {
@@ -44,7 +44,7 @@ public interface TestPattern extends Predicate<Dynamic<?>>, Decoder<Unit> {
     }
 
     static TestPattern forMap(MapPattern pattern) {
-        return d -> pattern.test(MapPattern.MapFunction.create(d));
+        return d -> pattern.decoder().decode(d).isSuccess();
     }
 
     static TestPattern not(TestPattern pattern) {
@@ -92,13 +92,16 @@ public interface TestPattern extends Predicate<Dynamic<?>>, Decoder<Unit> {
         interface MapFunction {
             @Nullable Dynamic<?> get(String key);
 
-            static <T> MapFunction create(DynamicOps<T> ops, MapLike<T> map) {
-                return s -> Optional.ofNullable(map.get(s)).map(t -> new Dynamic<>(ops, t)).orElse(null);
+            default Optional<Dynamic<?>> getOptional(String key) {
+                return Optional.ofNullable(this.get(key));
             }
 
-            static <T> MapFunction create(Dynamic<T> d) {
-                final var mapLike = d.getOps().getMap(d.getValue());
-                return mapLike.mapOrElse(map -> create(d.getOps(), map), e -> s -> null);
+            default boolean keyMatches(String key, TestPattern p) {
+                return this.getOptional(key).filter(p).isPresent();
+            }
+
+            static <T> MapFunction create(DynamicOps<T> ops, MapLike<T> map) {
+                return s -> Optional.ofNullable(map.get(s)).map(t -> new Dynamic<>(ops, t)).orElse(null);
             }
         }
     }

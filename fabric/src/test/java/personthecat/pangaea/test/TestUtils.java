@@ -2,12 +2,14 @@ package personthecat.pangaea.test;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JavaOps;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.platform.commons.util.ExceptionUtils;
 import personthecat.catlib.serialization.codec.XjsOps;
 import xjs.data.Json;
+import xjs.data.JsonValue;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +31,10 @@ public final class TestUtils {
 
     public static <T> DataResult<Object> encode(Codec<T> codec, T value) {
         return codec.encodeStart(JavaOps.INSTANCE, value);
+    }
+
+    public static Dynamic<Object> dynamic(Object javaObject) {
+        return new Dynamic<>(JavaOps.INSTANCE, javaObject);
     }
 
     public static <T> void assertSuccess(T expected, DataResult<T> actual) {

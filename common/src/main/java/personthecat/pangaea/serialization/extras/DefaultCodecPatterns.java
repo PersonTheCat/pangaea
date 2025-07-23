@@ -88,7 +88,7 @@ public final class DefaultCodecPatterns {
     );
 
     public static final List<Pattern<? extends RuleTest>> RULE_TEST = List.of(
-        Pattern.of(TAG_TEST, TagMatchTest.class).testing(TestPattern.matching("^#.*")),
+        Pattern.of(TAG_TEST, TagMatchTest.class).testing(TestPattern.matching("#.*")),
         Pattern.of(BLOCK_TEST, BlockMatchTest.class).testing(TestPattern.ID),
         Pattern.of(STATE_TEST, BlockStateMatchTest.class).testing(TestPattern.STATE),
         Pattern.of(LIST_TEST, HeterogeneousListRuleTest.class).testing(TestPattern.STRING_LIST)
