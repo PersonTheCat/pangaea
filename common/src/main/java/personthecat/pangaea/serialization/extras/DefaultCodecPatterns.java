@@ -25,6 +25,7 @@ import personthecat.pangaea.mixin.accessor.BlockStateMatchTestAccessor;
 import personthecat.pangaea.mixin.accessor.TagMatchTestAccessor;
 import personthecat.pangaea.registry.PgRegistries;
 import personthecat.pangaea.serialization.codec.PatternCodec.Pattern;
+import personthecat.pangaea.serialization.codec.TestPattern;
 import personthecat.pangaea.world.filter.ChanceChunkFilter;
 import personthecat.pangaea.world.filter.ChunkFilter;
 import personthecat.pangaea.world.filter.UnionChunkFilter;
@@ -74,42 +75,42 @@ public final class DefaultCodecPatterns {
         ResourceLocation.CODEC.flatXmap(DefaultCodecPatterns::parseWithoutArgs, DefaultCodecPatterns::encodeAsId);
 
     public static final List<Pattern<? extends BlockPlacer>> PLACER = List.of(
-        Pattern.of(STATE_PLACER, UnconditionalBlockPlacer.class),
-        Pattern.of(LIST_PLACER, BlockPlacerList.class)
+        Pattern.of(STATE_PLACER, UnconditionalBlockPlacer.class).testing(TestPattern.STRING),
+        Pattern.of(LIST_PLACER, BlockPlacerList.class).testing(TestPattern.LIST)
     );
 
     public static final List<Pattern<? extends FloatProvider>> FLOAT = List.of(
-        Pattern.of(RANGE_FLOAT, UniformFloat.class)
+        Pattern.of(RANGE_FLOAT, UniformFloat.class).testing(TestPattern.NUMBER_LIST)
     );
 
     public static final List<Pattern<? extends IntProvider>> INT = List.of(
-        Pattern.of(RANGE_INT, UniformInt.class)
+        Pattern.of(RANGE_INT, UniformInt.class).testing(TestPattern.NUMBER_LIST)
     );
 
     public static final List<Pattern<? extends RuleTest>> RULE_TEST = List.of(
-        Pattern.of(TAG_TEST, TagMatchTest.class),
-        Pattern.of(BLOCK_TEST, BlockMatchTest.class),
-        Pattern.of(STATE_TEST, BlockStateMatchTest.class),
-        Pattern.of(LIST_TEST, HeterogeneousListRuleTest.class)
+        Pattern.of(TAG_TEST, TagMatchTest.class).testing(TestPattern.matching("^#.*")),
+        Pattern.of(BLOCK_TEST, BlockMatchTest.class).testing(TestPattern.ID),
+        Pattern.of(STATE_TEST, BlockStateMatchTest.class).testing(TestPattern.STATE),
+        Pattern.of(LIST_TEST, HeterogeneousListRuleTest.class).testing(TestPattern.STRING_LIST)
     );
 
     public static final List<Pattern<? extends ChunkFilter>> CHUNK_FILTER = List.of(
-        Pattern.of(NUMBER_FILTER, ChanceChunkFilter.class),
-        Pattern.of(LIST_FILTER, UnionChunkFilter.class)
+        Pattern.of(NUMBER_FILTER, ChanceChunkFilter.class).testing(TestPattern.NUMBER),
+        Pattern.of(LIST_FILTER, UnionChunkFilter.class).testing(TestPattern.LIST)
     );
 
     public static final List<Pattern<? extends WeightFunction>> WEIGHT = List.of(
-        Pattern.of(NUMBER_WEIGHT, ConstantWeight.class),
-        Pattern.of(LIST_WEIGHT, WeightList.class),
-        Pattern.of(RESOURCE_LOCATION_WEIGHT, weight -> false) // cannot encode
+        Pattern.of(NUMBER_WEIGHT, ConstantWeight.class).testing(TestPattern.NUMBER),
+        Pattern.of(LIST_WEIGHT, WeightList.class).testing(TestPattern.LIST),
+        Pattern.of(RESOURCE_LOCATION_WEIGHT, weight -> false).testing(TestPattern.ID) // cannot encode
     );
 
     public static final List<Pattern<? extends HeightProvider>> HEIGHT = List.of(
-        Pattern.of(HeightPattern.HEIGHT, HeightPattern::matches)
+        Pattern.of(HeightPattern.HEIGHT, HeightPattern::matches).testing(TestPattern.ALWAYS)
     );
 
     public static final List<Pattern<? extends ColumnProvider>> COLUMN = List.of(
-        Pattern.of(HeightPattern.COLUMN, HeightPattern::matches)
+        Pattern.of(HeightPattern.COLUMN, HeightPattern::matches).testing(TestPattern.ALWAYS)
     );
 
     private DefaultCodecPatterns() {}

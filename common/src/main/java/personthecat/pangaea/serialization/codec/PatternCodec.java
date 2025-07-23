@@ -3,7 +3,9 @@ package personthecat.pangaea.serialization.codec;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Decoder;
 import com.mojang.serialization.DynamicOps;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -39,7 +41,7 @@ public record PatternCodec<A>(List<Pattern<A>> patterns, BooleanSupplier encode)
     public <T> DataResult<Pair<A, T>> decode(DynamicOps<T> ops, T input) {
         for (final Pattern<A> p : this.patterns) {
             final var result = p.codec.decode(ops, input);
-            if (result.isSuccess()) {
+            if (result.isSuccess() || (p.test != null && p.test.decode(ops, input).isSuccess())) {
                 return result;
             }
         }
@@ -60,7 +62,7 @@ public record PatternCodec<A>(List<Pattern<A>> patterns, BooleanSupplier encode)
         return DataResult.error(() -> "No matching pattern for input: " + input);
     }
 
-    public record Pattern<A>(Codec<A> codec, UnaryOperator<A> normalizer, Predicate<A> filter) {
+    public record Pattern<A>(Codec<A> codec, @Nullable Decoder<?> test, UnaryOperator<A> normalizer, Predicate<A> filter) {
         @SuppressWarnings("unchecked")
         public static <A, B extends A, T> Function<A, T> get(Function<B, T> getter) {
             return a -> getter.apply((B) a);
@@ -71,11 +73,15 @@ public record PatternCodec<A>(List<Pattern<A>> patterns, BooleanSupplier encode)
         }
 
         public static <A> Pattern<A> of(Codec<? extends A> codec, Predicate<A> test) {
-            return new Pattern<>(asParent(codec), a -> a, test);
+            return new Pattern<>(asParent(codec), null, a -> a, test);
         }
 
         public Pattern<A> normalized(UnaryOperator<A> normalizer) {
-            return new Pattern<>(this.codec, normalizer, this.filter);
+            return new Pattern<>(this.codec, this.test, normalizer, this.filter);
+        }
+
+        public Pattern<A> testing(Decoder<?> testPattern) {
+            return new Pattern<>(this.codec, testPattern, this.normalizer, this.filter);
         }
     }
 }

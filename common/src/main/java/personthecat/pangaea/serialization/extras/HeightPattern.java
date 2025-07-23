@@ -432,7 +432,7 @@ public sealed interface HeightPattern {
 
     sealed interface HeightParams {
         Codec<HeightParams> CODEC =
-            CodecUtils.<HeightParams>simpleAny(NumberOnly.CODEC, NumberList.CODEC)
+            CodecUtils.<HeightParams>simpleAny(NumberOnly.CODEC, NumberList.CODEC, NumberMatrix.CODEC)
                 .withEncoder(HeightParams::codec);
 
         int min();

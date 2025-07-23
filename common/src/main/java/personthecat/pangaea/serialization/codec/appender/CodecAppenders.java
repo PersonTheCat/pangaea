@@ -14,7 +14,7 @@ public final class CodecAppenders {
     private static final Map<Class<?>, CodecAppender.Info<?>> REGISTRY = new ConcurrentHashMap<>();
     private final Map<Class<?>, CodecAppender> appenders = new HashMap<>();
 
-    public static void bootstrap() {
+    static {
         register(PresetAppender.class, PresetAppender.INFO);
         register(CaptureAppender.class, CaptureAppender.INFO);
         register(StructureAppender.class, StructureAppender.INFO);

@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import personthecat.pangaea.serialization.codec.PatternCodec.Pattern;
 import personthecat.pangaea.serialization.codec.StructuralCodec.Structure;
-import personthecat.pangaea.serialization.codec.appender.CodecAppenders;
 
 import java.util.function.Function;
 
@@ -36,7 +35,6 @@ public final class PangaeaCodecTest {
         TestData.register("regular_data", RegularData.CODEC);
         TestData.freezeRegistry();
 
-        CodecAppenders.bootstrap();
         PangaeaCodec.get(TestData.class)
             .addPatterns(Pattern.of(CONSTANT_PATTERN, Constant.class))
             .addStructures(Structure.of(TIMES_TWO_STRUCTURE, TimesTwo.class));
