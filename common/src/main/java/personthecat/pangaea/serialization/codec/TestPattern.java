@@ -11,7 +11,6 @@ import com.mojang.serialization.MapDecoder;
 import com.mojang.serialization.MapLike;
 import net.minecraft.util.Unit;
 import org.intellij.lang.annotations.RegExp;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -40,7 +39,11 @@ public interface TestPattern extends Predicate<Dynamic<?>>, Decoder<Unit> {
     }
 
     static TestPattern mapContaining(String... keys) {
-        return forMap(MapPattern.contains(keys));
+        return forMap(MapPattern.containing(keys));
+    }
+
+    static TestPattern forDecoder(Decoder<?> decoder) {
+        return d -> d.decode(decoder).isSuccess();
     }
 
     static TestPattern forMap(MapPattern pattern) {
@@ -66,8 +69,8 @@ public interface TestPattern extends Predicate<Dynamic<?>>, Decoder<Unit> {
     interface MapPattern extends Predicate<MapPattern.MapFunction>, MapDecoder<Unit> {
         KeyCompressor<?> COMPRESSOR = new KeyCompressor<>(JavaOps.INSTANCE, Stream.empty());
 
-        static MapPattern contains(String... keys) {
-            return m -> Stream.of(keys).allMatch(k -> m.get(k) != null);
+        static MapPattern containing(String... keys) {
+            return m -> Stream.of(keys).allMatch(m::has);
         }
 
         @Override
@@ -90,18 +93,22 @@ public interface TestPattern extends Predicate<Dynamic<?>>, Decoder<Unit> {
 
         @FunctionalInterface
         interface MapFunction {
-            @Nullable Dynamic<?> get(String key);
+            Optional<Dynamic<?>> get(String key);
 
-            default Optional<Dynamic<?>> getOptional(String key) {
-                return Optional.ofNullable(this.get(key));
+            default boolean has(String key) {
+                return this.get(key).isPresent();
             }
 
-            default boolean keyMatches(String key, TestPattern p) {
-                return this.getOptional(key).filter(p).isPresent();
+            default boolean has(String key, TestPattern p) {
+                return this.get(key).filter(p).isPresent();
+            }
+
+            default boolean has(String key, Decoder<?> decoder) {
+                return this.has(key, forDecoder(decoder));
             }
 
             static <T> MapFunction create(DynamicOps<T> ops, MapLike<T> map) {
-                return s -> Optional.ofNullable(map.get(s)).map(t -> new Dynamic<>(ops, t)).orElse(null);
+                return s -> Optional.ofNullable(map.get(s)).map(t -> new Dynamic<>(ops, t));
             }
         }
     }

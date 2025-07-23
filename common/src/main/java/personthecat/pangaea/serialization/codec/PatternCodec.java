@@ -80,8 +80,12 @@ public record PatternCodec<A>(List<Pattern<A>> patterns, BooleanSupplier encode)
             return new Pattern<>(this.codec, this.test, normalizer, this.filter);
         }
 
-        public Pattern<A> testing(Decoder<?> testPattern) {
-            return new Pattern<>(this.codec, testPattern, this.normalizer, this.filter);
+        public Pattern<A> testing(TestPattern pattern) {
+            return this.testing((Decoder<?>) pattern);
+        }
+
+        public Pattern<A> testing(Decoder<?> pattern) {
+            return new Pattern<>(this.codec, pattern, this.normalizer, this.filter);
         }
     }
 }

@@ -93,11 +93,11 @@ public class StructuralCodec<A> extends MapCodec<A> {
         }
 
         public Structure<A> withRequiredFields(String... required) {
-            return this.withTestPatterns(Stream.of(required).map(Codec.PASSTHROUGH::fieldOf).toArray(MapCodec[]::new));
+            return this.withTestPattern(TestPattern.MapPattern.containing(required));
         }
 
-        public Structure<A> withTestPatterns(MapDecoder<?>... patterns) {
-            return this.withTestPattern(new FullPatternTestCodec(patterns));
+        public Structure<A> withTestPattern(TestPattern.MapPattern pattern) {
+            return this.withTestPattern((MapDecoder<?>) pattern);
         }
 
         public Structure<A> withTestPattern(MapDecoder<?> test) {
@@ -106,38 +106,6 @@ public class StructuralCodec<A> extends MapCodec<A> {
 
         public Structure<A> normalized(UnaryOperator<A> normalizer) {
             return new Structure<>(this.codec, this.test, normalizer, this.filter);
-        }
-    }
-
-    private static class FullPatternTestCodec extends MapDecoder.Implementation<Unit> {
-        private final MapDecoder<?>[] test;
-
-        private FullPatternTestCodec(MapDecoder<?>... test) {
-            this.test = test;
-        }
-
-        @Override
-        public <T> Stream<T> keys(DynamicOps<T> ops) {
-            return Stream.of(this.test).flatMap(t -> t.keys(ops));
-        }
-
-        @Override
-        public <T> DataResult<Unit> decode(DynamicOps<T> ops, MapLike<T> map) {
-            final var errors = Stream.of(this.test)
-                .map(t -> t.decode(ops, map))
-                .filter(DataResult::isError)
-                .map(r -> r.error().orElseThrow().messageSupplier())
-                .toList();
-            if (!errors.isEmpty()) {
-                return DataResult.error(() -> {
-                    final var sb = new StringBuilder("Pattern mismatch");
-                    for (final var e : errors) {
-                        sb.append("; ").append(e.get());
-                    }
-                    return sb.toString();
-                });
-            }
-            return DataResult.success(Unit.INSTANCE);
         }
     }
 

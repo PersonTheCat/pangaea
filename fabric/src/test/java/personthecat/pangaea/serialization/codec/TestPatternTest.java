@@ -189,12 +189,12 @@ public final class TestPatternTest {
 
     @Test
     public void forMap_matchesMapExpression() {
-        assertTrue(TestPattern.forMap(m -> m.keyMatches("a", TestPattern.NUMBER)).test(dynamic(Map.of("a", 1))));
+        assertTrue(TestPattern.forMap(m -> m.has("a", TestPattern.NUMBER)).test(dynamic(Map.of("a", 1))));
     }
 
     @Test
     public void forMap_doesMatch_mismatchingMapExpression() {
-        assertFalse(TestPattern.forMap(m -> m.keyMatches("a", TestPattern.NUMBER)).test(dynamic(Map.of("a", "1"))));
+        assertFalse(TestPattern.forMap(m -> m.has("a", TestPattern.NUMBER)).test(dynamic(Map.of("a", "1"))));
     }
 
     @Test

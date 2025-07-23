@@ -2,7 +2,6 @@ package personthecat.pangaea.serialization.extras;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.util.Unit;
 import net.minecraft.util.valueproviders.FloatProvider;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.level.levelgen.DensityFunction;
@@ -13,6 +12,7 @@ import net.minecraft.world.level.levelgen.DensityFunctions.TwoArgumentSimpleFunc
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import personthecat.pangaea.serialization.codec.NoiseCodecs;
 import personthecat.pangaea.serialization.codec.StructuralCodec.Structure;
+import personthecat.pangaea.serialization.codec.TestPattern;
 import personthecat.pangaea.world.density.DensityList.Min;
 import personthecat.pangaea.world.density.DensityList.Max;
 import personthecat.pangaea.world.density.DensityList.Sum;
@@ -64,13 +64,17 @@ public final class DefaultCodecStructures {
         DensityFunction.HOLDER_HELPER_CODEC.fieldOf("quarter_negative").xmap(DensityFunction::quarterNegative, Structure.get(Mapped::input));
     private static final MapCodec<DensityFunction> SQUEEZE =
         DensityFunction.HOLDER_HELPER_CODEC.fieldOf("squeeze").xmap(DensityFunction::squeeze, Structure.get(Mapped::input));
-    private static final MapCodec<?> FAST_NOISE_TEST_PATTERN =
-        NoiseCodecs.TYPE.fieldOf("noise");
+
+    private static final TestPattern.MapPattern FAST_NOISE_TEST_PATTERN =
+        m -> m.has("noise", NoiseCodecs.TYPE);
 
     private static final MapCodec<WeightFunction> MUL_TIMES_WEIGHT =
         MulTimesStructure.WEIGHT_CODEC.xmap(MulTimesStructure::toWeight, MulTimesStructure::fromWeight);
     private static final MapCodec<WeightFunction> ADD_PLUS_WEIGHT =
         AddPlusStructure.WEIGHT_CODEC.xmap(AddPlusStructure::toWeight, AddPlusStructure::fromWeight);
+
+    private static final TestPattern.MapPattern CUTOFF_PATTERN =
+        m -> m.has("input") && (m.has("upper") || m.has("lower"));
 
     public static final List<Structure<? extends DensityFunction>> DENSITY = List.of(
         Structure.of(MUL_TIMES_DENSITY, isType(TwoArgumentSimpleFunction.Type.MUL)),
@@ -110,7 +114,7 @@ public final class DefaultCodecStructures {
         Structure.of(MUL_TIMES_WEIGHT, MultipleWeight.class),
         Structure.of(ADD_PLUS_WEIGHT, SumWeight.class),
         Structure.of(DensityWeight.CODEC, DensityWeight.class).withRequiredFields("density"),
-        Structure.of(CutoffWeight.CODEC, CutoffWeight.class).withTestPattern(CutoffStructure.PATTERN)
+        Structure.of(CutoffWeight.CODEC, CutoffWeight.class).withTestPattern(CUTOFF_PATTERN)
     );
 
     public static final List<Structure<? extends HeightProvider>> HEIGHT = List.of(
@@ -200,20 +204,5 @@ public final class DefaultCodecStructures {
                 AddPlusStructure::new
             );
         }
-    }
-
-    private record CutoffStructure(Unit input, Unit upper, Unit lower) {
-        private static final Codec<Unit> UNIT_CODEC = Codec.unit(Unit.INSTANCE);
-        private static final MapCodec<CutoffStructure> A = codecOf(
-            field(UNIT_CODEC, "input", CutoffStructure::input),
-            field(UNIT_CODEC, "upper", CutoffStructure::input),
-            (i, u) -> new CutoffStructure(i, u, u)
-        );
-        private static final MapCodec<CutoffStructure> B = codecOf(
-            field(UNIT_CODEC, "input", CutoffStructure::input),
-            field(UNIT_CODEC, "lower", CutoffStructure::input),
-            (i, l) -> new CutoffStructure(i, l, l)
-        );
-        private static final MapCodec<?> PATTERN = Codec.mapEither(A, B);
     }
 }
