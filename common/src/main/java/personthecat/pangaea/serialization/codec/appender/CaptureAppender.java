@@ -18,7 +18,7 @@ public final class CaptureAppender implements CodecAppender {
     }
 
     @Override
-    public <A> Codec<A> append(Codec<A> codec) {
+    public <A> Codec<A> append(String typeKey, Codec<A> codec) {
         if (!this.captors.isEmpty()) {
             return CapturingCodec.builder().capturing(this.captors).build(codec);
         }

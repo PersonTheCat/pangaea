@@ -5,11 +5,15 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JavaOps;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.platform.commons.util.ExceptionUtils;
+import org.junit.platform.commons.util.ReflectionUtils;
 import personthecat.catlib.serialization.codec.XjsOps;
 import xjs.data.Json;
-import xjs.data.JsonValue;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -18,10 +22,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.AssertionFailureBuilder.assertionFailure;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public final class TestUtils {
     private static final Map<Class<?>, Object> RELOADED_INSTANCE_MAP = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Boolean> HAS_DISCRETE_EQUALS_MAP = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Boolean> HAS_DISCRETE_TO_STRING_MAP = new ConcurrentHashMap<>();
 
     private TestUtils() {}
 
@@ -38,10 +43,50 @@ public final class TestUtils {
     }
 
     public static <T> void assertSuccess(T expected, DataResult<T> actual) {
+        assertSuccess(expected, actual, false);
+    }
+
+    public static <T> void assertSuccess(T expected, DataResult<T> actual, boolean deepReflect) {
+        assertSuccess(actual);
+        assertEquals(expected, actual.getOrThrow(), deepReflect);
+    }
+
+    public static <T> void assertSuccess(DataResult<T> actual) {
         if (!actual.isSuccess()) {
             assertionFailure().message(getMessage(actual)).actual("error").expected("success").buildAndThrow();
         }
-        assertEquals(expected, actual.getOrThrow());
+    }
+
+    public static void assertEquals(Object expected, Object actual) {
+        assertEquals(expected, actual, false);
+    }
+
+    public static void assertEquals(Object expected, Object actual, boolean deepReflect) {
+        if (!deepReflect && hasDiscreteEquals(expected)) {
+            Assertions.assertEquals(expected, actual);
+        } else if (!EqualsBuilder.reflectionEquals(expected, actual, false, null, deepReflect)) {
+            assertionFailure().expected(stringify(expected)).actual(stringify(actual)).buildAndThrow();
+        }
+    }
+
+    private static boolean hasDiscreteEquals(Object o) {
+        return o != null && HAS_DISCRETE_EQUALS_MAP.computeIfAbsent(o.getClass(), c -> methodExists(c, "equals", Object.class));
+    }
+
+    private static String stringify(Object o) {
+        return hasDiscreteToString(o) ? o.toString() : ToStringBuilder.reflectionToString(o, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
+
+    private static boolean hasDiscreteToString(Object o) {
+        return o != null && HAS_DISCRETE_TO_STRING_MAP.computeIfAbsent(o.getClass(), c -> methodExists(c, "toString"));
+    }
+
+    private static boolean methodExists(Class<?> c, String name, Class<?>... args) {
+        try {
+            return getMethod(c, name, args).getDeclaringClass() != Object.class;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     public static <T> void assertError(DataResult<T> actual, String partialMessage) {
@@ -51,7 +96,7 @@ public final class TestUtils {
 
     public static <T> void assertError(DataResult<T> actual) {
         if (!actual.isError()) {
-            assertionFailure().message("parsed: " + actual.getOrThrow()).actual("success").expected("error").buildAndThrow();
+            assertionFailure().message("parsed: " + stringify(actual.getOrThrow())).actual("success").expected("error").buildAndThrow();
         }
     }
 
@@ -66,11 +111,7 @@ public final class TestUtils {
     }
 
     public static Method getMethod(Class<?> clazz, String name, Class<?>... args) {
-        try {
-            return clazz.getDeclaredMethod(name, args);
-        } catch (final NoSuchMethodException e) {
-            throw ExceptionUtils.throwAsUncheckedException(e);
-        }
+        return ReflectionUtils.getRequiredMethod(clazz, name, args);
     }
 
     public static void runFromMixinEnabledClassLoader(

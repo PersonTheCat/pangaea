@@ -25,10 +25,10 @@ public final class BuilderAppender implements CodecAppender {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <A> Codec<A> append(Codec<A> codec) {
+    public <A> Codec<A> append(String typeKey, Codec<A> codec) {
         final var fields = (List<BuilderCodec.BuilderField<A, ?>>) (Object) this.fields;
         if (!fields.isEmpty()) {
-            return new BuilderCodec<>(fields, this.condition.get()).wrap(codec);
+            return new BuilderCodec<>(fields, this.condition.get()).wrap(typeKey, codec);
         }
         return codec;
     }

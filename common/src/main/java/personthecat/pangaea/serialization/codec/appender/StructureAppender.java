@@ -25,10 +25,10 @@ public final class StructureAppender implements CodecAppender {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <A> Codec<A> append(Codec<A> codec) {
+    public <A> Codec<A> append(String typeKey, Codec<A> codec) {
         final var structures = (List<StructuralCodec.Structure<A>>) (Object) this.structures;
         if (!structures.isEmpty()) {
-            return new StructuralCodec<>(structures, this.condition.get()).wrap(codec);
+            return new StructuralCodec<>(structures, this.condition.get()).wrap(typeKey, codec);
         }
         return codec;
     }

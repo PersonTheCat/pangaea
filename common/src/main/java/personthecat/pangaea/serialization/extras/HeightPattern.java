@@ -3,585 +3,456 @@ package personthecat.pangaea.serialization.extras;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
-import net.minecraft.world.level.levelgen.VerticalAnchor.AboveBottom;
 import net.minecraft.world.level.levelgen.VerticalAnchor.Absolute;
-import net.minecraft.world.level.levelgen.VerticalAnchor.BelowTop;
 import net.minecraft.world.level.levelgen.heightproviders.ConstantHeight;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
-import net.minecraft.world.level.levelgen.heightproviders.TrapezoidHeight;
-import net.minecraft.world.level.levelgen.heightproviders.UniformHeight;
-import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.data.Range;
 import personthecat.catlib.serialization.codec.CodecUtils;
 import personthecat.pangaea.data.AnchorCutoff;
 import personthecat.pangaea.data.ColumnBounds;
 import personthecat.pangaea.mixin.accessor.TrapezoidHeightAccessor;
 import personthecat.pangaea.mixin.accessor.UniformHeightAccessor;
-import personthecat.pangaea.serialization.extras.HeightPattern.HeightParams.NumberList;
-import personthecat.pangaea.serialization.extras.HeightPattern.HeightParams.NumberMatrix;
-import personthecat.pangaea.serialization.extras.HeightPattern.HeightParams.NumberOnly;
+import personthecat.pangaea.serialization.codec.PatternCodec;
+import personthecat.pangaea.serialization.extras.HeightParams.AnchorList;
+import personthecat.pangaea.serialization.extras.HeightParams.AnchorMatrix;
+import personthecat.pangaea.serialization.extras.HeightParams.AnchorOnly;
 import personthecat.pangaea.world.density.DensityCutoff;
 import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
 import personthecat.pangaea.world.provider.ColumnProvider;
 import personthecat.pangaea.world.provider.ConstantColumnProvider;
 import personthecat.pangaea.world.provider.DynamicColumnProvider;
 import personthecat.pangaea.world.provider.ExactColumnProvider;
-import personthecat.pangaea.world.provider.SeaLevelVerticalAnchor;
-import personthecat.pangaea.world.provider.SurfaceVerticalAnchor;
 
 import java.util.List;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
+import static net.minecraft.world.level.levelgen.VerticalAnchor.absolute;
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.CodecUtils.ofEnum;
-import static personthecat.catlib.serialization.codec.CodecUtils.simpleAny;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.pangaea.world.density.DensityCutoff.DEFAULT_HARSHNESS;
 
 public sealed interface HeightPattern {
-    Codec<HeightPattern> CODEC =
-        CodecUtils.<HeightPattern>simpleAny(
-                ParamsOnly.CODEC, OffsetMap.CODEC, OffsetMapList.CODEC, MapWithRange.CODEC, OffsetNameOnly.CODEC)
-            .withEncoder(HeightPattern::codec);
-    Codec<HeightProvider> HEIGHT =
-        CODEC.flatComapMap(HeightPattern::toHeightProvider, HeightPattern::fromHeightProvider);
-    Codec<ColumnProvider> COLUMN =
-        CODEC.flatComapMap(HeightPattern::toColumnProvider, HeightPattern::fromColumnProvider);
-
-    HeightProvider toHeightProvider();
+    HeightProvider toHeightProvider(AnchorDistribution d);
     ColumnProvider toColumnProvider();
-    Codec<? extends HeightPattern> codec();
+    Info<? extends HeightPattern> info();
 
-    static boolean matches(HeightProvider p) {
-        return switch (p) {
-            case ConstantHeight c -> isKnownAnchor(c.getValue());
-            case TrapezoidHeightAccessor t -> isKnownAnchor(t.getMinInclusive()) && isKnownAnchor(t.getMaxInclusive());
-            case UniformHeightAccessor u -> isKnownAnchor(u.getMinInclusive()) && isKnownAnchor(u.getMaxInclusive());
-            default -> false;
-        };
+    default HeightProvider toHeightProvider() {
+        return this.toHeightProvider(AnchorDistribution.DEFAULT);
     }
 
-    static boolean matches(ColumnProvider p) {
-        return switch (p) {
-            case ConstantColumnProvider ignored -> true;
-            case DynamicColumnProvider(var l, var u, var ignored) -> isKnownAnchor(l) && isKnownAnchor(u);
-            case ExactColumnProvider(var a) -> isKnownAnchor(a);
-            case AnchorRangeColumnProvider(var l, var u) -> typesMatch(l) && typesMatch(u);
-            default -> false;
-        };
-    }
+    interface Info<P extends HeightPattern> {
+        DataResult<P> fromHeightProvider(HeightProvider p);
+        DataResult<P> fromColumnProvider(ColumnProvider p);
+        Codec<P> codec();
 
-    private static boolean isKnownAnchor(VerticalAnchor a) {
-        return OffsetValue.from(a).isSuccess();
-    }
-
-    private static boolean typesMatch(AnchorCutoff c) {
-        return estimateType(c.min()) == estimateType(c.max());
-    }
-
-    private static @Nullable Type estimateType(VerticalAnchor a) {
-        return OffsetValue.from(a).map(OffsetValue::type).mapOrElse(Function.identity(), e -> null);
-    }
-
-    static DataResult<HeightPattern> fromHeightProvider(HeightProvider height) {
-        return switch (height) {
-            case ConstantHeight h -> fromConstantHeight(h);
-            case TrapezoidHeightAccessor h -> fromAnchors(h.getMinInclusive(), h.getMaxInclusive(), Distribution.TRAPEZOID);
-            case UniformHeightAccessor h -> fromAnchors(h.getMinInclusive(), h.getMaxInclusive(), Distribution.UNIFORM);
-            default -> DataResult.error(() -> "No matching pattern for height: " + height);
-        };
-    }
-
-    private static DataResult<HeightPattern> fromConstantHeight(ConstantHeight height) {
-        return OffsetValue.from(height.getValue()).flatMap(v -> fromTypeAndOffset(v.type, v.offset));
-    }
-
-    // case { [type]: 0 } ->       type
-    // case { absolute: 1 } ->     1
-    // case { above_bottom: 1 } -> { bottom: 1 }
-    private static DataResult<HeightPattern> fromTypeAndOffset(Type type, int offset) {
-        if (offset == 0) {
-            return DataResult.success(new OffsetNameOnly(type));
-        } else if (type == Type.ABSOLUTE) {
-            return DataResult.success(new ParamsOnly(new NumberOnly(offset)));
+        default PatternCodec.Pattern<HeightProvider> heightPattern() {
+            return PatternCodec.Pattern.of(this.heightCodec(), this::matchesHeight);
         }
-        return DataResult.success(new OffsetMap(new OffsetParams(type, new NumberOnly(offset))));
-    }
 
-    private static DataResult<HeightPattern> fromAnchors(VerticalAnchor lower, VerticalAnchor upper, Distribution d) {
-        return OffsetValue.from(lower).flatMap(lv -> OffsetValue.from(upper).map(uv -> fromOffsetValues(lv, uv, d)));
-    }
-
-    // case TRAPEZOID range -> fromOffsetValues(range)
-    // case UNIFORM range ->   { range: fromOffsetValues(range), distribution: 'UNIFORM' }
-    private static HeightPattern fromOffsetValues(OffsetValue lower, OffsetValue upper, Distribution d) {
-        final var pattern = fromOffsetValues(lower, upper);
-        return d != Distribution.DEFAULT ? new MapWithRange(pattern, d) : pattern;
-    }
-
-    // case [ { above_bottom: 5 }, { absolute: 10 } ] ->     [ { bottom: 5 }, { absolute: 10 } ]
-    // case [ { absolute: 5 }, { absolute: 10 } ] ->         [ 5, 10 ]
-    // case [ { above_bottom: 5 }, { above_bottom: 10 } ] -> { bottom: [ 5, 10 ] }
-    private static HeightPattern fromOffsetValues(OffsetValue lower, OffsetValue upper) {
-        if (lower.type != upper.type) {
-            return new OffsetMapList(List.of(
-                new OffsetParams(lower.type, new NumberOnly(lower.offset)),
-                new OffsetParams(upper.type, new NumberOnly(upper.offset))
-            ));
-        } else if (lower.type == Type.ABSOLUTE) {
-            return new ParamsOnly(new NumberList(List.of(upper.offset, lower.offset)));
+        default PatternCodec.Pattern<ColumnProvider> columnPattern() {
+            return PatternCodec.Pattern.of(this.columnCodec(), this::matchesColumn);
         }
-        return new OffsetMap(new OffsetParams(lower.type, new NumberList(List.of(lower.offset, upper.offset))));
-    }
 
-    static DataResult<HeightPattern> fromColumnProvider(ColumnProvider column) {
-        return switch (column) {
-            case ConstantColumnProvider(var c) -> fromColumnBounds(c);
-            case DynamicColumnProvider(var lower, var upper, var harshness) -> fromAnchorsWithGradient(lower, upper, harshness);
-            case AnchorRangeColumnProvider(var lower, var upper) -> fromAnchorRange(upper, lower);
-            case ExactColumnProvider(var anchor) -> OffsetValue.from(anchor).flatMap(v -> fromTypeAndOffset(v.type, v.offset));
-            default -> DataResult.error(() -> "No matching pattern for column: " + column);
-        };
-    }
-
-    private static DataResult<HeightPattern> fromColumnBounds(ColumnBounds bounds) {
-        final var lower = bounds.lower();
-        final var upper = bounds.upper();
-        if (lower.harshness() != upper.harshness()) {
-            return DataResult.success(new OffsetMapList(List.of(
-                new OffsetParams(Type.ABSOLUTE, new NumberList(List.of((int) lower.min(), (int) lower.max())), lower.harshness()),
-                new OffsetParams(Type.ABSOLUTE, new NumberList(List.of((int) upper.min(), (int) upper.max())), upper.harshness())
-            )));
+        default boolean matchesHeight(HeightProvider p) {
+            return this.fromHeightProvider(p).isSuccess();
         }
-        final var matrix = new NumberMatrix(List.of(
-            List.of((int) lower.min(), (int) lower.max()),
-            List.of((int) upper.min(), (int) upper.max())
-        ));
-        if (lower.harshness() == DEFAULT_HARSHNESS && upper.harshness() == DEFAULT_HARSHNESS) {
-            return DataResult.success(new ParamsOnly(matrix));
+
+        default boolean matchesColumn(ColumnProvider p) {
+            return this.fromColumnProvider(p).isSuccess();
         }
-        return DataResult.success(new OffsetMap(new OffsetParams(Type.ABSOLUTE, matrix, lower.harshness())));
-    }
 
-    private static DataResult<HeightPattern> fromAnchorsWithGradient(VerticalAnchor lower, VerticalAnchor upper, double harshness) {
-        return OffsetValue.from(lower).flatMap(lv -> OffsetValue.from(upper).map(uv -> fromOffsetValuesWithGradient(lv, uv, harshness)));
-    }
-
-    private static HeightPattern fromOffsetValuesWithGradient(OffsetValue lower, OffsetValue upper, double harshness) {
-        if (lower.type == Type.ABSOLUTE && upper.type == Type.ABSOLUTE && harshness == DEFAULT_HARSHNESS) {
-            return new ParamsOnly(new NumberList(List.of(lower.offset, upper.offset)));
-        } else if (lower.type == upper.type) {
-            return new OffsetMap(new OffsetParams(lower.type, new NumberList(List.of(lower.offset, upper.offset)), harshness));
+        default Codec<HeightProvider> heightCodec() {
+            return this.codec().flatComapMap(HeightPattern::toHeightProvider, this::fromHeightProvider);
         }
-        return new OffsetMapList(List.of(
-            new OffsetParams(lower.type, new NumberOnly(lower.offset), harshness),
-            new OffsetParams(upper.type, new NumberOnly(upper.offset), harshness)
-        ));
-    }
 
-    private static DataResult<HeightPattern> fromAnchorRange(AnchorCutoff lower, AnchorCutoff upper) {
-        return OffsetBounds.from(lower).flatMap(l -> OffsetBounds.from(upper).flatMap(u -> fromPreciseOffsetBounds(l, u)));
-    }
-
-    private static DataResult<HeightPattern> fromPreciseOffsetBounds(OffsetBounds lower, OffsetBounds upper) {
-        if (lower.min.type != lower.max.type || upper.min.type != upper.max.type) {
-            return DataResult.error(() -> "No pattern exists for heterogeneous cutoff range ([[a,b],[a,b]]): [" + lower + "," + upper + "]");
+        default Codec<ColumnProvider> columnCodec() {
+            return this.codec().flatComapMap(HeightPattern::toColumnProvider, this::fromColumnProvider);
         }
-        if (allTypesMatch(lower.min, lower.max, upper.min, upper.max) && lower.harshness == upper.harshness) {
-            final var matrix = new NumberMatrix(List.of(
-                List.of(lower.min.offset, lower.max.offset),
-                List.of(upper.min.offset, upper.max.offset)
-            ));
-            if (lower.min.type == Type.ABSOLUTE) {
-                return DataResult.success(new ParamsOnly(matrix));
-            }
-            return DataResult.success(new OffsetMap(new OffsetParams(lower.min.type, matrix, lower.harshness)));
+
+        default DataResult<P> mismatch() {
+            return DataResult.error(() -> "Pattern mismatch");
         }
-        return DataResult.success(new OffsetMapList(List.of(
-            new OffsetParams(lower.min.type, new NumberList(List.of(lower.min.offset, lower.max.offset)), lower.harshness),
-            new OffsetParams(upper.min.type, new NumberList(List.of(upper.min.offset, upper.max.offset)), upper.harshness)
-        )));
+
+        default boolean harshnessIsDefaulted(ColumnBounds b) {
+            return this.harshnessIsDefaulted(b.lower().harshness()) && this.harshnessIsDefaulted(b.upper().harshness());
+        }
+
+        default boolean harshnessIsDefaulted(AnchorCutoff l, AnchorCutoff u) {
+            return this.harshnessIsDefaulted(l.harshness()) && this.harshnessIsDefaulted(u.harshness());
+        }
+
+        default boolean harshnessIsDefaulted(double harshness) {
+            return harshness == DEFAULT_HARSHNESS;
+        }
+
+        default AnchorMatrix matrix(ColumnBounds b) {
+            final var lower = b.lower();
+            final var upper = b.upper();
+            return new AnchorMatrix(abs(lower.min()), abs(lower.max()), abs(upper.min()), abs(upper.max()));
+        }
+
+        default AnchorMatrix matrix(OffsetBounds l, OffsetBounds u) {
+            return new AnchorMatrix(l.min().anchor(), l.max().anchor(), u.min().anchor(), u.max().anchor());
+        }
+
+        private static VerticalAnchor abs(double d) {
+            return absolute((int) d);
+        }
     }
 
-    private static boolean allTypesMatch(OffsetValue... values) {
-        final var t = values[0].type;
-        for (int i = 1; i < values.length; i++) {
-            if (t != values[i].type) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // number | [ number, number ]
+    // Value | [ Value, Value ] | [[ Value, Value ], [ Value, Value ]]
     record ParamsOnly(HeightParams params) implements HeightPattern {
         public static final Codec<ParamsOnly> CODEC =
             HeightParams.CODEC.xmap(ParamsOnly::new, ParamsOnly::params);
 
-        @Override
-        public HeightProvider toHeightProvider() {
-            return switch (this.params) {
-                case NumberOnly n -> ConstantHeight.of(VerticalAnchor.absolute(n.value()));
-                case HeightParams p -> TrapezoidHeight.of(VerticalAnchor.absolute(p.min()), VerticalAnchor.absolute(p.max()));
-            };
-        }
-
-        @Override
-        public ColumnProvider toColumnProvider() {
-            return switch (this.params) {
-                case NumberOnly n -> new ExactColumnProvider(VerticalAnchor.absolute(n.value()));
-                case NumberList l -> new ConstantColumnProvider(ColumnBounds.create(l.min(), l.max(), DEFAULT_HARSHNESS));
-                case NumberMatrix m -> new ConstantColumnProvider(ColumnBounds.create(m.lower(), m.upper(), DEFAULT_HARSHNESS));
-            };
-        }
-
-        @Override
-        public Codec<ParamsOnly> codec() {
-            return CODEC;
-        }
-    }
-
-    // { [type]: HeightParams, harshness?: double }
-    record OffsetMap(OffsetParams offset) implements HeightPattern {
-        public static final Codec<OffsetMap> CODEC =
-            OffsetParams.CODEC.xmap(OffsetMap::new, OffsetMap::offset);
-
-        @Override
-        public HeightProvider toHeightProvider() {
-            return switch (this.offset) {
-                case OffsetParams(var t, NumberOnly n, var ignored) ->
-                    ConstantHeight.of(t.anchor(n.value));
-                case OffsetParams(var t, HeightParams p, var ignored) ->
-                    TrapezoidHeight.of(t.anchor(p.min()), t.anchor(p.max()));
-            };
-        }
-
-        @Override
-        public ColumnProvider toColumnProvider() {
-            return switch (this.offset) {
-                case OffsetParams(var t, NumberOnly n, var ignored) ->
-                    new ExactColumnProvider(t.anchor(n.value));
-                case OffsetParams(var t, NumberList l, var h) when t == Type.ABSOLUTE ->
-                    // optimize to skip resolving constant values later on
-                    new ConstantColumnProvider(ColumnBounds.create(l.min(), l.max(), h));
-                case OffsetParams(var t, NumberList l, var h) ->
-                    new DynamicColumnProvider(t.anchor(l.min()), t.anchor(l.max()), h);
-                case OffsetParams(var t, NumberMatrix m, var h) ->
-                    new AnchorRangeColumnProvider(m.lowerCutoff(t, h), m.upperCutoff(t, h));
-            };
-        }
-
-        @Override
-        public Codec<OffsetMap> codec() {
-            return CODEC;
-        }
-    }
-
-    // [ { [type]: HeightParams, harshness? }, { ... } ]
-    record OffsetMapList(List<OffsetParams> offsets) implements HeightPattern {
-        public static final Codec<OffsetMapList> CODEC =
-            OffsetParams.CODEC.listOf(2, 2).xmap(OffsetMapList::new, OffsetMapList::offsets);
-
-        @Override
-        public HeightProvider toHeightProvider() {
-            return this.toHeightProvider(Distribution.DEFAULT);
-        }
-
-        public HeightProvider toHeightProvider(Distribution distribution) {
-            final var lower = this.offsets.getFirst();
-            final var upper = this.offsets.getLast();
-            return distribution.apply(
-                lower.type.anchor(lower.params.min()),
-                upper.type.anchor(upper.params.max())
-            );
-        }
-
-        @Override
-        public ColumnProvider toColumnProvider() {
-            final var lower = this.offsets.getFirst();
-            final var upper = this.offsets.getLast();
-            if (lower.params instanceof NumberOnly l && upper.params instanceof NumberOnly u) {
-                return new DynamicColumnProvider(
-                    lower.type.anchor(l.value), upper.type.anchor(u.value), lower.harshness);
-            } else if (lower.type == Type.ABSOLUTE && upper.type == Type.ABSOLUTE) {
-                // optimize to skip resolving constant values later on
-                return new ConstantColumnProvider(new ColumnBounds(
-                    new DensityCutoff(lower.params.min(), lower.params.max(), lower.harshness),
-                    new DensityCutoff(upper.params.min(), upper.params.max(), upper.harshness)
-                ));
+        public static final Info<ParamsOnly> INFO = new Info<>() {
+            @Override
+            public DataResult<ParamsOnly> fromHeightProvider(HeightProvider p) {
+                return switch (p) {
+                    case ConstantHeight h ->
+                        DataResult.success(new ParamsOnly(new AnchorOnly(h.getValue())));
+                    case TrapezoidHeightAccessor h ->
+                        OffsetValue.flatRange(h.getMinInclusive(), h.getMaxInclusive(), this::fromRange);
+                    default ->
+                        this.mismatch();
+                };
             }
-            return new AnchorRangeColumnProvider(
-                new AnchorCutoff(lower.type.anchor(lower.params.min()), lower.type.anchor(lower.params.max()), lower.harshness),
-                new AnchorCutoff(upper.type.anchor(upper.params.min()), upper.type.anchor(upper.params.max()), upper.harshness)
+
+            private DataResult<ParamsOnly> fromRange(OffsetValue min, OffsetValue max) {
+                return (min.isAbsolute() && max.isAbsolute()) || min.type() != max.type()
+                    ? DataResult.success(new ParamsOnly(new AnchorList(min.anchor(), max.anchor())))
+                    : this.mismatch();
+            }
+
+            @Override
+            public DataResult<ParamsOnly> fromColumnProvider(ColumnProvider p) {
+                return switch (p) {
+                    case ExactColumnProvider(var a) ->
+                        DataResult.success(new ParamsOnly(new AnchorOnly(a)));
+                    case ConstantColumnProvider(var b) when this.harshnessIsDefaulted(b) ->
+                        DataResult.success(new ParamsOnly(this.matrix(b)));
+                    case DynamicColumnProvider(var min, var max, var h) when this.harshnessIsDefaulted(h) ->
+                        DataResult.success(new ParamsOnly(new AnchorList(min, max)));
+                    case AnchorRangeColumnProvider(var l, var u) when this.harshnessIsDefaulted(l, u) ->
+                        OffsetBounds.flatRange(l, u, this::fromRange);
+                    default ->
+                        this.mismatch();
+                };
+            }
+
+            private DataResult<ParamsOnly> fromRange(OffsetBounds l, OffsetBounds u) {
+                return l.min().type() != l.max().type() || u.min().type() != u.max().type()
+                    ? DataResult.success(new ParamsOnly(this.matrix(l, u)))
+                    : this.mismatch();
+            }
+
+            @Override
+            public Codec<ParamsOnly> codec() {
+                return CODEC;
+            }
+        };
+
+        @Override
+        public HeightProvider toHeightProvider(AnchorDistribution d) {
+            return switch (this.params) {
+                case AnchorOnly(var v) -> ConstantHeight.of(v);
+                case AnchorList(var l, var u) -> d.apply(l, u);
+                case AnchorMatrix(var l, var ignored1, var ignored2, var u) -> d.apply(l, u);
+            };
+        }
+
+        @Override
+        public ColumnProvider toColumnProvider() {
+            return switch (this.params) {
+                case AnchorOnly(var a) -> new ExactColumnProvider(a);
+                case AnchorList l when l.isAbsolute() -> new ConstantColumnProvider(ColumnBounds.create(l.min(), l.max(), DEFAULT_HARSHNESS));
+                case AnchorMatrix m when m.isAbsolute() -> new ConstantColumnProvider(ColumnBounds.create(m.lower(), m.upper(), DEFAULT_HARSHNESS));
+                case AnchorList(var l, var u) -> new DynamicColumnProvider(l, u, DEFAULT_HARSHNESS);
+                case AnchorMatrix m -> new AnchorRangeColumnProvider(m.lowerCutoff(), m.upperCutoff());
+            };
+        }
+
+        @Override
+        public Info<? extends HeightPattern> info() {
+            return INFO;
+        }
+    }
+
+    // { [type]: HeightParams, harshness? }
+    record OffsetParams(AnchorType type, HeightParams params, double harshness) implements HeightPattern {
+        public static final Codec<OffsetParams> CODEC =
+            AnchorType.dispatchCodec(OffsetParams::createCodec, OffsetParams::type)
+                .validate(OffsetParams::validate);
+
+        public static final Info<OffsetParams> INFO = new Info<>() {
+            @Override
+            public DataResult<OffsetParams> fromHeightProvider(HeightProvider p) {
+                if (p instanceof TrapezoidHeightAccessor h) {
+                    return OffsetValue.flatRange(h.getMinInclusive(), h.getMaxInclusive(), this::fromRange);
+                }
+                return this.mismatch();
+            }
+
+            private DataResult<OffsetParams> fromRange(OffsetValue min, OffsetValue max) {
+                return this.fromRange(min, max, DEFAULT_HARSHNESS);
+            }
+
+            @Override
+            public DataResult<OffsetParams> fromColumnProvider(ColumnProvider p) {
+                return switch (p) {
+                    case ConstantColumnProvider(var b) when !this.harshnessIsDefaulted(b) ->
+                        DataResult.success(new OffsetParams(AnchorType.ABSOLUTE, this.matrix(b)));
+                    case DynamicColumnProvider(var min, var max, var h) when !this.harshnessIsDefaulted(h) ->
+                        OffsetValue.flatRange(min, max, (l, u) -> this.fromRange(l, u, h));
+                    case AnchorRangeColumnProvider(var l, var u) when !this.harshnessIsDefaulted(l, u) ->
+                        OffsetBounds.flatRange(l, u, this::fromRange);
+                    default ->
+                        this.mismatch();
+                };
+            }
+
+            private DataResult<OffsetParams> fromRange(OffsetValue min, OffsetValue max, double harshness) {
+                return min.type() == max.type()
+                    ? DataResult.success(new OffsetParams(min.type(), new AnchorList(min.absolute(), max.absolute()), harshness))
+                    : this.mismatch();
+            }
+
+            private DataResult<OffsetParams> fromRange(OffsetBounds l, OffsetBounds u) {
+                return Stream.of(l.min(), l.max(), u.min(), u.max()).allMatch(v -> v.type() == l.min().type())
+                    ? DataResult.success(new OffsetParams(l.min().type(), this.matrix(l, u)))
+                    : this.mismatch();
+            }
+
+            @Override
+            public Codec<OffsetParams> codec() {
+                return CODEC;
+            }
+        };
+
+        public OffsetParams(AnchorType type, HeightParams params) {
+            this(type, params, DEFAULT_HARSHNESS);
+        }
+
+        private static Codec<OffsetParams> createCodec(AnchorType type) {
+            return codecOf(
+                field(HeightParams.CODEC, type.fieldName(), OffsetParams::params),
+                defaulted(Codec.DOUBLE, "harshness", DEFAULT_HARSHNESS, OffsetParams::harshness),
+                (params, harshness) -> new OffsetParams(type, params, harshness)
+            ).codec();
+        }
+
+        private DataResult<OffsetParams> validate() {
+            if (!this.params.isAbsolute()) {
+                return DataResult.error(() -> "Cannot offset another offset: " + this.params);
+            }
+            return DataResult.success(this);
+        }
+
+        @Override
+        public HeightProvider toHeightProvider(AnchorDistribution d) {
+            return switch (this.params) {
+                case AnchorOnly(Absolute(var v)) -> ConstantHeight.of(this.type.at(v));
+                case AnchorList(Absolute(var l), Absolute(var u)) -> d.apply(this.type.at(l), this.type.at(u));
+                case AnchorMatrix(Absolute(var l), var ignored1, var ignored2, Absolute(var u)) -> d.apply(this.type.at(l), this.type.at(u));
+                default -> throw new UnsupportedOperationException("Non-numeric params: " + this.params);
+            };
+        }
+
+        @Override
+        public ColumnProvider toColumnProvider() {
+            return switch (this.params) {
+                // optimize to skip resolving constant values later on
+                case AnchorList l when this.type == AnchorType.ABSOLUTE ->
+                    new ConstantColumnProvider(ColumnBounds.create(l.min(), l.max(), this.harshness));
+                case AnchorMatrix m when this.type == AnchorType.ABSOLUTE ->
+                    new ConstantColumnProvider(ColumnBounds.create(m.lower(), m.upper(), this.harshness));
+                case AnchorOnly(Absolute(var o)) ->
+                    new ExactColumnProvider(this.type.at(o));
+                case AnchorList(Absolute(var l), Absolute(var u)) ->
+                    new DynamicColumnProvider(this.type.at(l), this.type.at(u), this.harshness);
+                case AnchorMatrix m ->
+                    new AnchorRangeColumnProvider(m.lowerCutoff(this.type, this.harshness), m.upperCutoff(this.type, this.harshness));
+                default ->
+                    throw new UnsupportedOperationException("Non-numeric params: " + this.params);
+            };
+        }
+
+        public DensityCutoff densityCutoff() {
+            return new DensityCutoff(this.params.min(), this.params.max(), this.harshness);
+        }
+
+        public AnchorCutoff anchorCutoff() {
+            return new AnchorCutoff(this.type.at(this.params.min()), this.type.at(this.params.max()), this.harshness);
+        }
+
+        @Override
+        public Info<? extends HeightPattern> info() {
+            return INFO;
+        }
+    }
+
+    // [{ [type]: HeightParams, harshness? }, {...}]
+    record OffsetParamsList(OffsetParams lower, OffsetParams upper) implements HeightPattern {
+        public static final Codec<OffsetParamsList> CODEC =
+            OffsetParams.CODEC.listOf(2, 2).xmap(OffsetParamsList::fromList, OffsetParamsList::toList)
+                .validate(OffsetParamsList::validate);
+
+        public static final Info<OffsetParamsList> INFO = new Info<>() {
+            @Override
+            public DataResult<OffsetParamsList> fromHeightProvider(HeightProvider p) {
+                return this.mismatch();
+            }
+
+            @Override
+            public DataResult<OffsetParamsList> fromColumnProvider(ColumnProvider p) {
+                return switch (p) {
+                    case ConstantColumnProvider(var b) when b.lower().harshness() != b.upper().harshness() ->
+                        DataResult.success(new OffsetParamsList(params(b.lower()), params(b.upper())));
+                    case DynamicColumnProvider(var min, var max, var h) ->
+                        OffsetValue.flatRange(min, max, (u, l) -> this.fromRange(u, l, h));
+                    case AnchorRangeColumnProvider(var u, var l) ->
+                        OffsetBounds.flatRange(u, l, this::fromRange);
+                    default ->
+                        this.mismatch();
+                };
+            }
+
+            private static OffsetParams params(DensityCutoff c) {
+                return new OffsetParams(AnchorType.ABSOLUTE, new AnchorList(Info.abs(c.min()), Info.abs(c.max())), c.harshness());
+            }
+
+            private DataResult<OffsetParamsList> fromRange(OffsetValue min, OffsetValue max, double harshness) {
+                return min.type() != max.type()
+                    ? DataResult.success(new OffsetParamsList(params(min, harshness), params(max, harshness)))
+                    : this.mismatch();
+            }
+
+            private static OffsetParams params(OffsetValue value, double harshness) {
+                return new OffsetParams(value.type(), new AnchorOnly(value.absolute()), harshness);
+            }
+
+            private DataResult<OffsetParamsList> fromRange(OffsetBounds l, OffsetBounds u) {
+                return l.min().type() == l.max().type() && u.min().type() == u.max().type()
+                    ? DataResult.success(new OffsetParamsList(params(l), params(u)))
+                    : this.mismatch();
+            }
+
+            private static OffsetParams params(OffsetBounds bounds) {
+                return new OffsetParams(bounds.min().type(), new AnchorList(bounds.min().absolute(), bounds.max().absolute()), bounds.harshness());
+            }
+
+            @Override
+            public Codec<OffsetParamsList> codec() {
+                return CODEC;
+            }
+        };
+
+        public static OffsetParamsList fromList(List<OffsetParams> list) {
+            return new OffsetParamsList(list.getFirst(), list.getLast());
+        }
+
+        // Is implicitly number-only because of OffsetParams#CODEC
+        private DataResult<OffsetParamsList> validate() {
+            if (this.lower.params instanceof AnchorMatrix || this.upper.params instanceof AnchorMatrix) {
+                return DataResult.error(() -> "Too many params for map-list pattern: " + this.toList());
+            }
+            return DataResult.success(this);
+        }
+
+        public List<OffsetParams> toList() {
+            return List.of(this.lower, this.upper);
+        }
+
+        @Override
+        public HeightProvider toHeightProvider(AnchorDistribution d) {
+            return d.apply(
+                this.lower.type.at(this.lower.params.min()),
+                this.upper.type.at(this.upper.params.max())
             );
         }
 
         @Override
-        public Codec<OffsetMapList> codec() {
-            return CODEC;
+        public ColumnProvider toColumnProvider() {
+            final var lower = this.lower;
+            final var upper = this.upper;
+            if (lower.params instanceof AnchorOnly l && upper.params instanceof AnchorOnly u) {
+                return new DynamicColumnProvider(lower.type.at(l.min()), upper.type.at(u.max()), lower.harshness);
+            } else if (lower.type == AnchorType.ABSOLUTE && upper.type == AnchorType.ABSOLUTE) {
+                // optimize to skip resolving constant values later on
+                return new ConstantColumnProvider(new ColumnBounds(lower.densityCutoff(), upper.densityCutoff()));
+            }
+            return new AnchorRangeColumnProvider(lower.anchorCutoff(), upper.anchorCutoff());
+        }
+
+        @Override
+        public Info<? extends HeightPattern> info() {
+            return INFO;
         }
     }
 
     // { range: ListOfNumbers | OffsetMapList(NumberOnly) | OffsetMap(ListOfNumbers), distribution? }
-    record MapWithRange(HeightPattern range, Distribution distribution) implements HeightPattern {
+    record MapWithRange(HeightPattern range, AnchorDistribution distribution) implements HeightPattern {
         private static final Codec<HeightPattern> RANGE_PATTERN =
-            CodecUtils.<HeightPattern>simpleAny(ParamsOnly.CODEC, OffsetMap.CODEC, OffsetMapList.CODEC)
-                .withEncoder(HeightPattern::codec);
+            CodecUtils.<HeightPattern>simpleAny(ParamsOnly.CODEC, OffsetParams.CODEC, OffsetParamsList.CODEC)
+                .withEncoder(p -> p.info().codec());
         public static final Codec<MapWithRange> CODEC = codecOf(
             field(RANGE_PATTERN, "range", MapWithRange::range),
-            defaulted(Distribution.CODEC, "distribution", Distribution.DEFAULT, MapWithRange::distribution),
+            defaulted(AnchorDistribution.CODE, "distribution", AnchorDistribution.DEFAULT, MapWithRange::distribution),
             MapWithRange::new
         ).codec().validate(MapWithRange::validate);
 
-        private DataResult<MapWithRange> validate() {
-            if (this.range instanceof ParamsOnly(NumberList ignored)
-                    || this.range instanceof OffsetMapList ignored2
-                    || (this.range instanceof OffsetMap m && m.offset.params instanceof NumberList)) {
-                return DataResult.success(this);
-            }
-            return DataResult.error(() -> "Expected range for MapWithRange pattern, got: " + this.range);
-        }
-
-        @Override
-        public HeightProvider toHeightProvider() {
-            return switch (this.range) {
-                case ParamsOnly(NumberList l) ->
-                    this.distribution.apply(VerticalAnchor.absolute(l.min()), VerticalAnchor.absolute(l.max()));
-                case OffsetMapList o ->
-                    o.toHeightProvider(this.distribution);
-                case OffsetMap(OffsetParams(var t, NumberList l, var ignored)) ->
-                    this.distribution.apply(t.anchor(l.min()), t.anchor(l.max()));
-                default ->
-                    throw new UnsupportedOperationException("Unexpected pattern: " + this.range);
-            };
-        }
-
-        @Override
-        public ColumnProvider toColumnProvider() {
-            return switch (this.range) {
-                case ParamsOnly(NumberList l) ->
-                    new ConstantColumnProvider(ColumnBounds.create(l.min(), l.max(), DEFAULT_HARSHNESS));
-                case OffsetMapList o ->
-                    o.toColumnProvider();
-                case OffsetMap(OffsetParams(var t, NumberList l, var harshness)) ->
-                    new DynamicColumnProvider(t.anchor(l.min()), t.anchor(l.max()), harshness);
-                default ->
-                    throw new UnsupportedOperationException("Unexpected pattern: " + this.range);
-            };
-        }
-
-        @Override
-        public Codec<MapWithRange> codec() {
-            return CODEC;
-        }
-    }
-
-    // type
-    record OffsetNameOnly(Type type) implements HeightPattern {
-        public static final Codec<OffsetNameOnly> CODEC =
-            Type.CODEC.xmap(OffsetNameOnly::new, OffsetNameOnly::type);
-
-        @Override
-        public HeightProvider toHeightProvider() {
-            return ConstantHeight.of(this.type.anchor(0));
-        }
-
-        @Override
-        public ColumnProvider toColumnProvider() {
-            return new ExactColumnProvider(this.type.anchor(0));
-        }
-
-        @Override
-        public Codec<OffsetNameOnly> codec() {
-            return CODEC;
-        }
-    }
-
-    record OffsetParams(Type type, HeightParams params, double harshness) {
-        public static final Codec<OffsetParams> CODEC =
-            simpleAny(
-                    Type.BOTTOM.codec, Type.TOP.codec, Type.ABSOLUTE.codec,
-                    Type.SURFACE.codec, Type.SEA_LEVEL.codec)
-                .withEncoder(o -> o.type.codec);
-
-        public OffsetParams(Type type, HeightParams params) {
-            this(type, params, DEFAULT_HARSHNESS);
-        }
-    }
-
-    record OffsetValue(Type type, int offset) {
-        public static DataResult<OffsetValue> from(VerticalAnchor anchor) {
-            return switch (anchor) {
-                case AboveBottom(int offset) -> DataResult.success(new OffsetValue(Type.BOTTOM, offset));
-                case Absolute(int offset) -> DataResult.success(new OffsetValue(Type.ABSOLUTE, offset));
-                case BelowTop(int offset) -> DataResult.success(new OffsetValue(Type.TOP, -offset));
-                case SurfaceVerticalAnchor(int offset) -> DataResult.success(new OffsetValue(Type.SURFACE, offset));
-                case SeaLevelVerticalAnchor(int offset) -> DataResult.success(new OffsetValue(Type.SEA_LEVEL, offset));
-                default -> DataResult.error(() -> "No matching pattern for anchor: " + anchor);
-            };
-        }
-    }
-
-    record OffsetBounds(OffsetValue min, OffsetValue max, double harshness) {
-        public static DataResult<OffsetBounds> from(AnchorCutoff cutoff) {
-            return OffsetValue.from(cutoff.min()).flatMap(min -> OffsetValue.from(cutoff.max()).map(max ->
-                new OffsetBounds(min, max, cutoff.harshness())));
-        }
-    }
-
-    sealed interface HeightParams {
-        Codec<HeightParams> CODEC =
-            CodecUtils.<HeightParams>simpleAny(NumberOnly.CODEC, NumberList.CODEC, NumberMatrix.CODEC)
-                .withEncoder(HeightParams::codec);
-
-        int min();
-        int max();
-        Codec<? extends HeightParams> codec();
-
-        record NumberOnly(int value) implements HeightParams {
-            public static final Codec<NumberOnly> CODEC =
-                Codec.INT.xmap(NumberOnly::new, NumberOnly::value);
-
+        public static final Info<MapWithRange> INFO = new Info<>() {
             @Override
-            public int min() {
-                return this.value;
-            }
-
-            @Override
-            public int max() {
-                return this.value;
-            }
-
-            @Override
-            public Codec<NumberOnly> codec() {
-                return CODEC;
-            }
-        }
-
-        record NumberList(List<Integer> values) implements HeightParams {
-            public static final Codec<NumberList> CODEC =
-                Codec.INT.listOf(2, 2).xmap(NumberList::new, NumberList::values);
-
-            public NumberList {
-                values = sortValues(values);
-            }
-
-            @Override
-            public int min() {
-                return this.values.getFirst();
-            }
-
-            @Override
-            public int max() {
-                return this.values.getLast();
-            }
-
-            @Override
-            public Codec<NumberList> codec() {
-                return CODEC;
-            }
-        }
-
-        record NumberMatrix(List<List<Integer>> values) implements HeightParams {
-            public static final Codec<NumberMatrix> CODEC =
-                Codec.INT.listOf(2, 2).listOf(2, 2).xmap(NumberMatrix::new, NumberMatrix::values)
-                    .validate(NumberMatrix::validate);
-
-            public NumberMatrix {
-                values = values.stream().map(HeightParams::sortValues).toList();
-            }
-
-            private DataResult<NumberMatrix> validate() {
-                if (this.values.getFirst().getLast() > this.values.getLast().getFirst()) {
-                    return DataResult.error(() -> "lower > upper: " + this.values);
+            public DataResult<MapWithRange> fromHeightProvider(HeightProvider p) {
+                if (p instanceof UniformHeightAccessor h) {
+                    return OffsetValue.range(h.getMinInclusive(), h.getMaxInclusive(), this::fromRange);
                 }
-                return DataResult.success(this);
+                return this.mismatch();
             }
 
-            public Range lower() {
-                return range(this.values.getFirst());
-            }
-
-            public Range upper() {
-                return range(this.values.getLast());
-            }
-
-            private static Range range(List<Integer> values) {
-                return Range.of(values.getFirst(), values.getLast());
-            }
-
-            public AnchorCutoff lowerCutoff(Type type, double harshness) {
-                return cutoff(this.values.getFirst(), type, harshness);
-            }
-
-            public AnchorCutoff upperCutoff(Type type, double harshness) {
-                return cutoff(this.values.getLast(), type, harshness);
-            }
-
-            private static AnchorCutoff cutoff(List<Integer> values, Type type, double harshness) {
-                return new AnchorCutoff(type.anchor(values.getFirst()), type.anchor(values.getLast()), harshness);
+            private MapWithRange fromRange(OffsetValue min, OffsetValue max) {
+                return min.type() != max.type() || min.type() == AnchorType.ABSOLUTE
+                    ? new MapWithRange(new ParamsOnly(new AnchorList(min.anchor(), max.anchor())), AnchorDistribution.UNIFORM)
+                    : new MapWithRange(new OffsetParams(min.type(), new AnchorList(min.absolute(), max.absolute())), AnchorDistribution.UNIFORM);
             }
 
             @Override
-            public int min() {
-                return this.values.getFirst().getFirst();
+            public DataResult<MapWithRange> fromColumnProvider(ColumnProvider p) {
+                return this.mismatch();
             }
 
             @Override
-            public int max() {
-                return this.values.getLast().getLast();
-            }
-
-            @Override
-            public Codec<NumberMatrix> codec() {
+            public Codec<MapWithRange> codec() {
                 return CODEC;
             }
+        };
+
+        private DataResult<MapWithRange> validate() {
+            if (this.range instanceof ParamsOnly
+                    || this.range instanceof OffsetParamsList
+                    || (this.range instanceof OffsetParams p && p.params.isAbsolute())) {
+                return DataResult.success(this);
+            }
+            return DataResult.error(() -> "Expected range for map-with-range pattern, got: " + this.range);
         }
 
-        private static List<Integer> sortValues(List<Integer> values) {
-            return values.stream().sorted().toList();
+        public HeightProvider toHeightProvider() {
+            return this.toHeightProvider(this.distribution);
         }
-    }
 
-    enum Type {
-        BOTTOM,
-        TOP,
-        ABSOLUTE,
-        SURFACE,
-        SEA_LEVEL;
-
-        public static final Codec<Type> CODEC = ofEnum(Type.class);
-
-        public final Codec<OffsetParams> codec = codecOf(
-            field(HeightParams.CODEC, this.name().toLowerCase(), OffsetParams::params),
-            defaulted(Codec.DOUBLE, "harshness", DEFAULT_HARSHNESS, OffsetParams::harshness),
-            (params, harshness) -> new OffsetParams(this, params, harshness)
-        ).codec();
-
-        public VerticalAnchor anchor(int offset) {
-            return switch (this) {
-                case BOTTOM -> VerticalAnchor.aboveBottom(offset);
-                case TOP -> VerticalAnchor.belowTop(-offset);
-                case ABSOLUTE -> VerticalAnchor.absolute(offset);
-                case SURFACE -> new SurfaceVerticalAnchor(offset);
-                case SEA_LEVEL -> new SeaLevelVerticalAnchor(offset);
-            };
+        @Override
+        public HeightProvider toHeightProvider(AnchorDistribution d) {
+            return this.range.toHeightProvider(d);
         }
-    }
 
-    enum Distribution {
-        UNIFORM,
-        TRAPEZOID;
+        @Override
+        public ColumnProvider toColumnProvider() {
+            return this.range.toColumnProvider();
+        }
 
-        public static final Distribution DEFAULT = TRAPEZOID;
-        public static final Codec<Distribution> CODEC = ofEnum(Distribution.class);
-
-        public HeightProvider apply(VerticalAnchor min, VerticalAnchor max) {
-            return switch (this) {
-                case UNIFORM -> UniformHeight.of(min, max);
-                case TRAPEZOID -> TrapezoidHeight.of(min, max);
-            };
+        @Override
+        public Info<? extends HeightPattern> info() {
+            return INFO;
         }
     }
 }

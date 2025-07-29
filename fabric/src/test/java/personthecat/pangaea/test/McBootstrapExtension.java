@@ -17,14 +17,12 @@ import java.lang.reflect.Method;
 public class McBootstrapExtension implements Extension, InvocationInterceptor, AfterAllCallback {
 
     static {
-        // bootstrapped by DummyGameProvider, launched by Knot via LauncherService
-        log.info("Launching partial game environment");
+        log.info("Launching game environment");
         final StopWatch sw = StopWatch.createStarted();
         System.setProperty(SystemProperties.UNIT_TEST, "true");
-        System.setProperty(SystemProperties.SKIP_MC_PROVIDER, "true");
         System.setProperty(SystemProperties.DEVELOPMENT, "true");
-        System.setProperty(SystemProperties.SIDE, "client");
-        Knot.launch(new String[0], EnvType.CLIENT);
+        System.setProperty(SystemProperties.SIDE, "server");
+        Knot.launch(new String[0], EnvType.SERVER);
         sw.stop();
         log.info("Environment launched in {}", sw);
     }

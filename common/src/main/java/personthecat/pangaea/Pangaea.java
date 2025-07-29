@@ -8,6 +8,7 @@ import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
+import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
@@ -80,17 +81,7 @@ import personthecat.pangaea.world.placer.ChanceBlockPlacer;
 import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
 import personthecat.pangaea.world.placer.TargetedBlockPlacer;
 import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
-import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
-import personthecat.pangaea.world.provider.BiasedToBottomFloat;
-import personthecat.pangaea.world.provider.ColumnProvider;
-import personthecat.pangaea.world.provider.ConstantColumnProvider;
-import personthecat.pangaea.world.provider.DensityFloatProvider;
-import personthecat.pangaea.world.provider.DensityHeightProvider;
-import personthecat.pangaea.world.provider.DensityIntProvider;
-import personthecat.pangaea.world.provider.DensityOffsetHeightProvider;
-import personthecat.pangaea.world.provider.DynamicColumnProvider;
-import personthecat.pangaea.world.provider.ExactColumnProvider;
-import personthecat.pangaea.world.provider.VeryBiasedToBottomInt;
+import personthecat.pangaea.world.provider.*;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 import personthecat.pangaea.world.weight.BiomeFilterWeight;
@@ -247,42 +238,64 @@ public abstract class Pangaea {
             .addPreset("ravine", ChainFeaturePresets.RAVINE)
             .addPreset("tunnel", ChainFeaturePresets.TUNNEL)
             .addPreset("chasm", ChainFeaturePresets.CHASM);
+
         PangaeaCodec.get(BlockPlacer.class)
             .addBuilderFields(DefaultBuilderFields.PLACER)
             .addBuilderCondition(Cfg::encodeStructuralBlockPlacers)
             .addPatterns(DefaultCodecPatterns.PLACER)
             .addPatternCondition(Cfg::encodePatternBlockPlacers);
+
         PangaeaCodec.get(DensityFunction.class)
             .addFlags(DefaultCodecFlags.DENSITY)
             .addFlagCondition(Cfg::encodeDensityBuilders)
             .addStructures(DefaultCodecStructures.DENSITY)
             .addStructureCondition(Cfg::encodeStructuralDensity);
+
         PangaeaCodec.get(FloatProvider.class)
             .addStructures(DefaultCodecStructures.FLOAT)
             .addStructureCondition(Cfg::encodeStructuralFloatProviders)
             .addPatterns(DefaultCodecPatterns.FLOAT)
             .addPatternCondition(Cfg::encodeRangeFloatProvider);
+
         PangaeaCodec.get(IntProvider.class)
             .addStructures(DefaultCodecStructures.INT)
             .addStructureCondition(Cfg::encodeStructuralIntProviders)
             .addPatterns(DefaultCodecPatterns.INT)
             .addPatternCondition(Cfg::encodeRangeIntProvider);
+
         PangaeaCodec.get(RuleTest.class)
             .addPatterns(DefaultCodecPatterns.RULE_TEST)
             .addPatternCondition(Cfg::encodePatternRuleTestCodec);
+
         PangaeaCodec.get(ChunkFilter.class)
             .addStructures(DefaultCodecStructures.CHUNK_FILTER)
             .addStructureCondition(Cfg::encodeStructuralChunkFilters)
             .addPatterns(DefaultCodecPatterns.CHUNK_FILTER)
             .addPatternCondition(Cfg::encodePatternChunkFilters);
+
         PangaeaCodec.get(WeightFunction.class)
             .addStructures(DefaultCodecStructures.WEIGHT)
             .addPatterns(DefaultCodecPatterns.WEIGHT);
+
+        PangaeaCodec.get(VerticalAnchor.class)
+            .addAlternative(DensityOffsetVerticalAnchor.CODEC)
+            .addAlternative(DensityVerticalAnchor.CODEC)
+            .addAlternative(MiddleVerticalAnchor.CODEC)
+            .addAlternative(SeaLevelVerticalAnchor.CODEC)
+            .addAlternative(SurfaceVerticalAnchor.CODEC)
+            .addFlags(DefaultCodecFlags.ANCHOR)
+            .addStructures(DefaultCodecStructures.ANCHOR)
+            .addStructureCondition(Cfg::encodeStructuralHeight)
+            .addPatterns(DefaultCodecPatterns.ANCHOR)
+            .addPatternCondition(Cfg::encodePatternHeightProvider);
+
         PangaeaCodec.get(HeightProvider.class)
             .addStructures(DefaultCodecStructures.HEIGHT)
+            .addFlags(DefaultCodecFlags.HEIGHT)
             .addStructureCondition(Cfg::encodeStructuralHeight)
             .addPatterns(DefaultCodecPatterns.HEIGHT)
             .addPatternCondition(Cfg::encodePatternHeightProvider);
+
         PangaeaCodec.get(ColumnProvider.class)
             .addPatterns(DefaultCodecPatterns.COLUMN)
             .addPatternCondition(Cfg::encodePatternHeightProvider);

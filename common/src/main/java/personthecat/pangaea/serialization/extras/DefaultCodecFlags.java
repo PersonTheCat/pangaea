@@ -6,8 +6,13 @@ import net.minecraft.world.level.levelgen.DensityFunctions;
 import net.minecraft.world.level.levelgen.DensityFunctions.Clamp;
 import net.minecraft.world.level.levelgen.DensityFunctions.BlendDensity;
 import net.minecraft.world.level.levelgen.DensityFunctions.Marker;
+import net.minecraft.world.level.levelgen.VerticalAnchor;
+import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import personthecat.catlib.data.FloatRange;
 import personthecat.pangaea.serialization.codec.BuilderCodec.BuilderField;
+import personthecat.pangaea.world.density.AutoWrapDensity;
+import personthecat.pangaea.world.provider.DensityOffsetHeightProvider;
+import personthecat.pangaea.world.provider.DensityOffsetVerticalAnchor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +40,20 @@ public final class DefaultCodecFlags {
             .parsing(FloatRange.CODEC, "clamp")
             .wrap((clamp, next) -> next.clamp(clamp.min(), clamp.max()))
             .unwrap(Clamp::input, c -> FloatRange.of((float) c.minValue(), (float) c.maxValue()))
+    );
+
+    public static final List<BuilderField<VerticalAnchor, ?>> ANCHOR = List.of(
+        BuilderField.of(VerticalAnchor.class, DensityOffsetVerticalAnchor.class)
+            .parsing(AutoWrapDensity.HELPER_CODEC, "offset")
+            .wrap((offset, next) -> new DensityOffsetVerticalAnchor(next, offset))
+            .unwrap(DensityOffsetVerticalAnchor::reference, DensityOffsetVerticalAnchor::offset)
+    );
+
+    public static final List<BuilderField<HeightProvider, ?>> HEIGHT = List.of(
+        BuilderField.of(HeightProvider.class, DensityOffsetHeightProvider.class)
+            .parsing(AutoWrapDensity.HELPER_CODEC, "offset")
+            .wrap((offset, next) -> new DensityOffsetHeightProvider(next, offset))
+            .unwrap(DensityOffsetHeightProvider::reference, DensityOffsetHeightProvider::offset)
     );
 
     private DefaultCodecFlags() {}

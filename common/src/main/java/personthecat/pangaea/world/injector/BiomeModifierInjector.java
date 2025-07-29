@@ -75,10 +75,10 @@ public record BiomeModifierInjector(BiomePredicate biomes, BiomeChanges changes)
 
     private void doGenerationRemovals(FeatureModificationContext ctx, GenerationRemovals removals) {
         if (removals.removeCarvers() != null) {
-            removals.removeCarvers().compileIds().forEach(ctx::removeCarver);
+            removals.removeCarvers().compileKeys().forEach(ctx::removeCarver);
         }
         if (removals.removeFeatures() != null) {
-            removals.removeFeatures().compileIds().forEach(ctx::removeFeature);
+            removals.removeFeatures().compileKeys().forEach(ctx::removeFeature);
         }
     }
 

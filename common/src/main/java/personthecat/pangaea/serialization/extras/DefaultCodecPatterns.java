@@ -12,6 +12,8 @@ import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.util.valueproviders.UniformFloat;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import net.minecraft.world.level.levelgen.structure.templatesystem.BlockMatchTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.BlockStateMatchTest;
@@ -40,6 +42,7 @@ import personthecat.pangaea.world.weight.WeightList;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public final class DefaultCodecPatterns {
     private static final Codec<UnconditionalBlockPlacer> STATE_PLACER =
@@ -74,8 +77,20 @@ public final class DefaultCodecPatterns {
     private static final Codec<WeightFunction> RESOURCE_LOCATION_WEIGHT =
         ResourceLocation.CODEC.flatXmap(DefaultCodecPatterns::parseWithoutArgs, DefaultCodecPatterns::encodeAsId);
 
+    private static final Codec<VerticalAnchor.Absolute> NUMBER_ANCHOR =
+        Codec.intRange(DimensionType.MIN_Y, DimensionType.MAX_Y).xmap(VerticalAnchor.Absolute::new, VerticalAnchor.Absolute::y);
+    private static final Codec<VerticalAnchor> TYPE_ANCHOR =
+        AnchorType.CODEC.flatComapMap(t -> t.at(0), AnchorType::zeroOffsetType);
+
+    private static final TestPattern MAP_WITH_RANGE_TEST =
+        TestPattern.forMap(m -> m.has("range"));
+    private static final TestPattern OFFSET_PARAMS_TEST =
+        TestPattern.forMap(m -> Stream.of(AnchorType.values()).anyMatch(t -> m.has(t.fieldName(), TestPattern.LIST)));
+    private static final TestPattern PARAMS_ONLY_TEST =
+        TestPattern.LIST.or(TestPattern.STRING).or(TestPattern.NUMBER);
+
     public static final List<Pattern<? extends BlockPlacer>> PLACER = List.of(
-        Pattern.of(STATE_PLACER, UnconditionalBlockPlacer.class).testing(TestPattern.STRING),
+        Pattern.of(STATE_PLACER, UnconditionalBlockPlacer.class).testing(TestPattern.ID.or(TestPattern.STATE)),
         Pattern.of(LIST_PLACER, BlockPlacerList.class).testing(TestPattern.LIST)
     );
 
@@ -105,12 +120,23 @@ public final class DefaultCodecPatterns {
         Pattern.of(RESOURCE_LOCATION_WEIGHT, weight -> false).testing(TestPattern.ID) // cannot encode
     );
 
+    public static final List<Pattern<? extends VerticalAnchor>> ANCHOR = List.of(
+        Pattern.of(NUMBER_ANCHOR, VerticalAnchor.Absolute.class).testing(TestPattern.NUMBER),
+        Pattern.of(TYPE_ANCHOR, a -> AnchorType.zeroOffsetType(a).isSuccess()).testing(TestPattern.STRING)
+    );
+
     public static final List<Pattern<? extends HeightProvider>> HEIGHT = List.of(
-        Pattern.of(HeightPattern.HEIGHT, HeightPattern::matches).testing(TestPattern.ALWAYS)
+        HeightPattern.MapWithRange.INFO.heightPattern().testing(MAP_WITH_RANGE_TEST),
+        HeightPattern.OffsetParamsList.INFO.heightPattern().testing(TestPattern.MAP_LIST),
+        HeightPattern.OffsetParams.INFO.heightPattern().testing(OFFSET_PARAMS_TEST),
+        HeightPattern.ParamsOnly.INFO.heightPattern().testing(PARAMS_ONLY_TEST)
     );
 
     public static final List<Pattern<? extends ColumnProvider>> COLUMN = List.of(
-        Pattern.of(HeightPattern.COLUMN, HeightPattern::matches).testing(TestPattern.ALWAYS)
+        HeightPattern.MapWithRange.INFO.columnPattern().testing(MAP_WITH_RANGE_TEST),
+        HeightPattern.OffsetParamsList.INFO.columnPattern().testing(TestPattern.MAP_LIST),
+        HeightPattern.OffsetParams.INFO.columnPattern().testing(OFFSET_PARAMS_TEST),
+        HeightPattern.ParamsOnly.INFO.columnPattern().testing(PARAMS_ONLY_TEST)
     );
 
     private DefaultCodecPatterns() {}

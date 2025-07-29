@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 
 public final class FlagAppender implements CodecAppender {
-    public static final int PRIORITY = PatternAppender.PRIORITY - 5_000;
+    public static final int PRIORITY = 10_000; // should probably be last
     public static final Info<FlagAppender> INFO = FlagAppender::new;
     private final List<BuilderCodec.BuilderField<?, ?>> fields = new ArrayList<>();
     private final Condition condition = new Condition();
@@ -25,7 +25,7 @@ public final class FlagAppender implements CodecAppender {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <A> Codec<A> append(Codec<A> codec) {
+    public <A> Codec<A> append(String typeKey, Codec<A> codec) {
         final var fields = (List<BuilderCodec.BuilderField<A, ?>>) (Object) this.fields;
         if (!fields.isEmpty()) {
             return new BuilderCodec<>(fields, this.condition.get()).asUnionOf(codec);

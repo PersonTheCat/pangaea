@@ -55,17 +55,27 @@ public record PatternCodec<A>(List<Pattern<A>> patterns, BooleanSupplier encode)
         }
         for (final Pattern<A> p : this.patterns) {
             final var normalized = p.normalizer.apply(input);
-            if (p.filter.test(normalized)) {
+            final var filter = p.filter;
+            if (filter == null) {
+                final var result = p.codec.encode(normalized, ops, prefix);
+                if (result.isSuccess()) {
+                    return result;
+                }
+            } else if (filter.test(normalized)) {
                 return p.codec.encode(normalized, ops, prefix);
             }
         }
         return DataResult.error(() -> "No matching pattern for input: " + input);
     }
 
-    public record Pattern<A>(Codec<A> codec, @Nullable Decoder<?> test, UnaryOperator<A> normalizer, Predicate<A> filter) {
+    public record Pattern<A>(Codec<A> codec, @Nullable Decoder<?> test, UnaryOperator<A> normalizer, @Nullable Predicate<A> filter) {
         @SuppressWarnings("unchecked")
         public static <A, B extends A, T> Function<A, T> get(Function<B, T> getter) {
             return a -> getter.apply((B) a);
+        }
+
+        public static <A> Pattern<A> of(Codec<? extends A> codec) {
+            return of(codec, (Predicate<A>) null);
         }
 
         public static <A> Pattern<A> of(Codec<? extends A> codec, Class<? extends A> type) {

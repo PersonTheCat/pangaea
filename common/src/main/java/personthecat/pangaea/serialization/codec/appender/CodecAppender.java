@@ -7,7 +7,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 public interface CodecAppender {
-    <A> Codec<A> append(Codec<A> codec);
+    <A> Codec<A> append(String typeKey, Codec<A> codec);
     Info<? extends CodecAppender> info();
 
     default int priority() {

@@ -10,6 +10,7 @@ import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.serialization.codec.capture.CaptureCategory;
 import personthecat.catlib.serialization.codec.capture.Captor;
 import personthecat.catlib.serialization.codec.capture.Key;
+import personthecat.pangaea.serialization.codec.appender.AlternativeAppender;
 import personthecat.pangaea.serialization.codec.appender.BuilderAppender;
 import personthecat.pangaea.serialization.codec.appender.CaptureAppender;
 import personthecat.pangaea.serialization.codec.appender.CodecAppender;
@@ -160,6 +161,15 @@ public final class PangaeaCodec<A> implements Codec<A> {
     }
 
     @SafeVarargs
+    public final <B extends A> PangaeaCodec<A> addAlternative(Codec<B> alt, B... implicitType) {
+        return this.addAlternative(alt, Key.inferType(implicitType));
+    }
+
+    public <B extends A> PangaeaCodec<A> addAlternative(Codec<B> alt, Class<B> type) {
+        return this.configure(AlternativeAppender.class, c -> c.addAlternative(alt, type));
+    }
+
+    @SafeVarargs
     public final PangaeaCodec<A> addPatterns(PatternCodec.Pattern<? extends A>... patterns) {
         return this.addPatterns(List.of(patterns));
     }
@@ -175,6 +185,11 @@ public final class PangaeaCodec<A> implements Codec<A> {
     public PangaeaCodec<A> addGlobalCondition(BooleanSupplier condition) {
         this.appenders.addGlobalCondition(condition);
         return this.reset();
+    }
+
+    public PangaeaCodec<A> setTypeKey(String key) {
+        this.appenders.setTypeKey(key);
+        return this;
     }
 
     public <C extends CodecAppender> PangaeaCodec<A> configure(Class<C> type, Consumer<C> action) {

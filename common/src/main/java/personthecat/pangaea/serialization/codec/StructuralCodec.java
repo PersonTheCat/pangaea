@@ -33,8 +33,11 @@ public class StructuralCodec<A> extends MapCodec<A> {
     }
 
     public Codec<A> wrap(Codec<A> original) {
-        return defaultType(original, this, (o, a) ->
-            this.encode.getAsBoolean() && this.hasStructureForInput(a));
+        return this.wrap("type", original);
+    }
+
+    public Codec<A> wrap(String typeKey, Codec<A> original) {
+        return defaultType(typeKey, original, this, (o, a) -> this.hasStructureForInput(a));
     }
 
     public boolean hasStructureForInput(A input) {

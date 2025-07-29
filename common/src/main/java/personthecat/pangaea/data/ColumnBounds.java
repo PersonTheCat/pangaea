@@ -54,7 +54,7 @@ public record ColumnBounds(DensityCutoff lower, DensityCutoff upper) {
     }
 
     private static int automaticWidth(int min, int max) {
-        return Math.max(10, (int) (((double) max - (double) min) * 0.1));
+        return Math.min(10, (int) (((double) max - (double) min) * 0.1));
     }
 
     public double transformNoise(double n, int y) {

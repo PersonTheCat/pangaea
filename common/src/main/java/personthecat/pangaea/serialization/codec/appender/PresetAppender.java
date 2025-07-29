@@ -41,7 +41,7 @@ public final class PresetAppender implements CodecAppender {
     }
 
     @Override
-    public <A> Codec<A> append(Codec<A> codec) {
+    public <A> Codec<A> append(String typeKey, Codec<A> codec) {
         final MapCodec<A> map = MapCodec.assumeMapUnsafe(codec);
         final var presets = this.compilePresets(map);
         if (presets.size() > 1) {

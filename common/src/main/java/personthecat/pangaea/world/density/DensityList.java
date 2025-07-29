@@ -11,6 +11,7 @@ import net.minecraft.world.level.levelgen.DensityFunction.SimpleFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import net.minecraft.world.level.levelgen.DensityFunctions.TwoArgumentSimpleFunction;
 import org.jetbrains.annotations.NotNull;
+import personthecat.pangaea.serialization.codec.DensityHelper;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +31,7 @@ public abstract class DensityList implements SimpleFunction {
     protected final double target;
     protected final double minValue;
     protected final double maxValue;
-    protected final BoundsPredicate bounds;
+    protected final transient BoundsPredicate bounds;
 
     protected DensityList(List<DensityFunction> list, double target) {
         this.list = list;
@@ -104,12 +105,12 @@ public abstract class DensityList implements SimpleFunction {
 
     public static class Min extends DensityList {
         public static final MapCodec<Min> CODEC = codecOf(
-            field(easyList(DensityFunction.HOLDER_HELPER_CODEC), "min", l -> l.list),
+            field(easyList(DensityHelper.CODEC), "min", l -> l.list),
             defaulted(Codec.DOUBLE, "target", MAX_REASONABLE, l -> l.target),
             Min::new
         );
         public static final Codec<DensityFunction> LIST_CODEC =
-            easyList(DensityFunction.HOLDER_HELPER_CODEC)
+            easyList(DensityHelper.CODEC)
                 .xmap(l -> min(l, MAX_REASONABLE), Min::unwrapMinList);
         public static final MapDecoder<DensityFunction> OPTIMIZED_DECODER =
             CODEC.map(l -> min(l.list, l.target));
@@ -187,12 +188,12 @@ public abstract class DensityList implements SimpleFunction {
 
     public static class Max extends DensityList {
         public static final MapCodec<Max> CODEC = codecOf(
-            field(easyList(HOLDER_HELPER_CODEC), "max", l -> l.list),
+            field(easyList(DensityHelper.CODEC), "max", l -> l.list),
             defaulted(Codec.DOUBLE, "target", -MAX_REASONABLE, l -> l.target),
             Max::new
         );
         public static final Codec<DensityFunction> LIST_CODEC =
-            easyList(DensityFunction.HOLDER_HELPER_CODEC)
+            easyList(DensityHelper.CODEC)
                 .xmap(l -> max(l, -MAX_REASONABLE), Max::unwrapMaxList);
         public static final MapDecoder<DensityFunction> OPTIMIZED_DECODER =
             CODEC.map(l -> max(l.list, l.target));
@@ -270,7 +271,7 @@ public abstract class DensityList implements SimpleFunction {
 
     public static class Sum extends DensityList {
         public static final MapCodec<Sum> CODEC = codecOf(
-            field(easyList(DensityFunction.HOLDER_HELPER_CODEC), "sum", l -> l.list),
+            field(easyList(DensityHelper.CODEC), "sum", l -> l.list),
             defaulted(Codec.DOUBLE, "target", MAX_REASONABLE / 2, l -> l.target),
             Sum::new
         );

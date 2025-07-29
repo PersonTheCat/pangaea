@@ -39,6 +39,14 @@ public class DensityOffsetHeightProvider extends ScalableHeightProvider {
         return TYPE;
     }
 
+    public HeightProvider reference() {
+        return this.reference;
+    }
+
+    public DensityFunction offset() {
+        return this.offset;
+    }
+
     @Override
     public String toString() {
         return this.reference + " + " + this.offset;

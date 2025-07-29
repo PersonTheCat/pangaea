@@ -145,7 +145,11 @@ public class FunctionCodec {
                 final var idResult = ResourceLocation.CODEC.decode(ops, map.get("type"));
                 if (idResult.isSuccess()) {
                     final var id = idResult.getOrThrow().getFirst();
-                    final var template = DynamicRegistries.getOrThrow(this.key).lookup(id);
+                    final var registry = DynamicRegistries.get(this.key);
+                    if (registry == null) {
+                        return DataResult.error(() -> "Function registry not available yet");
+                    }
+                    final var template = registry.lookup(id);
                     if (template != null) {
                         return template.decode(ops, input);
                     }

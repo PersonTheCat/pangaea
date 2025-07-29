@@ -13,6 +13,7 @@ import java.util.function.BooleanSupplier;
 public final class CodecAppenders {
     private static final Map<Class<?>, CodecAppender.Info<?>> REGISTRY = new ConcurrentHashMap<>();
     private final Map<Class<?>, CodecAppender> appenders = new HashMap<>();
+    private volatile String typeKey = "type";
 
     static {
         register(PresetAppender.class, PresetAppender.INFO);
@@ -21,6 +22,7 @@ public final class CodecAppenders {
         register(BuilderAppender.class, BuilderAppender.INFO);
         register(FlagAppender.class, FlagAppender.INFO);
         register(PatternAppender.class, PatternAppender.INFO);
+        register(AlternativeAppender.class, AlternativeAppender.INFO);
     }
 
     public static <A extends CodecAppender> void register(Class<A> key, CodecAppender.Info<A> info) {
@@ -41,9 +43,14 @@ public final class CodecAppenders {
         this.appenders.values().forEach(a -> a.addEncodeCondition(condition));
     }
 
+    @SuppressWarnings("lombok")
+    public void setTypeKey(String key) {
+        this.typeKey = key;
+    }
+
     public <A> Codec<A> generate(Codec<A> base) {
         for (final var appender : this.sortAppenders()) {
-            base = appender.append(base);
+            base = appender.append(this.typeKey, base);
         }
         return base;
     }

@@ -108,7 +108,7 @@ public final class DataInjectionHook {
         return PgRegistries.INJECTOR.entrySet().stream()
             .filter(e -> e.getValue().phase() == phase)
             .sorted(Comparator.comparingInt((Entry<?, Injector> e) -> e.getValue().priority())
-                .thenComparing((Entry<?, Injector> e) -> PgRegistries.INJECTOR_TYPE.getKey(e.getValue().codec()))
+                .thenComparing((Entry<?, Injector> e) -> PgRegistries.INJECTOR_TYPE.getId(e.getValue().codec()))
                 .thenComparingInt((Entry<?, Injector> e) -> e.getValue().getUnmetDependencyCount()))
             .toList();
     }

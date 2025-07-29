@@ -6,13 +6,13 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
+import personthecat.pangaea.serialization.codec.DensityHelper;
 import personthecat.pangaea.world.level.PangaeaContext;
 
 import java.util.function.Function;
 
 public record AutoWrapDensity(DensityFunction density) implements DensityFunction {
-    public static final Codec<DensityFunction> HELPER_CODEC =
-        wrap(DensityFunction.HOLDER_HELPER_CODEC);
+    public static final Codec<DensityFunction> HELPER_CODEC = wrap(DensityHelper.CODEC);
 
     // does not replace the default density function codec
     public static Codec<DensityFunction> wrap(Codec<DensityFunction> codec) {

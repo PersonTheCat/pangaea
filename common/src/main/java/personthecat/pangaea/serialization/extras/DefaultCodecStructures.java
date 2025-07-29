@@ -4,12 +4,15 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.valueproviders.FloatProvider;
 import net.minecraft.util.valueproviders.IntProvider;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions.Mapped;
 import net.minecraft.world.level.levelgen.DensityFunctions.Noise;
 import net.minecraft.world.level.levelgen.DensityFunctions.ShiftedNoise;
 import net.minecraft.world.level.levelgen.DensityFunctions.TwoArgumentSimpleFunction;
+import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
+import personthecat.pangaea.serialization.codec.DensityHelper;
 import personthecat.pangaea.serialization.codec.NoiseCodecs;
 import personthecat.pangaea.serialization.codec.StructuralCodec.Structure;
 import personthecat.pangaea.serialization.codec.TestPattern;
@@ -27,7 +30,6 @@ import personthecat.pangaea.world.filter.SpawnDistanceChunkFilter;
 import personthecat.pangaea.world.provider.DensityFloatProvider;
 import personthecat.pangaea.world.provider.DensityHeightProvider;
 import personthecat.pangaea.world.provider.DensityIntProvider;
-import personthecat.pangaea.world.provider.DensityOffsetHeightProvider;
 import personthecat.pangaea.world.weight.CutoffWeight;
 import personthecat.pangaea.world.weight.DensityWeight;
 import personthecat.pangaea.world.weight.MultipleWeight;
@@ -53,17 +55,17 @@ public final class DefaultCodecStructures {
     private static final MapCodec<DensityFunction> SUM =
         MapCodec.of(asParent(Sum.CODEC), Sum.OPTIMIZED_DECODER);
     private static final MapCodec<DensityFunction> ABS =
-        DensityFunction.HOLDER_HELPER_CODEC.fieldOf("abs").xmap(DensityFunction::abs, Structure.get(Mapped::input));
+        DensityHelper.CODEC.fieldOf("abs").xmap(DensityFunction::abs, Structure.get(Mapped::input));
     private static final MapCodec<DensityFunction> SQUARE =
-        DensityFunction.HOLDER_HELPER_CODEC.fieldOf("square").xmap(DensityFunction::square, Structure.get(Mapped::input));
+        DensityHelper.CODEC.fieldOf("square").xmap(DensityFunction::square, Structure.get(Mapped::input));
     private static final MapCodec<DensityFunction> CUBE =
-        DensityFunction.HOLDER_HELPER_CODEC.fieldOf("cube").xmap(DensityFunction::cube, Structure.get(Mapped::input));
+        DensityHelper.CODEC.fieldOf("cube").xmap(DensityFunction::cube, Structure.get(Mapped::input));
     private static final MapCodec<DensityFunction> HALF_NEGATIVE =
-        DensityFunction.HOLDER_HELPER_CODEC.fieldOf("half_negative").xmap(DensityFunction::halfNegative, Structure.get(Mapped::input));
+        DensityHelper.CODEC.fieldOf("half_negative").xmap(DensityFunction::halfNegative, Structure.get(Mapped::input));
     private static final MapCodec<DensityFunction> QUARTER_NEGATIVE =
-        DensityFunction.HOLDER_HELPER_CODEC.fieldOf("quarter_negative").xmap(DensityFunction::quarterNegative, Structure.get(Mapped::input));
+        DensityHelper.CODEC.fieldOf("quarter_negative").xmap(DensityFunction::quarterNegative, Structure.get(Mapped::input));
     private static final MapCodec<DensityFunction> SQUEEZE =
-        DensityFunction.HOLDER_HELPER_CODEC.fieldOf("squeeze").xmap(DensityFunction::squeeze, Structure.get(Mapped::input));
+        DensityHelper.CODEC.fieldOf("squeeze").xmap(DensityFunction::squeeze, Structure.get(Mapped::input));
 
     private static final TestPattern.MapPattern FAST_NOISE_TEST_PATTERN =
         m -> m.has("noise", NoiseCodecs.TYPE);
@@ -75,6 +77,13 @@ public final class DefaultCodecStructures {
 
     private static final TestPattern.MapPattern CUTOFF_PATTERN =
         m -> m.has("input") && (m.has("upper") || m.has("lower"));
+
+    private static final MapCodec<VerticalAnchor.AboveBottom> BOTTOM_ANCHOR =
+        Codec.intRange(DimensionType.MIN_Y, DimensionType.MAX_Y).fieldOf("bottom")
+            .xmap(VerticalAnchor.AboveBottom::new, VerticalAnchor.AboveBottom::offset);
+    private static final MapCodec<VerticalAnchor.BelowTop> TOP_ANCHOR =
+        Codec.intRange(DimensionType.MIN_Y, DimensionType.MAX_Y).fieldOf("top")
+            .xmap(i -> new VerticalAnchor.BelowTop(-i), a -> -a.offset());
 
     public static final List<Structure<? extends DensityFunction>> DENSITY = List.of(
         Structure.of(MUL_TIMES_DENSITY, isType(TwoArgumentSimpleFunction.Type.MUL)),
@@ -117,8 +126,12 @@ public final class DefaultCodecStructures {
         Structure.of(CutoffWeight.CODEC, CutoffWeight.class).withTestPattern(CUTOFF_PATTERN)
     );
 
+    public static final List<Structure<? extends VerticalAnchor>> ANCHOR = List.of(
+        Structure.of(BOTTOM_ANCHOR, VerticalAnchor.AboveBottom.class),
+        Structure.of(TOP_ANCHOR, VerticalAnchor.BelowTop.class)
+    );
+
     public static final List<Structure<? extends HeightProvider>> HEIGHT = List.of(
-        Structure.of(DensityOffsetHeightProvider.CODEC, DensityOffsetHeightProvider.class).withRequiredFields("density", "reference"),
         Structure.of(DensityHeightProvider.CODEC, DensityHeightProvider.class).withRequiredFields("density")
     );
 
@@ -144,7 +157,7 @@ public final class DefaultCodecStructures {
 
     private record MulTimesStructure<A>(A mul, A times) {
         static final MapCodec<MulTimesStructure<DensityFunction>> DENSITY_CODEC =
-            createCodec(DensityFunction.HOLDER_HELPER_CODEC);
+            createCodec(DensityHelper.CODEC);
         static final MapCodec<MulTimesStructure<WeightFunction>> WEIGHT_CODEC =
             createCodec(WeightFunction.CODEC);
 
@@ -176,7 +189,7 @@ public final class DefaultCodecStructures {
 
     private record AddPlusStructure<A>(A add, A plus) {
         static final MapCodec<AddPlusStructure<DensityFunction>> DENSITY_CODEC =
-            createCodec(DensityFunction.HOLDER_HELPER_CODEC);
+            createCodec(DensityHelper.CODEC);
         static final MapCodec<AddPlusStructure<WeightFunction>> WEIGHT_CODEC =
             createCodec(WeightFunction.CODEC);
 

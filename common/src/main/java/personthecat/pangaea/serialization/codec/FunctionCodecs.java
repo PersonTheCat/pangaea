@@ -7,5 +7,5 @@ public final class FunctionCodecs {
     private FunctionCodecs() {}
 
     public static final Codec<FunctionCodec.Template<DensityFunction>> DENSITY =
-        FunctionCodec.create(DensityFunction.HOLDER_HELPER_CODEC);
+        FunctionCodec.create(DensityHelper.CODEC);
 }
