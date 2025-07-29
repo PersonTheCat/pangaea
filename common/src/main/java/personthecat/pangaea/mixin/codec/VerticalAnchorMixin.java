@@ -17,24 +17,4 @@ public interface VerticalAnchorMixin {
     private static Codec<VerticalAnchor> modify(Codec<VerticalAnchor> original) {
         return PangaeaCodec.create(original);
     }
-
-//    @Unique
-//    private static Codec<VerticalAnchor> addSurfaceOffset(Codec<VerticalAnchor> original) {
-//        return SurfaceVerticalAnchor.wrapCodec(original);
-//    }
-//
-//    @Unique
-//    private static Codec<VerticalAnchor> addSeaLevelOffset(Codec<VerticalAnchor> original) {
-//        return SeaLevelVerticalAnchor.wrapCodec(original);
-//    }
-//
-//    @Unique
-//    private static Codec<VerticalAnchor> addDensityType(Codec<VerticalAnchor> original) {
-//        return DensityVerticalAnchor.wrapCodec(original);
-//    }
-//
-//    @Unique
-//    private static Codec<VerticalAnchor> addDensityOffsetType(Codec<VerticalAnchor> original) {
-//        return DensityOffsetVerticalAnchor.wrapCodec(original);
-//    }
 }
