@@ -21,20 +21,6 @@ public record DensityOffsetVerticalAnchor(
         DensityOffsetVerticalAnchor::new
     ).codec();
 
-//    public static Codec<VerticalAnchor> wrapCodec(Codec<VerticalAnchor> codec) {
-//        final var xor = Codec.xor(codec, CODEC).xmap(
-//            e -> e.map(Function.identity(), Function.identity()),
-//            a -> a instanceof DensityOffsetVerticalAnchor d ? Either.right(d) : Either.left(a)
-//        );
-//        final var nullableOffset = AutoWrapDensity.HELPER_CODEC.optionalFieldOf("offset");
-//        final var addedField = codecOf(
-//            union(asMapCodec(codec), DensityOffsetVerticalAnchor::getReference),
-//            union(nullableOffset, DensityOffsetVerticalAnchor::getOffset),
-//            DensityOffsetVerticalAnchor::applyOffset
-//        );
-//        return ifMap(xor, addedField, DensityOffsetVerticalAnchor::encodeAsDensityOffset);
-//    }
-
     private static VerticalAnchor getReference(VerticalAnchor a) {
         return a instanceof DensityOffsetVerticalAnchor o ? o.reference : a;
     }
