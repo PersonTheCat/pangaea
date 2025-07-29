@@ -189,7 +189,7 @@ public final class PangaeaCodec<A> implements Codec<A> {
 
     public PangaeaCodec<A> setTypeKey(String key) {
         this.appenders.setTypeKey(key);
-        return this;
+        return this.reset();
     }
 
     public <C extends CodecAppender> PangaeaCodec<A> configure(Class<C> type, Consumer<C> action) {

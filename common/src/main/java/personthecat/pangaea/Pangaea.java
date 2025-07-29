@@ -284,6 +284,7 @@ public abstract class Pangaea {
             .addAlternative(SeaLevelVerticalAnchor.CODEC)
             .addAlternative(SurfaceVerticalAnchor.CODEC)
             .addFlags(DefaultCodecFlags.ANCHOR)
+            .addFlagCondition(Cfg::encodeVerticalAnchorBuilders)
             .addStructures(DefaultCodecStructures.ANCHOR)
             .addStructureCondition(Cfg::encodeStructuralHeight)
             .addPatterns(DefaultCodecPatterns.ANCHOR)
@@ -292,6 +293,7 @@ public abstract class Pangaea {
         PangaeaCodec.get(HeightProvider.class)
             .addStructures(DefaultCodecStructures.HEIGHT)
             .addFlags(DefaultCodecFlags.HEIGHT)
+            .addFlagCondition(Cfg::encodeVerticalAnchorBuilders)
             .addStructureCondition(Cfg::encodeStructuralHeight)
             .addPatterns(DefaultCodecPatterns.HEIGHT)
             .addPatternCondition(Cfg::encodePatternHeightProvider);
