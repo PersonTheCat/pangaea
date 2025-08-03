@@ -4,13 +4,13 @@ import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import personthecat.pangaea.config.Cfg;
+import personthecat.pangaea.data.LruCache;
 import personthecat.pangaea.data.Point;
 import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.world.level.PangaeaContext;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 public class RoadMap {
     private static final ExecutorService BACKGROUND = Executors.newSingleThreadExecutor();
     private static final int CACHE_SIZE = 16;
-    private final RoadRegion[] regionCache = new RoadRegion[CACHE_SIZE];
+    private final LruCache<Point, RoadRegion> regionCache = new LruCache<>(CACHE_SIZE);
     private final ReferenceQueue<RoadNetwork> networkReferences = new ReferenceQueue<>();
     private final Map<Point, WeakReference<RoadNetwork>> networks = new HashMap<>();
     private final ServerLevel level;
@@ -65,18 +65,7 @@ public class RoadMap {
     }
 
     private RoadRegion getCachedRegion(final short x, final short z) {
-        for (int i = 0; i < this.regionCache.length; i++) {
-            final RoadRegion r = this.regionCache[i];
-            if (r != null && r.x == x && r.z == z) {
-                if (i > 0) {
-                    final RoadRegion up = this.regionCache[i - 1];
-                    this.regionCache[i] = up;
-                    this.regionCache[i - 1] = r;
-                }
-                return r;
-            }
-        }
-        return null;
+        return this.regionCache.get(new Point(x, z));
     }
 
     public RoadRegion loadRegionFromDisk(final short x, final short z) {
@@ -112,29 +101,12 @@ public class RoadMap {
     }
 
     private RoadRegion cacheRegion(final RoadRegion r) {
-        for (int i = 0; i < this.regionCache.length; i++) {
-            final RoadRegion cached = this.regionCache[i];
-            if (cached == r) {
-                if (i > 0) {
-                    final RoadRegion up = this.regionCache[i - 1];
-                    this.regionCache[i] = up;
-                    this.regionCache[i - 1] = r;
-                }
-                return r;
-            }
-        }
-        this.pushToCache(r);
+        this.regionCache.put(new Point(r.x, r.z), r);
         return r;
     }
 
-    private void pushToCache(final RoadRegion r) {
-        System.arraycopy(this.regionCache, 0, this.regionCache, 1, this.regionCache.length - 1);
-        this.regionCache[0] = r;
-    }
-
     public void clearCache() {
-        Arrays.fill(this.regionCache, null);
-        this.networks.clear();
+        this.regionCache.clear();
         log.debug("Cleaned region cache for level: {}", this.level);
     }
 
