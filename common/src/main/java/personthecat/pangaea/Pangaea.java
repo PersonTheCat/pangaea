@@ -82,7 +82,9 @@ import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
 import personthecat.pangaea.world.placer.TargetedBlockPlacer;
 import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
 import personthecat.pangaea.world.provider.*;
+import personthecat.pangaea.world.road.AStarRoadGenerator;
 import personthecat.pangaea.world.road.RoadMap;
+import personthecat.pangaea.world.road.TmpRoadUtils;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 import personthecat.pangaea.world.weight.BiomeFilterWeight;
 import personthecat.pangaea.world.weight.ApproximateWeight;
@@ -221,7 +223,10 @@ public abstract class Pangaea {
             .register("sum", SumWeight.CODEC)
             .register("temperature", RouterWeight.TEMPERATURE.codec())
             .register("vegetation", RouterWeight.VEGETATION.codec())
-            .register("list", WeightList.CODEC);
+            .register("list", WeightList.CODEC)
+            .register("temporary", TmpRoadUtils.CODEC);
+        PgRegistries.ROAD_TYPE.createRegister(ID)
+            .register("astar", AStarRoadGenerator.Configuration.CODEC);
         CommonRegistries.FEATURE.createRegister(ID)
             .register("test", TestFeature.INSTANCE)
             .register("giant_sphere", GiantSphereFeature.INSTANCE)

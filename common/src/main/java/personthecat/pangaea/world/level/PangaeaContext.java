@@ -61,6 +61,7 @@ public final class PangaeaContext extends WorldGenerationContext {
     public final Aquifer aquifer;
     public final MutableFunctionContext targetPos;
     public final Counter featureIndex;
+    private boolean enableDensityWrap;
 
     public PangaeaContext(WorldGenLevel level, WorldgenRandom rand, ProtoChunk chunk, ChunkGenerator gen) {
         super(gen, level);
@@ -90,6 +91,7 @@ public final class PangaeaContext extends WorldGenerationContext {
         this.aquifer = nc instanceof NoiseChunkAccessor ? nc.aquifer() : NO_AQUIFER;
         this.targetPos = MutableFunctionContext.from(pos);
         this.featureIndex = new Counter();
+        this.enableDensityWrap = true;
     }
 
     public static PangaeaContext init(WorldGenLevel level, ProtoChunk chunk, ChunkGenerator gen) {
@@ -133,9 +135,13 @@ public final class PangaeaContext extends WorldGenerationContext {
         return WorldGenRegionExtras.getPangaeaContext(level);
     }
 
+    public void enableDensityWrap(boolean enable) {
+        this.enableDensityWrap = enable;
+    }
+
     public DensityFunction wrap(DensityFunction f) {
         final NoiseChunk c = this.chunk.getOrCreateNoiseChunk(a -> null);
-        if (c instanceof NoiseChunkAccessor a) {
+        if (this.enableDensityWrap && c instanceof NoiseChunkAccessor a) {
             return a.invokeWrap(f);
         }
         return f.mapAll(f2 -> f2 instanceof Marker m ? m.wrapped() : f2);

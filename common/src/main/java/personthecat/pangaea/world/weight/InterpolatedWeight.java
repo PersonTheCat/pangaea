@@ -8,25 +8,25 @@ public enum InterpolatedWeight implements WeightFunction {
     CONTINENTALNESS {
         @Override
         public double compute(PangaeaContext pg, FunctionContext fn) {
-            return pg.noise.getContinentalness(pg.sampler, fn.blockX(), fn.blockZ());
+            return pg.noise.getContinentalness(fn.blockX(), fn.blockZ());
         }
     },
     DEPTH {
         @Override
         public double compute(PangaeaContext pg, FunctionContext fn) {
-            return pg.noise.getDepth(pg.sampler, fn.blockX(), fn.blockZ());
+            return pg.noise.getDepth(fn.blockX(), fn.blockZ());
         }
     },
     PV {
         @Override
         public double compute(PangaeaContext pg, FunctionContext fn) {
-            return pg.noise.getPv(pg.sampler, fn.blockX(), fn.blockZ());
+            return pg.noise.getPv(fn.blockX(), fn.blockZ());
         }
     },
     WEIRDNESS {
         @Override
         public double compute(PangaeaContext pg, FunctionContext fn) {
-            return pg.noise.getWeirdness(pg.sampler, fn.blockX(), fn.blockZ());
+            return pg.noise.getWeirdness(fn.blockX(), fn.blockZ());
         }
     };
 

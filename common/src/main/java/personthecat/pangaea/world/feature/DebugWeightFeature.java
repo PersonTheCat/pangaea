@@ -1,6 +1,5 @@
 package personthecat.pangaea.world.feature;
 
-import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -21,10 +20,9 @@ public class DebugWeightFeature extends Feature<NoneFeatureConfiguration> {
 
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> ctx) {
-        final var sampler = ((ServerChunkCache) ctx.level().getChunkSource()).randomState().sampler();
         final var fCtx = MutableFunctionContext.from(ctx.origin()).at(ctx.chunkGenerator().getSeaLevel());
         final var graph = LevelExtras.getNoiseGraph(ctx.level().getLevel());
-        final var weight = TmpRoadUtils.getWeight(graph, sampler, fCtx);
+        final var weight = TmpRoadUtils.getWeight(graph, fCtx);
         final var pillar = selectPillar(weight);
         if (pillar == null) {
             return false;

@@ -1,6 +1,6 @@
 package personthecat.pangaea.world.road;
 
-import net.minecraft.world.level.biome.Climate.Sampler;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunction.FunctionContext;
 import personthecat.catlib.data.Lazy;
@@ -10,9 +10,14 @@ import personthecat.pangaea.data.NoiseGraph;
 import personthecat.pangaea.util.Utils;
 import personthecat.pangaea.world.density.DensityController;
 import personthecat.pangaea.world.density.SimpleDensity;
+import personthecat.pangaea.world.level.PangaeaContext;
+import personthecat.pangaea.world.weight.WeightFunction;
 
-public class TmpRoadUtils {
+// will be ugly until deleted
+public class TmpRoadUtils implements WeightFunction {
     public static final double NEVER = 1e20;
+    public static final TmpRoadUtils INSTANCE = new TmpRoadUtils();
+    public static final MapCodec<TmpRoadUtils> CODEC = MapCodec.unit(INSTANCE);
 
     private static Algorithm ALGORITHM = Algorithm.SLOPE_ONLY; // DEBUG
     private static SlopeFunction SLOPE_FUNCTION = SlopeFunction.DIRECT_SQUARE;
@@ -25,16 +30,21 @@ public class TmpRoadUtils {
         return new DebugSampler(controller.unwrapMain().surface);
     });
 
-    public static double getWeight(NoiseGraph graph, Sampler sampler, FunctionContext ctx) {
+    @Override
+    public double compute(PangaeaContext pg, FunctionContext fn) {
+        return getWeight(pg.noise, fn);
+    }
+
+    public static double getWeight(NoiseGraph graph, FunctionContext ctx) {
         return switch (ALGORITHM) {
-            case OLD -> getWeightOld(graph, sampler, ctx);
-            case NEW -> getWeightNew(graph, sampler, ctx);
-            case SLOPE_ONLY -> getSlopeOnly(graph, sampler, ctx);
+            case OLD -> getWeightOld(graph, ctx);
+            case NEW -> getWeightNew(graph, ctx);
+            case SLOPE_ONLY -> getSlopeOnly(graph, ctx);
         };
     }
 
-    public static double getWeightOld(NoiseGraph graph, Sampler sampler, FunctionContext ctx) {
-        final double c = graph.getContinentalness(sampler, ctx);
+    public static double getWeightOld(NoiseGraph graph, FunctionContext ctx) {
+        final double c = graph.getContinentalness(ctx);
         if (c < -0.19) {
             return NEVER;
         }
@@ -42,7 +52,7 @@ public class TmpRoadUtils {
         if (c < 0.15) {
             weight += Utils.squareQuantized(c - 0.15);
         }
-        final float pv = graph.getPv(sampler, ctx);
+        final float pv = graph.getPv(ctx);
         if (pv < -0.6) {
             return NEVER;
         } else if (pv < -0.45) {
@@ -65,8 +75,8 @@ public class TmpRoadUtils {
         return weight;
     }
 
-    public static double getWeightNew(NoiseGraph graph, Sampler sampler, FunctionContext ctx) {
-        final double c = graph.getContinentalness(sampler, ctx);
+    public static double getWeightNew(NoiseGraph graph, FunctionContext ctx) {
+        final double c = graph.getContinentalness(ctx);
         if (c < -0.19) {
             return NEVER;
         }
@@ -74,7 +84,7 @@ public class TmpRoadUtils {
         if (c < 0.15) {
             weight += Utils.squareQuantized(c - 0.15);
         }
-        final float pv = graph.getPv(sampler, ctx);
+        final float pv = graph.getPv(ctx);
         if (pv < -0.6) {
             return NEVER;
         } else if (pv < -0.45) {
@@ -94,8 +104,8 @@ public class TmpRoadUtils {
         return weight;
     }
 
-    public static double getSlopeOnly(NoiseGraph graph, Sampler sampler, FunctionContext ctx) {
-        final double c = graph.getContinentalness(sampler, ctx);
+    public static double getSlopeOnly(NoiseGraph graph, FunctionContext ctx) {
+        final double c = graph.getContinentalness(ctx);
         if (c < -0.19) {
             return NEVER;
         }
@@ -115,6 +125,11 @@ public class TmpRoadUtils {
             case MULTIPLY -> slope * SLOPE_MULTIPLE;
             case DIRECT -> slope;
         };
+    }
+
+    @Override
+    public MapCodec<? extends WeightFunction> codec() {
+        return CODEC;
     }
 
     enum Algorithm { OLD, NEW, SLOPE_ONLY }

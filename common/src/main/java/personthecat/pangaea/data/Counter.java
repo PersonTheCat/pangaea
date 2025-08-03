@@ -10,4 +10,8 @@ public class Counter {
     public int get() {
         return this.value;
     }
+
+    public void reset() {
+        this.value = 0;
+    }
 }

@@ -33,7 +33,8 @@ public class ChunkStatusTasksMixin {
             ChunkAccess chunk,
             Carving step,
             Operation<Void> applyCarvers) {
-        PangaeaContext.init(level, (ProtoChunk) chunk, gen);
+        final var ctx = PangaeaContext.init(level, (ProtoChunk) chunk, gen);
+        GeneratorHooks.initRoadSystem(level, chunk, ctx);
         applyCarvers.call(gen, level, seed, rand, biomes, structures, chunk, step);
         GeneratorHooks.applyGiantFeatures(level, gen, PangaeaContext.get(level));
     }

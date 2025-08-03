@@ -1,7 +1,10 @@
 package personthecat.pangaea.mixin.extras;
 
+import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -15,6 +18,9 @@ import java.nio.file.Path;
 
 @Mixin(ServerLevel.class)
 public abstract class ServerLevelMixin implements LevelExtras {
+    @Shadow
+    @Final
+    private ServerChunkCache chunkSource;
     @Unique
     private RoadMap pangaea$roadMap;
     @Unique
@@ -22,7 +28,7 @@ public abstract class ServerLevelMixin implements LevelExtras {
 
     @Inject(at = @At("RETURN"), method = "<init>")
     public void postInit(CallbackInfo ci) {
-        this.pangaea$noiseGraph = new NoiseGraph(); // accessed by roadMap
+        this.pangaea$noiseGraph = new NoiseGraph(this.chunkSource.randomState()); // accessed by roadMap
         this.pangaea$roadMap = new RoadMap((ServerLevel) (Object) this);
     }
 

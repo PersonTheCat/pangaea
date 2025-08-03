@@ -3,13 +3,29 @@ package personthecat.pangaea.world.hooks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.registry.PgRegistries;
 import personthecat.pangaea.world.level.PangaeaContext;
+import personthecat.pangaea.world.road.RoadRegion;
 
 public final class GeneratorHooks {
 
     private GeneratorHooks() {}
+
+    public static void initRoadSystem(WorldGenLevel level, ChunkAccess chunk, PangaeaContext ctx) {
+        if (PgRegistries.ROAD.isEmpty()) {
+            return;
+        }
+        final var map = LevelExtras.getRoadMap(level.getLevel());
+        final short x = RoadRegion.chunkToRegion(chunk.getPos().x);
+        final short z = RoadRegion.chunkToRegion(chunk.getPos().z);
+        map.loadOrGenerateRegion(x, z);
+        // in case someone else uses these values (they are typically reset)
+        ctx.featureIndex.reset();
+        ctx.rand.setSeed(level.getSeed());
+    }
 
     public static void applyGiantFeatures(WorldGenLevel level, ChunkGenerator gen, PangaeaContext ctx) {
         final var registry = PgRegistries.GIANT_FEATURE;

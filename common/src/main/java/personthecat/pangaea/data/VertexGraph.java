@@ -42,28 +42,25 @@ public class VertexGraph extends NeighborGraph<VertexNode> {
     public void writeTo(final ByteWriter writer) throws IOException {
         writer.writeInt32(this.dimension);
         this.graph.writeTo(writer,
-            (w1, column) -> column.writeTo(w1,
-                (w2, node) -> w2.write(node.radius)));
+            (w1, column) -> column.writeTo(w1, (w2, node) -> node.writeTo(w2)));
     }
 
     public static VertexGraph fromReader(final ByteReader reader) throws IOException {
         final int dimension = reader.readInt32();
         final var graph = NeighborMap.fromReader(reader,
-                r1 -> NeighborMap.fromReader(r1,
-                        r2 -> new VertexNode(r2.read())));
+            r1 -> NeighborMap.fromReader(r1, VertexNode::fromReader));
         return new VertexGraph(graph, dimension);
     }
 
     public static class VertexNode extends Node {
         private byte level;
 
-        private VertexNode(byte radius) {
-            super(radius);
-            this.level = 0;
+        private VertexNode(RoadVertex v, byte level) {
+            this(v.radius, level);
         }
 
-        private VertexNode(RoadVertex v, byte level) {
-            super(v.radius);
+        private VertexNode(byte radius, byte level) {
+            super(radius);
             this.level = level;
         }
 
@@ -77,6 +74,15 @@ public class VertexGraph extends NeighborGraph<VertexNode> {
             this.level = (byte) Math.max(this.level, level);
             v.addFlag(RoadVertex.INTERSECTION);
             return this;
+        }
+
+        private void writeTo(ByteWriter tw) throws IOException {
+            tw.write(this.radius);
+            tw.write(this.level);
+        }
+
+        private static VertexNode fromReader(ByteReader reader) throws IOException {
+            return new VertexNode(reader.read(), reader.read());
         }
     }
 

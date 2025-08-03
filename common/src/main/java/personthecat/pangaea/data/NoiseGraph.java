@@ -8,7 +8,9 @@ import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.Climate.Sampler;
 import net.minecraft.world.level.levelgen.DensityFunction.SinglePointContext;
 import net.minecraft.world.level.levelgen.DensityFunction.FunctionContext;
+import net.minecraft.world.level.levelgen.NoiseRouter;
 import net.minecraft.world.level.levelgen.NoiseRouterData;
+import net.minecraft.world.level.levelgen.RandomState;
 import org.jetbrains.annotations.Nullable;
 import personthecat.pangaea.util.Utils;
 import personthecat.pangaea.world.feature.PositionalBiomePredicate;
@@ -25,16 +27,24 @@ public class NoiseGraph {
         new Point(3, 12),
         new Point(8, 8),
         new Point(12, 3),
-        new Point(12, 12),
+        new Point(12, 12)
     };
 
-    protected final Long2ObjectMap<Samples> graph = new Long2ObjectOpenHashMap<>();
+    protected final Long2ObjectMap<Samples> graph;
+    protected final Sampler sampler;
+    protected final NoiseRouter router;
 
-    public float getSd(Sampler sampler, FunctionContext ctx) {
-        return this.getSd(sampler, ctx.blockX(), ctx.blockZ());
+    public NoiseGraph(RandomState rand) {
+        this.graph = new Long2ObjectOpenHashMap<>();
+        this.sampler = rand.sampler();
+        this.router = rand.router();
     }
 
-    public float getSd(Sampler sampler, int x, int z) {
+    public float getSd(FunctionContext ctx) {
+        return this.getSd(ctx.blockX(), ctx.blockZ());
+    }
+
+    public float getSd(int x, int z) {
         final int cX = x >> 4;
         final int cZ = z >> 4;
         final int rX = x & 15;
@@ -43,12 +53,12 @@ public class NoiseGraph {
         final int lZ = lowerQuarter(rZ);
         final Samples data = this.getData(cX, cZ);
         if (data.getSd(lX + 1, lZ + 1) == 0) { // nothing interpolated between corners
-            this.compute(sampler, data, cX, cZ, lX, lZ);
+            this.compute(data, cX, cZ, lX, lZ);
         }
         return data.getSd(rX, rZ);
     }
 
-    public float getApproximateDepth(Sampler sampler, int x, int z) {
+    public float getApproximateDepth(int x, int z) {
         final int cX = x >> 4;
         final int cZ = z >> 4;
         final int rX = x & 15;
@@ -56,10 +66,10 @@ public class NoiseGraph {
         final int lX = lowerQuarter(rX);
         final int lZ = lowerQuarter(rZ);
         final Samples data = this.getData(cX, cZ);
-        return this.getOrComputeDepth(sampler, data, cX, cZ, lX, lZ);
+        return this.getOrComputeDepth(data, cX, cZ, lX, lZ);
     }
 
-    public float getDepth(Sampler sampler, int x, int z) {
+    public float getDepth(int x, int z) {
         final int cX = x >> 4;
         final int cZ = z >> 4;
         final int rX = x & 15;
@@ -68,13 +78,13 @@ public class NoiseGraph {
         final int lZ = lowerQuarter(rZ);
         final Samples data = this.getData(cX, cZ);
 
-        final float lXlZ = this.getOrComputeDepth(sampler, data, cX, cZ, lX, lZ);
+        final float lXlZ = this.getOrComputeDepth(data, cX, cZ, lX, lZ);
         if (rX == lX && rZ == lZ) {
             return lXlZ;
         }
-        final float uXuZ = this.getOrComputeDepth(sampler, data, cX, cZ, lX + 4, lZ + 4);
-        final float lXuZ = this.getOrComputeDepth(sampler, data, cX, cZ, lX, lZ + 4);
-        final float uXlZ = this.getOrComputeDepth(sampler, data, cX, cZ, lX + 4, lZ);
+        final float uXuZ = this.getOrComputeDepth(data, cX, cZ, lX + 4, lZ + 4);
+        final float lXuZ = this.getOrComputeDepth(data, cX, cZ, lX, lZ + 4);
+        final float uXlZ = this.getOrComputeDepth(data, cX, cZ, lX + 4, lZ);
 
         final float tX = (rX - lX) / 4F;
         final float tZ = (rZ - lZ) / 4F;
@@ -85,7 +95,7 @@ public class NoiseGraph {
         return Utils.lerp(l, r, tZ);
     }
 
-    public float getApproximateContinentalness(Sampler sampler, int x, int z) {
+    public float getApproximateContinentalness(int x, int z) {
         final int cX = x >> 4;
         final int cZ = z >> 4;
         final int rX = x & 15;
@@ -93,14 +103,14 @@ public class NoiseGraph {
         final int lX = lowerEighth(rX);
         final int lZ = lowerEighth(rZ);
         final Samples data = this.getData(cX, cZ);
-        return this.getOrComputeContinentalness(sampler, data, cX, cZ, lX, lZ);
+        return this.getOrComputeContinentalness(data, cX, cZ, lX, lZ);
     }
 
-    public float getContinentalness(Sampler sampler, FunctionContext ctx) {
-        return this.getContinentalness(sampler, ctx.blockX(), ctx.blockZ());
+    public float getContinentalness(FunctionContext ctx) {
+        return this.getContinentalness(ctx.blockX(), ctx.blockZ());
     }
 
-    public float getContinentalness(Sampler sampler, int x, int z) {
+    public float getContinentalness(int x, int z) {
         final int cX = x >> 4;
         final int cZ = z >> 4;
         final int rX = x & 15;
@@ -109,13 +119,13 @@ public class NoiseGraph {
         final int lZ = lowerEighth(rZ);
         final Samples data = this.getData(cX, cZ);
 
-        final float lXlZ = this.getOrComputeContinentalness(sampler, data, cX, cZ, lX, lZ);
+        final float lXlZ = this.getOrComputeContinentalness(data, cX, cZ, lX, lZ);
         if (rX == lX && rZ == lZ) {
             return lXlZ;
         }
-        final float uXuZ = this.getOrComputeContinentalness(sampler, data, cX, cZ, lX + 8, lZ + 8);
-        final float lXuZ = this.getOrComputeContinentalness(sampler, data, cX, cZ, lX, lZ + 8);
-        final float uXlZ = this.getOrComputeContinentalness(sampler, data, cX, cZ, lX + 8, lZ);
+        final float uXuZ = this.getOrComputeContinentalness(data, cX, cZ, lX + 8, lZ + 8);
+        final float lXuZ = this.getOrComputeContinentalness(data, cX, cZ, lX, lZ + 8);
+        final float uXlZ = this.getOrComputeContinentalness(data, cX, cZ, lX + 8, lZ);
 
         final float tX = (rX - lX) / (lX == 0 ? 8F : 7F); // distance between samples is either 7 or 8
         final float tZ = (rZ - lZ) / (lZ == 0 ? 8F : 7F);
@@ -125,19 +135,19 @@ public class NoiseGraph {
         return Utils.lerp(l, r, tZ);
     }
 
-    public float getApproximatePv(Sampler sampler, int x, int z) {
-        return NoiseRouterData.peaksAndValleys(this.getApproximateWeirdness(sampler, x, z));
+    public float getApproximatePv(int x, int z) {
+        return NoiseRouterData.peaksAndValleys(this.getApproximateWeirdness(x, z));
     }
 
-    public float getPv(Sampler sampler, FunctionContext ctx) {
-        return NoiseRouterData.peaksAndValleys(this.getWeirdness(sampler, ctx));
+    public float getPv(FunctionContext ctx) {
+        return NoiseRouterData.peaksAndValleys(this.getWeirdness(ctx));
     }
 
-    public float getPv(Sampler sampler, int x, int z) {
-        return NoiseRouterData.peaksAndValleys(this.getWeirdness(sampler, x, z));
+    public float getPv(int x, int z) {
+        return NoiseRouterData.peaksAndValleys(this.getWeirdness(x, z));
     }
 
-    public float getApproximateWeirdness(Sampler sampler, int x, int z) {
+    public float getApproximateWeirdness(int x, int z) {
         final int cX = x >> 4;
         final int cZ = z >> 4;
         final int rX = x & 15;
@@ -145,14 +155,14 @@ public class NoiseGraph {
         final int lX = lowerThird(rX);
         final int lZ = lowerThird(rZ);
         final Samples data = this.getData(cX, cZ);
-        return this.getOrComputeWeirdness(sampler, data, cX, cZ, lX, lZ);
+        return this.getOrComputeWeirdness(data, cX, cZ, lX, lZ);
     }
 
-    public float getWeirdness(Sampler sampler, FunctionContext ctx) {
-        return this.getWeirdness(sampler, ctx.blockX(), ctx.blockZ());
+    public float getWeirdness(FunctionContext ctx) {
+        return this.getWeirdness(ctx.blockX(), ctx.blockZ());
     }
 
-    public float getWeirdness(Sampler sampler, int x, int z) {
+    public float getWeirdness(int x, int z) {
         final int cX = x >> 4;
         final int cZ = z >> 4;
         final int rX = x & 15;
@@ -161,16 +171,16 @@ public class NoiseGraph {
         final int lZ = lowerThird(rZ);
         final Samples data = this.getData(cX, cZ);
 
-        final float lXlZ = this.getOrComputeWeirdness(sampler, data, cX, cZ, lX, lZ);
+        final float lXlZ = this.getOrComputeWeirdness(data, cX, cZ, lX, lZ);
         if (rX == lX && rZ == lZ) {
             return lXlZ;
         }
         // could be optimized by doing a 1-dimensional lerp on either edge
         final int uX = Math.min(15, lX + 3);
         final int uZ = Math.min(15, lZ + 3);
-        final float uXuZ = this.getOrComputeWeirdness(sampler, data, cX, cZ, uX, uZ);
-        final float lXuZ = this.getOrComputeWeirdness(sampler, data, cX, cZ, lX, uZ);
-        final float uXlZ = this.getOrComputeWeirdness(sampler, data, cX, cZ, uX, lZ);
+        final float uXuZ = this.getOrComputeWeirdness(data, cX, cZ, uX, uZ);
+        final float lXuZ = this.getOrComputeWeirdness(data, cX, cZ, lX, uZ);
+        final float uXlZ = this.getOrComputeWeirdness(data, cX, cZ, uX, lZ);
 
         final float tX = (rX - lX) / 3F;
         final float tZ = (rZ - lZ) / 3F;
@@ -242,7 +252,7 @@ public class NoiseGraph {
         return data;
     }
 
-    protected void compute(Sampler sampler, Samples data, int cX, int cZ, int lX, int lZ) {
+    protected void compute(Samples data, int cX, int cZ, int lX, int lZ) {
         final MutableFunctionContext ctx = new MutableFunctionContext();
         final int uX = lX + 4;
         final int uZ = lZ + 4;
@@ -253,7 +263,7 @@ public class NoiseGraph {
                     continue;
                 }
                 if (data.getD(x, z) == 0) {
-                    data.setD(x, z, (float) sampler.depth().compute(ctx.at((cX << 4) + x, (cZ << 4) + z)));
+                    data.setD(x, z, (float) this.sampler.depth().compute(ctx.at((cX << 4) + x, (cZ << 4) + z)));
                 }
             }
         }
@@ -292,28 +302,28 @@ public class NoiseGraph {
         );
     }
 
-    protected float getOrComputeDepth(Sampler sampler, Samples data, int cX, int cZ, int rX, int rZ) {
+    protected float getOrComputeDepth(Samples data, int cX, int cZ, int rX, int rZ) {
         float d = data.getD(rX, rZ);
         if (d == 0) {
-            d = (float) sampler.depth().compute(new SinglePointContext((cX << 4) + rX, 0, (cZ << 4) + rZ));
+            d = (float) this.sampler.depth().compute(new SinglePointContext((cX << 4) + rX, 0, (cZ << 4) + rZ));
             data.setD(rX, rZ, d);
         }
         return d;
     }
 
-    protected float getOrComputeContinentalness(Sampler sampler, Samples data, int cX, int cZ, int rX, int rZ) {
+    protected float getOrComputeContinentalness(Samples data, int cX, int cZ, int rX, int rZ) {
         float c = data.getC(rX, rZ);
         if (c == 0) {
-            c = (float) sampler.continentalness().compute(new SinglePointContext((cX << 4) + rX, 0, (cZ << 4) + rZ));
+            c = (float) this.sampler.continentalness().compute(new SinglePointContext((cX << 4) + rX, 0, (cZ << 4) + rZ));
             data.setC(rX, rZ, c);
         }
         return c;
     }
 
-    protected float getOrComputeWeirdness(Sampler sampler, Samples data, int cX, int cZ, int rX, int rZ) {
+    protected float getOrComputeWeirdness(Samples data, int cX, int cZ, int rX, int rZ) {
         float c = data.getW(rX, rZ);
         if (c == 0) {
-            c = (float) sampler.weirdness().compute(new SinglePointContext((cX << 4) + rX, 0, (cZ << 4) + rZ));
+            c = (float) this.sampler.weirdness().compute(new SinglePointContext((cX << 4) + rX, 0, (cZ << 4) + rZ));
             data.setW(rX, rZ, c);
         }
         return c;

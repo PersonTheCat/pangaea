@@ -20,6 +20,7 @@ import personthecat.pangaea.world.filter.ChunkFilter;
 import personthecat.pangaea.world.injector.Injector;
 import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.provider.ColumnProvider;
+import personthecat.pangaea.world.road.RoadConfig;
 import personthecat.pangaea.world.weight.WeightFunction;
 
 public final class PgRegistries {
@@ -30,6 +31,7 @@ public final class PgRegistries {
     public static final RegistryHandle<MapCodec<? extends ChainLinkConfig<?>>> LINK_TYPE = type(Keys.LINK_TYPE);
     public static final RegistryHandle<MapCodec<? extends ChainPathConfig<?>>> PATH_TYPE = type(Keys.PATH_TYPE);
     public static final RegistryHandle<MapCodec<? extends WeightFunction>> WEIGHT_TYPE = type(Keys.WEIGHT_TYPE);
+    public static final RegistryHandle<MapCodec<? extends RoadConfig>> ROAD_TYPE = type(Keys.ROAD_TYPE);
 
     public static final RegistryHandle<Injector> INJECTOR = dynamic(Keys.INJECTOR, Injector.CODEC);
     public static final RegistryHandle<BiomeLayout> BIOME_LAYOUT = dynamic(Keys.BIOME_LAYOUT, BiomeLayout.CODEC.codec());
@@ -38,6 +40,7 @@ public final class PgRegistries {
     public static final RegistryHandle<ColumnProvider> COLUMN = dynamic(Keys.COLUMN, ColumnProvider.CODEC);
     public static final RegistryHandle<ChunkFilter> CHUNK_FILTER = dynamic(Keys.CHUNK_FILTER, ChunkFilter.CODEC);
     public static final RegistryHandle<ConfiguredFeature<GiantFeatureConfiguration, ?>> GIANT_FEATURE = dynamic(Keys.GIANT_FEATURE, GiantFeature.DIRECT_CODEC);
+    public static final RegistryHandle<RoadConfig> ROAD = dynamic(Keys.ROAD, RoadConfig.CODEC);
 
     private PgRegistries() {}
 
@@ -57,6 +60,7 @@ public final class PgRegistries {
         public static final ResourceKey<Registry<MapCodec<? extends ChainLinkConfig<?>>>> LINK_TYPE = key("chain_link_type");
         public static final ResourceKey<Registry<MapCodec<? extends ChainPathConfig<?>>>> PATH_TYPE = key("chain_path_type");
         public static final ResourceKey<Registry<MapCodec<? extends WeightFunction>>> WEIGHT_TYPE = key("weight_type");
+        public static final ResourceKey<Registry<MapCodec<? extends RoadConfig>>> ROAD_TYPE = key("road_type");
 
         public static final ResourceKey<Registry<Injector>> INJECTOR = key("injector");
         public static final ResourceKey<Registry<BiomeLayout>> BIOME_LAYOUT = key("layout");
@@ -66,6 +70,7 @@ public final class PgRegistries {
         public static final ResourceKey<Registry<ChunkFilter>> CHUNK_FILTER = key("chunk_filter");
         public static final ResourceKey<Registry<ChainLink>> LINK = key("chain_link");
         public static final ResourceKey<Registry<ConfiguredFeature<GiantFeatureConfiguration, ?>>> GIANT_FEATURE = key("giant_feature");
+        public static final ResourceKey<Registry<RoadConfig>> ROAD = key("road");
         public static final ResourceKey<Registry<Template<DensityFunction>>> DENSITY_TEMPLATE = key("function");
 
         private Keys() {}

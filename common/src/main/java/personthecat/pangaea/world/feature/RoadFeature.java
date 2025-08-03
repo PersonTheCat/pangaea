@@ -1,7 +1,6 @@
 package personthecat.pangaea.world.feature;
 
 import net.minecraft.core.BlockPos.MutableBlockPos;
-import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
@@ -25,14 +24,13 @@ public class RoadFeature extends Feature<NoneFeatureConfiguration> {
 
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> ctx) {
-        final var sampler = ((ServerChunkCache) ctx.level().getChunkSource()).randomState().sampler();
         final var fCtx = MutableFunctionContext.from(ctx.origin()).at(ctx.chunkGenerator().getSeaLevel());
         final var level = ctx.level().getLevel();
         final int aX = fCtx.blockX() & ~15;
         final int aZ = fCtx.blockZ() & ~15;
         final short rX = RoadRegion.absToRegion(aX);
         final short rZ = RoadRegion.absToRegion(aZ);
-        final var region = LevelExtras.getRoadMap(level).getRegion(sampler, rX, rZ);
+        final var region = LevelExtras.getRoadMap(level).getRegion(rX, rZ);
         for (final var network : region) {
             if (!network.containsPoint(aX, aZ)) {
                 continue;

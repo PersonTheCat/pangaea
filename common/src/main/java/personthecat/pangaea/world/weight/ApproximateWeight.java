@@ -8,25 +8,25 @@ public enum ApproximateWeight implements WeightFunction {
     CONTINENTALNESS {
         @Override
         public double compute(PangaeaContext pg, FunctionContext fn) {
-            return pg.noise.getApproximateContinentalness(pg.sampler, fn.blockX(), fn.blockZ());
+            return pg.noise.getApproximateContinentalness(fn.blockX(), fn.blockZ());
         }
     },
     DEPTH {
         @Override
         public double compute(PangaeaContext pg, FunctionContext fn) {
-            return pg.noise.getApproximateDepth(pg.sampler, fn.blockX(), fn.blockZ());
+            return pg.noise.getApproximateDepth(fn.blockX(), fn.blockZ());
         }
     },
     PV {
         @Override
         public double compute(PangaeaContext pg, FunctionContext fn) {
-            return pg.noise.getApproximatePv(pg.sampler, fn.blockX(), fn.blockZ());
+            return pg.noise.getApproximatePv(fn.blockX(), fn.blockZ());
         }
     },
     WEIRDNESS {
         @Override
         public double compute(PangaeaContext pg, FunctionContext fn) {
-            return pg.noise.getApproximateWeirdness(pg.sampler, fn.blockX(), fn.blockZ());
+            return pg.noise.getApproximateWeirdness(fn.blockX(), fn.blockZ());
         }
     };
 
