@@ -18,12 +18,12 @@ public final class RoadSystem {
 
     public RoadSystem(ServerLevel level, RoadMap map) {
         this.map = map;
-        this.generators = loadGenerators(level);
+        this.generators = loadGenerators(level, map);
     }
 
-    private static List<? extends RoadGenerator<?>> loadGenerators(ServerLevel level) {
+    private static List<? extends RoadGenerator<?>> loadGenerators(ServerLevel level, RoadMap map) {
         return PgRegistries.ROAD.stream()
-            .map(s -> s.createGenerator(level))
+            .map(s -> s.createGenerator(level, map))
             .toList();
     }
 
@@ -81,6 +81,7 @@ public final class RoadSystem {
                 for (int i = 0; i < generators.size(); i++) {
                     ctx.rand.setLargeFeatureSeed(ctx.seed + i, cX, cZ);
                     ctx.featureIndex.increment();
+                    ctx.targetPos.at(cX << 4, cZ << 4);
                     final var n = generators.get(i).generateNetwork(ctx, region, cX, cZ, pX, pZ, partial);
                     if (n != null) {
                         final var o = n.origin().toPoint();

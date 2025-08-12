@@ -19,16 +19,14 @@ public class RoadVertex {
     public final int x;
     public final int z;
     public byte radius;
-    public float integrity;
     public float theta;
     public float xAngle;
     public short flags;
 
-    public RoadVertex(int x, int z, byte radius, float integrity, float theta, float xAngle, short flags) {
+    public RoadVertex(int x, int z, byte radius, float theta, float xAngle, short flags) {
         this.x = x;
         this.z = z;
         this.radius = radius;
-        this.integrity = integrity;
         this.theta = theta;
         this.xAngle = xAngle;
         this.flags = flags;
@@ -57,7 +55,6 @@ public class RoadVertex {
             br.read(),
             br.readInt16() / 1_000F,
             br.readInt16() / 1_000F,
-            br.readInt16() / 1_000F,
             br.readInt16());
     }
 
@@ -65,7 +62,6 @@ public class RoadVertex {
         bw.writeInt32(this.x);
         bw.writeInt32(this.z);
         bw.write(this.radius);
-        bw.writeInt16((short) (this.integrity * 1_000F));
         bw.writeInt16((short) (this.theta * 1_000F));
         bw.writeInt16((short) (this.xAngle * 1_000F));
         bw.writeInt16(this.flags);

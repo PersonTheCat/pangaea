@@ -13,7 +13,7 @@ public record Road(byte level, int minX, int minZ, int maxX, int maxZ, RoadVerte
     public static final int PADDING = 32; // assume vertices will never exit these bounds
 
     public int length() {
-        return this.vertices.length * STEP;
+        return this.vertices.length * STEP / 2; // interpolation
     }
 
     public int distance() {

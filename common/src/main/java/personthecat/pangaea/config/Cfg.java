@@ -3,7 +3,6 @@ package personthecat.pangaea.config;
 import personthecat.catlib.config.Config.Comment;
 import personthecat.catlib.config.ConfigEvaluator;
 import personthecat.pangaea.Pangaea;
-import personthecat.pangaea.world.road.Road;
 
 public final class Cfg {
     private static final Cfg INSTANCE = new Cfg();
@@ -57,36 +56,12 @@ public final class Cfg {
         return INSTANCE.temporary.removeAllCarvers;
     }
 
-    public static boolean generateDebugPillars() {
-        return INSTANCE.temporary.generateDebugPillars;
-    }
-
-    public static boolean enableRoads() {
-        return INSTANCE.temporary.enableRoads;
-    }
-
     public static boolean enableTemporaryDebugFeatures() {
         return INSTANCE.temporary.enableTemporaryDebugFeatures;
     }
 
     public static boolean optimizeBiomeLayouts() {
         return INSTANCE.temporary.optimizeBiomeLayouts;
-    }
-
-    public static float roadChance() {
-        return INSTANCE.temporary.roadChance;
-    }
-
-    public static int maxBranches() {
-        return INSTANCE.temporary.maxBranches;
-    }
-
-    public static int minRoadLength() {
-        return INSTANCE.temporary.minRoadLength;
-    }
-
-    public static int maxRoadLength() {
-        return INSTANCE.temporary.maxRoadLength;
     }
 
     public static boolean encodeDensityBuilders() {
@@ -175,14 +150,8 @@ public final class Cfg {
     static class Temporary {
         boolean removeAllFeatures = false;
         boolean removeAllCarvers = false;
-        boolean generateDebugPillars = false;
-        boolean enableRoads = true;
         boolean enableTemporaryDebugFeatures = true;
         boolean optimizeBiomeLayouts = true;
-        float roadChance = 1.0F / 4000F;
-        int maxBranches = 15;
-        int minRoadLength = Road.MAX_DISTANCE / 4;
-        int maxRoadLength = Road.MAX_DISTANCE;
     }
 
     static class Data {

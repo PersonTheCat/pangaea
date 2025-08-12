@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
-import personthecat.pangaea.config.Cfg;
 import personthecat.pangaea.data.NoiseGraph;
 import personthecat.pangaea.data.Point;
 import personthecat.pangaea.data.VertexGraph;
@@ -27,9 +26,9 @@ public abstract class RoadGenerator<C extends RoadConfig> {
     protected final NoiseGraph graph;
     protected final C cfg;
 
-    protected RoadGenerator(ServerLevel level, C cfg) {
+    protected RoadGenerator(ServerLevel level, RoadMap map, C cfg) {
         this.level = level;
-        this.map = LevelExtras.getRoadMap(level);
+        this.map = map;
         this.graph = LevelExtras.getNoiseGraph(level);
         this.cfg = cfg;
     }
@@ -151,10 +150,7 @@ public abstract class RoadGenerator<C extends RoadConfig> {
     }
 
     protected @Nullable Road getMainRoad(PangaeaContext ctx, RoadRegion region, Point src) {
-        final int minL = Cfg.minRoadLength();
-        final int maxL = Cfg.maxRoadLength();
-        final int d = minL + ctx.rand.nextInt(maxL - minL);
-
+        final int d = this.getRoadLength(ctx);
         if (this.cfg.destinationStrategy() == DestinationStrategy.PATH_BETWEEN) {
             final float a = ctx.rand.nextFloat() * TAU; // any angle
             final int aX = (int) (src.x + d * Mth.cos(a));
@@ -169,6 +165,12 @@ public abstract class RoadGenerator<C extends RoadConfig> {
         }
         final Road r = this.trace(ctx, src, Destination.distanceFrom(src, d));
         return r == null || this.isTooClose(region, r) ? null : r;
+    }
+
+    protected int getRoadLength(PangaeaContext ctx) {
+        final int minL = Road.MAX_DISTANCE / 4;
+        final int maxL = Road.MAX_DISTANCE;
+        return minL + ctx.rand.nextInt(maxL - minL);
     }
 
     protected final boolean isTooClose(RoadRegion region, Point src, Point dest) {

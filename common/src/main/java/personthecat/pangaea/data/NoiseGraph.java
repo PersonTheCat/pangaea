@@ -40,6 +40,25 @@ public class NoiseGraph {
         this.router = rand.router();
     }
 
+    public float getSlope(FunctionContext ctx) {
+        return this.getSlope(ctx.blockX(), ctx.blockZ());
+    }
+
+    // experimental alternate to getSd using estimated height value
+    public float getSlope(int x, int z) {
+        final int cX = x >> 4;
+        final int cZ = z >> 4;
+        final int rX = x & 15;
+        final int rZ = z & 15;
+        final int lX = lowerQuarter(rX);
+        final int lZ = lowerQuarter(rZ);
+        final Samples data = this.getData(cX, cZ);
+        if (data.getSd(lX + 1, lZ + 1) == 0) { // nothing interpolated between corners
+            this.computeSlopes(data, cX, cZ, lX, lZ);
+        }
+        return data.getSd(rX, rZ);
+    }
+
     public float getSd(FunctionContext ctx) {
         return this.getSd(ctx.blockX(), ctx.blockZ());
     }
@@ -250,6 +269,72 @@ public class NoiseGraph {
         }
         this.graph.put(c, data = new Samples());
         return data;
+    }
+
+    protected void computeSlopes(Samples data, int cX, int cZ, int lX, int lZ) {
+        final MutableFunctionContext ctx = new MutableFunctionContext();
+        final int uX = lX + 4;
+        final int uZ = lZ + 4;
+        // get samples around 4 corners
+        for (int x = lX - 4; x <= uX + 4; x += 4) {
+            for (int z = lZ - 4; z <= uZ + 4; z += 4) {
+                if ((x == lX - 4 || x == uX + 4) && (z == lZ - 4 || z == uZ + 4)) { // is corner of area
+                    continue;
+                }
+                if (data.getD(x, z) == 0) {
+                    data.setD(x, z, (float) this.computeHeight(data, ctx.at((cX << 4) + x, (cZ << 4) + z)));
+                }
+            }
+        }
+        // calculate SDs at each corner
+        final float lXlZ = (float) this.computeSlope(data, lX, lZ);
+        final float uXuZ = (float) this.computeSlope(data, uX, uZ);
+        final float lXuZ = (float) this.computeSlope(data, lX, uZ);
+        final float uXlZ = (float) this.computeSlope(data, uX, lZ);
+
+        data.setSd(lX, lZ, lXlZ);
+        if (uX < 16 && uZ < 16) data.setSd(uX, uZ, uXuZ);
+        if (uZ < 16) data.setSd(lX, uZ, lXuZ);
+        if (uX < 16) data.setSd(uX, lZ, uXlZ);
+
+        // interpolate left column
+        final float lXlZ2 = (lXlZ + lXuZ) / 2F;
+        data.setSd(lX, lZ + 2, lXlZ2);
+
+        // interpolate right column
+        final float uXlZ2 = (uXlZ + uXuZ) / 2F;
+        if (uX < 16) data.setSd(uX, lZ + 2, uXlZ2);
+
+        // interpolate between columns
+        data.setSd(lX + 2, lZ, (lXlZ + uXlZ) / 2F);
+        data.setSd(lX + 2, lZ + 2, (lXlZ2 + uXlZ2) / 2F);
+        if (uZ < 16) data.setSd(lX + 2, uZ, (lXuZ + uXuZ) / 2F);
+    }
+
+    protected int computeHeight(Samples data, MutableFunctionContext ctx) {
+        final var f = this.router.initialDensityWithoutJaggedness();
+        int result = -1;
+        int low = 0;
+        int high = 255;
+
+        while (low <= high) {
+            final int mid = (low + high) / 2;
+            final double density = f.compute(ctx.at(mid));
+
+            if (density > 0.390625) {
+                result = mid;
+                low = mid + 1;  // Search higher
+            } else {
+                high = mid - 1; // Search lower
+            }
+        }
+        return result;
+    }
+
+    protected double computeSlope(Samples data, int rX, int rZ) {
+        final double sZ = data.getD(rX, rZ - 4) - data.getD(rX, rZ + 4);
+        final double sX = data.getD(rX - 4, rZ) - data.getD(rX + 4, rZ);
+        return Math.sqrt(sZ * sZ + sX * sZ);
     }
 
     protected void compute(Samples data, int cX, int cZ, int lX, int lZ) {

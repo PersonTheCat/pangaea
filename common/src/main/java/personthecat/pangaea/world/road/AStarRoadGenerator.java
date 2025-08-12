@@ -9,6 +9,8 @@ import personthecat.pangaea.data.Point;
 import personthecat.pangaea.world.filter.ChanceChunkFilter;
 import personthecat.pangaea.world.filter.ChunkFilter;
 import personthecat.pangaea.world.level.PangaeaContext;
+import personthecat.pangaea.world.road.AStarRoadGenerator.Configuration;
+import personthecat.pangaea.world.weight.DefaultWeight;
 import personthecat.pangaea.world.weight.WeightFunction;
 
 import java.util.List;
@@ -16,16 +18,11 @@ import java.util.List;
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 
-public class AStarRoadGenerator extends RoadGenerator<AStarRoadGenerator.Configuration> {
-    private static final byte DEMO_RADIUS_0 = 3;
-    private static final byte DEMO_RADIUS_1 = 2;
-    private static final byte DEMO_RADIUS_2 = 2;
-    private static final float DEMO_INTEGRITY = 0.65F;
-
+public class AStarRoadGenerator extends RoadGenerator<Configuration> {
     private final AStar aStar;
 
-    private AStarRoadGenerator(ServerLevel level, Configuration cfg) {
-        super(level, cfg);
+    private AStarRoadGenerator(ServerLevel level, RoadMap map, Configuration cfg) {
+        super(level, map, cfg);
         this.aStar = new AStar(this.graph, cfg.weight);
     }
 
@@ -45,6 +42,11 @@ public class AStarRoadGenerator extends RoadGenerator<AStarRoadGenerator.Configu
     }
 
     @Override
+    protected int getRoadLength(PangaeaContext ctx) {
+        return this.cfg.roadLength.sample(ctx.rand);
+    }
+
+    @Override
     protected Road trace(PangaeaContext ctx, Point src, Destination dest) {
         this.aStar.reset();
         final List<Point> path = this.aStar.search(ctx, src, dest);
@@ -52,17 +54,13 @@ public class AStarRoadGenerator extends RoadGenerator<AStarRoadGenerator.Configu
             return null;
         }
         final int l = dest.getRoadLevel();
-        final byte radius = switch (l) {
-            case 0 -> DEMO_RADIUS_0;
-            case 1 -> DEMO_RADIUS_1;
-            default -> DEMO_RADIUS_2;
-        };
+        final var radii = this.cfg.radii;
         int minX = Integer.MAX_VALUE;
         int minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE;
         int maxZ = Integer.MIN_VALUE;
         final int len = path.size();
-        final RoadVertex[] vertices = new RoadVertex[len];
+        final RoadVertex[] vertices = new RoadVertex[len * 2 - 1];
         for (int i = len - 1; i >= 0; i--) {
             final Point p = path.get(i);
             final float theta;
@@ -84,8 +82,14 @@ public class AStarRoadGenerator extends RoadGenerator<AStarRoadGenerator.Configu
             if (p.z < minZ) minZ = p.z;
             if (p.x > maxX) maxX = p.x;
             if (p.z > maxZ) maxZ = p.z;
-            final RoadVertex v = new RoadVertex(p.x, p.z, radius, DEMO_INTEGRITY, theta, xAngle, (short) 0);
-            vertices[path.size() - i - 1] = v;
+            final byte radius;
+            if (l >= radii.size()) {
+                radius = (byte) radii.getLast().sample(ctx.rand);
+            } else {
+                radius = (byte) radii.get(l).sample(ctx.rand);
+            }
+            final RoadVertex v = new RoadVertex(p.x, p.z, radius, theta, xAngle, (short) 0);
+            vertices[(path.size() - i - 1) * 2] = v;
             if (i == len - 1) {
                 v.addFlag(RoadVertex.START);
             } else if (i == 0) {
@@ -94,8 +98,24 @@ public class AStarRoadGenerator extends RoadGenerator<AStarRoadGenerator.Configu
                 v.addFlag(RoadVertex.MIDPOINT);
             }
         }
+        this.interpolate(vertices);
         this.smoothAngles(vertices);
         return new Road((byte) l, minX, minZ, maxX, maxZ, vertices);
+    }
+
+    private void interpolate(final RoadVertex[] vertices) {
+        for (int i = 0; i < vertices.length - 1; i += 2) {
+            final var a = vertices[i];
+            final var b = vertices[i + 2];
+            vertices[i + 1] = new RoadVertex(
+                (a.x + b.x) / 2,
+                (a.z + b.z) / 2,
+                (byte) ((a.radius + b.radius) / 2),
+                (a.theta + b.theta) / 2.0F,
+                (a.xAngle + b.xAngle) / 2.0F,
+                RoadVertex.MIDPOINT
+            );
+        }
     }
 
     private void smoothAngles(final RoadVertex[] vertices) {
@@ -115,18 +135,22 @@ public class AStarRoadGenerator extends RoadGenerator<AStarRoadGenerator.Configu
 
     public record Configuration(
             ChunkFilter chunkFilter, WeightFunction weight, IntProvider branches,
-            DestinationStrategy destinationStrategy) implements RoadConfig {
+            IntProvider roadLength, List<IntProvider> radii, DestinationStrategy destinationStrategy) implements RoadConfig {
+        private static final List<IntProvider> DEFAULT_RADII =
+            List.of(UniformInt.of(3, 4), UniformInt.of(2, 3));
         public static final MapCodec<Configuration> CODEC = codecOf(
-            defaulted(ChunkFilter.CODEC, "chunk_filter", ChanceChunkFilter.of(1.0 / 4000.0), Configuration::chunkFilter),
-            defaulted(WeightFunction.CODEC, "weight", TmpRoadUtils.INSTANCE, Configuration::weight),
+            defaulted(ChunkFilter.CODEC, "chunk_filter", ChanceChunkFilter.of(1.0 / 400.0), Configuration::chunkFilter),
+            defaulted(WeightFunction.CODEC, "weight", DefaultWeight.INSTANCE, Configuration::weight),
             defaulted(IntProvider.NON_NEGATIVE_CODEC, "branches", UniformInt.of(0, 15), Configuration::branches),
+            defaulted(IntProvider.NON_NEGATIVE_CODEC, "road_length", UniformInt.of(400, 800), Configuration::roadLength),
+            defaulted(IntProvider.codec(1, 8).listOf(), "radii", DEFAULT_RADII, Configuration::radii),
             defaulted(DestinationStrategy.CODEC, "destination_strategy", DestinationStrategy.DEFAULT, Configuration::destinationStrategy),
             Configuration::new
         );
 
         @Override
-        public RoadGenerator<? extends RoadConfig> createGenerator(ServerLevel level) {
-            return new AStarRoadGenerator(level, this);
+        public RoadGenerator<? extends RoadConfig> createGenerator(ServerLevel level, RoadMap map) {
+            return new AStarRoadGenerator(level, map, this);
         }
 
         @Override

@@ -4,6 +4,8 @@ import personthecat.pangaea.util.Utils;
 import personthecat.pangaea.world.road.RoadVertex;
 import personthecat.pangaea.data.NeighborGraph.Node;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.UnaryOperator;
 
 public abstract class NeighborGraph<N extends Node> {
@@ -145,6 +147,80 @@ public abstract class NeighborGraph<N extends Node> {
             column = column.previous();
         }
         return n != null ? new NodeResult<>(nX, nY, n, d) : null;
+    }
+
+    public List<NodeResult<N>> getAll(final int x, final int y, final double range) {
+        final NeighborMap<NeighborMap<N>>.EntryResult centerColumn = this.graph.getNearest(x);
+        if (centerColumn == null) {
+            return null;
+        }
+        final List<NodeResult<N>> results = new ArrayList<>();
+        // scan right
+        NeighborMap<NeighborMap<N>>.EntryResult column = centerColumn;
+
+        while (column != null) {
+            final NeighborMap<N>.EntryResult centerNode = column.t.getNearest(y);
+            if (centerNode == null) {
+                continue;
+            }
+            // scan up
+            NeighborMap<N>.EntryResult node = centerNode;
+            while (node != null) {
+                final double d = Utils.distance(column.c, node.c, x, y) - node.t.radius;
+                if (d < range) {
+                    results.add(new NodeResult<>(column.c, node.c, node.t, d));
+                }
+                if (Math.abs(node.c - y) > range) {
+                    break;
+                }
+                node = node.next();
+            }
+            // scan down
+            node = centerNode.previous();
+            while (node != null && Math.abs(node.c - y) <= range) {
+                final double d = Utils.distance(column.c, node.c, x, y) - node.t.radius;
+                if (d < range) {
+                    results.add(new NodeResult<>(column.c, node.c, node.t, d));
+                }
+                node = node.previous();
+            }
+            if (Math.abs(column.c - x) > range) {
+                break;
+            }
+            column = column.next();
+        }
+        // scan left
+        column = centerColumn.previous();
+
+        while (column != null && Math.abs(column.c - x) <= range) {
+            final NeighborMap<N>.EntryResult centerNode = column.t.getNearest(y);
+            if (centerNode == null) {
+                continue;
+            }
+            // scan up
+            NeighborMap<N>.EntryResult node = centerNode;
+            while (node != null) {
+                final double d = Utils.distance(column.c, node.c, x, y) - node.t.radius;
+                if (d < range) {
+                    results.add(new NodeResult<>(column.c, node.c, node.t, d));
+                }
+                if (Math.abs(node.c - y) > range) {
+                    break;
+                }
+                node = node.next();
+            }
+            // scan down
+            node = centerNode.previous();
+            while (node != null && Math.abs(node.c - y) <= range) {
+                final double d = Utils.distance(column.c, node.c, x, y) - node.t.radius;
+                if (d < range) {
+                    results.add(new NodeResult<>(column.c, node.c, node.t, d));
+                }
+                node = node.previous();
+            }
+            column = column.previous();
+        }
+        return results;
     }
 
     public record NodeResult<N>(int x, int z, N n, double distance) {}

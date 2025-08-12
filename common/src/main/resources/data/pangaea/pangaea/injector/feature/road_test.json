@@ -1,0 +1,10 @@
+{
+  "biomes": [
+    "!#is_ocean"
+  ],
+  "inject": [
+    {
+      "type": "pangaea:road"
+    }
+  ]
+}

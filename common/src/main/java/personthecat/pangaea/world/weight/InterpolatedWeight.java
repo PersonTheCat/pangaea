@@ -28,6 +28,18 @@ public enum InterpolatedWeight implements WeightFunction {
         public double compute(PangaeaContext pg, FunctionContext fn) {
             return pg.noise.getWeirdness(fn.blockX(), fn.blockZ());
         }
+    },
+    SD {
+        @Override
+        public double compute(PangaeaContext pg, FunctionContext fn) {
+            return pg.noise.getSd(fn.blockX(), fn.blockZ());
+        }
+    },
+    SLOPE {
+        @Override
+        public double compute(PangaeaContext pg, FunctionContext fn) {
+            return pg.noise.getSlope(fn.blockX(), fn.blockZ());
+        }
     };
 
     private final MapCodec<InterpolatedWeight> codec = MapCodec.unit(this);

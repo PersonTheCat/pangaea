@@ -34,9 +34,9 @@ public class ChunkStatusTasksMixin {
             Carving step,
             Operation<Void> applyCarvers) {
         final var ctx = PangaeaContext.init(level, (ProtoChunk) chunk, gen);
-        GeneratorHooks.initRoadSystem(level, chunk, ctx);
+        GeneratorHooks.initRoadSystem(level, chunk);
+        ctx.reset();
         applyCarvers.call(gen, level, seed, rand, biomes, structures, chunk, step);
-        GeneratorHooks.applyGiantFeatures(level, gen, PangaeaContext.get(level));
     }
 
     @WrapOperation(
@@ -48,7 +48,9 @@ public class ChunkStatusTasksMixin {
             ChunkAccess chunk,
             StructureManager structures,
             Operation<Void> applyBiomeDecorations) {
-        PangaeaContext.init(level, (ProtoChunk) chunk, gen);
+        final var ctx = PangaeaContext.init(level, (ProtoChunk) chunk, gen);
+        GeneratorHooks.applyGiantFeatures(level, gen, ctx);
+        ctx.reset();
         applyBiomeDecorations.call(gen, level, chunk, structures);
     }
 }

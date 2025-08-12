@@ -11,7 +11,7 @@ public interface RoadConfig {
     Codec<RoadConfig> CODEC =
         PangaeaCodec.forRegistry(PgRegistries.ROAD_TYPE, RoadConfig::codec);
 
-    RoadGenerator<? extends RoadConfig> createGenerator(ServerLevel level);
+    RoadGenerator<? extends RoadConfig> createGenerator(ServerLevel level, RoadMap map);
     MapCodec<? extends RoadConfig> codec();
 
     default DestinationStrategy destinationStrategy() {

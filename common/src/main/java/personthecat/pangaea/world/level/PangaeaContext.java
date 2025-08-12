@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.CarvingMask;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.ProtoChunk;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Aquifer;
 import net.minecraft.world.level.levelgen.Aquifer.FluidStatus;
 import net.minecraft.world.level.levelgen.DensityFunction;
@@ -26,6 +27,7 @@ import personthecat.catlib.data.ForkJoinThreadLocal;
 import personthecat.pangaea.data.Counter;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.data.NoiseGraph;
+import personthecat.pangaea.data.Point;
 import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.extras.WorldGenRegionExtras;
 import personthecat.pangaea.mixin.accessor.ChunkAccessAccessor;
@@ -33,6 +35,7 @@ import personthecat.pangaea.mixin.accessor.NoiseChunkAccessor;
 import personthecat.pangaea.util.CommonBlocks;
 
 import java.util.Map;
+import java.util.Set;
 
 public final class PangaeaContext extends WorldGenerationContext {
 
@@ -179,5 +182,28 @@ public final class PangaeaContext extends WorldGenerationContext {
 
     public int getHeight(int x, int z) {
         return this.oceanFloor.getFirstAvailable(x & 15, z & 15) - 1;
+    }
+
+    public int getHeightChecked(int x, int z) {
+        int cX = x >> 4;
+        int cZ = z >> 4;
+        Heightmap m = this.oceanFloor;
+        if (cX != this.chunkX || cZ != this.chunkZ) {
+            final var c = this.level.getChunk(cX, cZ, ChunkStatus.SURFACE, false);
+            if (c == null) {
+                throw new IllegalStateException("No height at " + new Point(x, z));
+            }
+            m = ((ChunkAccessAccessor) c).getHeightmaps().get(Heightmap.Types.OCEAN_FLOOR_WG);
+            if (m == null) {
+                m = c.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
+                Heightmap.primeHeightmaps(c, Set.of(Heightmap.Types.OCEAN_FLOOR_WG));
+            }
+        }
+        return m.getFirstAvailable(x & 15, z & 15) - 1;
+    }
+
+    public void reset() {
+        this.featureIndex.reset();
+        this.rand.setSeed(this.seed);
     }
 }

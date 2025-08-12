@@ -1,26 +1,18 @@
 package personthecat.pangaea;
 
 import lombok.extern.log4j.Log4j2;
-import net.minecraft.core.Holder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.valueproviders.FloatProvider;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.level.levelgen.DensityFunction;
-import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
-import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
-import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
-import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
-import net.minecraft.world.level.levelgen.placement.HeightmapPlacement;
-import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import personthecat.catlib.command.CommandRegistrationContext;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.registry.CommonRegistries;
-import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.versioning.Version;
 import personthecat.catlib.versioning.VersionTracker;
 import personthecat.pangaea.command.CommandPg;
@@ -48,7 +40,6 @@ import personthecat.pangaea.world.density.WeightedListDensity;
 import personthecat.pangaea.world.feature.BlobFeature;
 import personthecat.pangaea.world.feature.BurrowFeature;
 import personthecat.pangaea.world.feature.ChainFeature;
-import personthecat.pangaea.world.feature.DebugWeightFeature;
 import personthecat.pangaea.world.feature.DensityFeature;
 import personthecat.pangaea.world.feature.GiantSphereFeature;
 import personthecat.pangaea.world.feature.RavineFeature;
@@ -72,7 +63,6 @@ import personthecat.pangaea.world.injector.DataInjectionHook;
 import personthecat.pangaea.world.injector.DimensionInjector;
 import personthecat.pangaea.world.injector.FeatureInjector;
 import personthecat.pangaea.world.injector.OreInjector;
-import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
 import personthecat.pangaea.world.placer.BlockPlacer;
@@ -81,15 +71,30 @@ import personthecat.pangaea.world.placer.ChanceBlockPlacer;
 import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
 import personthecat.pangaea.world.placer.TargetedBlockPlacer;
 import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
-import personthecat.pangaea.world.provider.*;
+import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
+import personthecat.pangaea.world.provider.BiasedToBottomFloat;
+import personthecat.pangaea.world.provider.ColumnProvider;
+import personthecat.pangaea.world.provider.ConstantColumnProvider;
+import personthecat.pangaea.world.provider.DensityFloatProvider;
+import personthecat.pangaea.world.provider.DensityHeightProvider;
+import personthecat.pangaea.world.provider.DensityIntProvider;
+import personthecat.pangaea.world.provider.DensityOffsetHeightProvider;
+import personthecat.pangaea.world.provider.DensityOffsetVerticalAnchor;
+import personthecat.pangaea.world.provider.DensityVerticalAnchor;
+import personthecat.pangaea.world.provider.DynamicColumnProvider;
+import personthecat.pangaea.world.provider.ExactColumnProvider;
+import personthecat.pangaea.world.provider.MiddleVerticalAnchor;
+import personthecat.pangaea.world.provider.SeaLevelVerticalAnchor;
+import personthecat.pangaea.world.provider.SurfaceVerticalAnchor;
+import personthecat.pangaea.world.provider.VeryBiasedToBottomInt;
 import personthecat.pangaea.world.road.AStarRoadGenerator;
 import personthecat.pangaea.world.road.RoadMap;
-import personthecat.pangaea.world.road.TmpRoadUtils;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 import personthecat.pangaea.world.weight.BiomeFilterWeight;
 import personthecat.pangaea.world.weight.ApproximateWeight;
 import personthecat.pangaea.world.weight.ConstantWeight;
 import personthecat.pangaea.world.weight.CutoffWeight;
+import personthecat.pangaea.world.weight.DefaultWeight;
 import personthecat.pangaea.world.weight.DensityWeight;
 import personthecat.pangaea.world.weight.InterpolatedWeight;
 import personthecat.pangaea.world.weight.MultipleWeight;
@@ -98,8 +103,6 @@ import personthecat.pangaea.world.weight.RouterWeight;
 import personthecat.pangaea.world.weight.SumWeight;
 import personthecat.pangaea.world.weight.WeightFunction;
 import personthecat.pangaea.world.weight.WeightList;
-
-import java.util.List;
 
 @Log4j2
 public abstract class Pangaea {
@@ -110,18 +113,6 @@ public abstract class Pangaea {
     public static final ModDescriptor MOD =
         ModDescriptor.builder().modId(ID).name(NAME).commandPrefix("pg").version(VERSION).build();
     public static final VersionTracker VERSION_TRACKER = VersionTracker.trackModVersion(MOD);
-
-    private static final ConfiguredFeature<?, ?> CONFIGURED_DEBUG_WEIGHT =
-        new ConfiguredFeature<>(DebugWeightFeature.INSTANCE, FeatureConfiguration.NONE);
-    private static final PlacedFeature PLACED_DEBUG_WEIGHT =
-        new PlacedFeature(Holder.direct(CONFIGURED_DEBUG_WEIGHT), List.of(
-                new IntervalPlacementModifier(4),
-                HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE_WG)
-            ));
-    private static final ConfiguredFeature<?, ?> CONFIGURED_ROAD =
-        new ConfiguredFeature<>(RoadFeature.INSTANCE, FeatureConfiguration.NONE);
-    private static final PlacedFeature PLACED_ROAD =
-        new PlacedFeature(Holder.direct(CONFIGURED_ROAD), List.of());
 
     protected final void init() {
         Cfg.register();
@@ -218,13 +209,15 @@ public abstract class Pangaea {
             .register("interpolated_depth", InterpolatedWeight.DEPTH.codec())
             .register("interpolated_pv", InterpolatedWeight.PV.codec())
             .register("interpolated_weirdness", InterpolatedWeight.WEIRDNESS.codec())
+            .register("interpolated_sd", InterpolatedWeight.SD.codec())
+            .register("interpolated_slope", InterpolatedWeight.SLOPE.codec())
             .register("multiple", MultipleWeight.CODEC)
             .register("never", NeverWeight.CODEC)
             .register("sum", SumWeight.CODEC)
             .register("temperature", RouterWeight.TEMPERATURE.codec())
             .register("vegetation", RouterWeight.VEGETATION.codec())
             .register("list", WeightList.CODEC)
-            .register("temporary", TmpRoadUtils.CODEC);
+            .register("default", DefaultWeight.CODEC);
         PgRegistries.ROAD_TYPE.createRegister(ID)
             .register("astar", AStarRoadGenerator.Configuration.CODEC);
         CommonRegistries.FEATURE.createRegister(ID)
@@ -234,6 +227,7 @@ public abstract class Pangaea {
             .register("density", DensityFeature.INSTANCE)
             .register("burrow", BurrowFeature.INSTANCE)
             .register("chain", ChainFeature.INSTANCE)
+            .register("road", RoadFeature.INSTANCE)
             .register("temporary_tunnel", TunnelFeature.INSTANCE)
             .register("temporary_ravine", RavineFeature.INSTANCE);
     }
@@ -315,12 +309,6 @@ public abstract class Pangaea {
         if (Cfg.removeAllCarvers()) {
             removeAllCarvers();
         }
-        if (Cfg.generateDebugPillars()) {
-            generateDebugPillars();
-        }
-        if (Cfg.enableRoads()) {
-            enableRoads();
-        }
     }
 
     private static void removeAllFeatures() {
@@ -335,22 +323,6 @@ public abstract class Pangaea {
             log.info("Clearing carvers from biome: {}", ctx.getName());
             ctx.removeCarver(carver -> true);
         });
-    }
-
-    private static void generateDebugPillars() {
-        CommonRegistries.FEATURE.deferredRegister(MOD.id("debug_weight"), DebugWeightFeature.INSTANCE);
-        CommonRegistries.PLACEMENT_MODIFIER_TYPE.deferredRegister(MOD.id("interval_placement"), IntervalPlacementModifier.TYPE);
-        DynamicRegistries.CONFIGURED_FEATURE.deferredRegister(MOD.id("configured_debug_weight"), CONFIGURED_DEBUG_WEIGHT);
-        DynamicRegistries.PLACED_FEATURE.deferredRegister(MOD.id("placed_debug_weight"), PLACED_DEBUG_WEIGHT);
-        FeatureModificationEvent.register(ctx -> ctx.addFeature(Decoration.TOP_LAYER_MODIFICATION, PLACED_DEBUG_WEIGHT));
-    }
-
-    private static void enableRoads() {
-        CommonRegistries.FEATURE.deferredRegister(MOD.id("road"), RoadFeature.INSTANCE);
-        DynamicRegistries.CONFIGURED_FEATURE.deferredRegister(MOD.id("configured_road"), CONFIGURED_ROAD);
-        DynamicRegistries.PLACED_FEATURE.deferredRegister(MOD.id("placed_road"), PLACED_ROAD);
-
-        FeatureModificationEvent.register(ctx -> ctx.addFeature(Decoration.RAW_GENERATION, PLACED_ROAD));
     }
 
     // just pretend this doesn't exist until Roads are done
