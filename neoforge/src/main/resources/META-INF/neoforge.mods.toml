@@ -17,5 +17,8 @@ versionRange="[${catlib_min_version},)"
 ordering="AFTER"
 side="BOTH"
 
+[[accessTransformers]]
+file="META-INF/accesstransformer.cfg"
+
 [[mixins]]
 config="pangaea.common.mixins.json"

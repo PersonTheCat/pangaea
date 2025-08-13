@@ -7,7 +7,9 @@ architectury {
 }
 
 loom {
-    neoForge {}
+    neoForge {
+        accessTransformer 'src/main/resources/META-INF/accesstransformer.cfg'
+    }
 
     mods {
         // force this mod onto the classpath since for some reason arch misses it

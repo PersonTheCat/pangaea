@@ -150,7 +150,7 @@ public final class Cfg {
     static class Temporary {
         boolean removeAllFeatures = false;
         boolean removeAllCarvers = false;
-        boolean enableTemporaryDebugFeatures = true;
+        boolean enableTemporaryDebugFeatures = false;
         boolean optimizeBiomeLayouts = true;
     }
 
