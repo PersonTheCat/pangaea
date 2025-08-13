@@ -3,6 +3,7 @@ package personthecat.pangaea.data;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.Holder;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.Climate.Sampler;
@@ -10,10 +11,13 @@ import net.minecraft.world.level.levelgen.DensityFunction.SinglePointContext;
 import net.minecraft.world.level.levelgen.DensityFunction.FunctionContext;
 import net.minecraft.world.level.levelgen.NoiseRouter;
 import net.minecraft.world.level.levelgen.NoiseRouterData;
-import net.minecraft.world.level.levelgen.RandomState;
 import org.jetbrains.annotations.Nullable;
+import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.util.Utils;
 import personthecat.pangaea.world.feature.PositionalBiomePredicate;
+import personthecat.pangaea.world.road.RoadRegion;
+
+import java.util.Arrays;
 
 public class NoiseGraph {
     public static final int BIOME_SAMPLE_DIMENSION = 3;
@@ -22,6 +26,7 @@ public class NoiseGraph {
     public static final int BIOME_SCAN_DIMENSION = BIOME_SAMPLE_DIMENSION * (BIOME_SCAN_CHUNK_RADIUS * 2 + 1);
     private static final int CLEANUP_INTERVAL = 5;
     private static final int CLEANUP_DISTANCE = 12;
+    private static final float NO_VERTEX = Float.MAX_VALUE;
     private static final Point[] BIOME_CHECKS = {
         new Point(3, 3),
         new Point(3, 12),
@@ -31,11 +36,14 @@ public class NoiseGraph {
     };
 
     protected final Long2ObjectMap<Samples> graph;
+    protected final ServerLevel level;
     protected final Sampler sampler;
     protected final NoiseRouter router;
 
-    public NoiseGraph(RandomState rand) {
+    public NoiseGraph(ServerLevel level) {
+        final var rand = level.getChunkSource().randomState();
         this.graph = new Long2ObjectOpenHashMap<>();
+        this.level = level;
         this.sampler = rand.sampler();
         this.router = rand.router();
     }
@@ -207,6 +215,18 @@ public class NoiseGraph {
         final float l = Utils.lerp(lXlZ, lXuZ, tX);
         final float r = Utils.lerp(uXlZ, uXuZ, tX);
         return Utils.lerp(l, r, tZ);
+    }
+
+    public float getApproximateRoadDistance(int x, int z) {
+        final int cX = x >> 4;
+        final int cZ = z >> 4;
+        final int rX = x & 15;
+        final int rZ = z & 15;
+        // get one of: (3,3),(3,12),(8,8),(12,3),(12,12)
+        final int sX = rX < 7 ? 3 : rX > 9 ? 12 : 8;
+        final int sZ = sX == 8 ? 8 : rZ < 7 ? 3 : rZ > 9 ? 12 : 8;
+        final Samples data = this.getData(cX, cZ);
+        return this.getOrComputeDistance(data, sX, sZ, x, z);
     }
 
     public Holder<Biome> getApproximateBiome(BiomeManager biomes, int x, int z) {
@@ -421,6 +441,27 @@ public class NoiseGraph {
             data.setBiome(rX, rZ, biome);
         }
         return biome;
+    }
+
+    protected float getOrComputeDistance(Samples data, int rX, int rZ, int aX, int aZ) {
+        float v = data.getV(rX, rZ);
+        if (v == NO_VERTEX) {
+            final var map = LevelExtras.getRoadMap(this.level);
+            final var region = map.getRegion(RoadRegion.absToRegion(aX), RoadRegion.absToRegion(aZ));
+            for (final var network : region.getData()) {
+                if (!network.containsPoint(aX, aZ)) {
+                    continue;
+                }
+                final var result = network.graph.getNearest(aX, aZ, 0);
+                if (result.distance() <= 0) {
+                    data.setV(rX, rZ, v = (float) result.distance());
+                    return v;
+                }
+                v = Math.min(v, (float) result.distance());
+            }
+             data.setV(rX, rZ, v);
+        }
+        return v;
     }
 
     public void drainOutside(int cX, int cZ, int r) {
@@ -650,10 +691,11 @@ public class NoiseGraph {
      *     0 1 2 3 4 5 6 7 8 9 A B C D E F
      * </pre>
      */
-    public record Samples(float[] sd, float[] d, float[] w, float[] c, Holder<Biome>[] biomes) {
+    public record Samples(float[] sd, float[] d, float[] w, float[] c, float[] v, Holder<Biome>[] biomes) {
         @SuppressWarnings("unchecked")
         public Samples() {
-            this(new float[64], new float[49], new float[36], new float[9], new Holder[5]);
+            this(new float[64], new float[49], new float[36], new float[9], new float[5], new Holder[5]);
+            Arrays.fill(this.v, NO_VERTEX);
         }
 
         public float getSd(int rX, int rZ) {
@@ -686,6 +728,14 @@ public class NoiseGraph {
 
         public void setC(int rX, int rZ, float f) {
             this.c[indexInterval8(rX, rZ)] = f;
+        }
+
+        public float getV(int rX, int rZ) {
+            return this.v[indexSpread5(rX, rZ)];
+        }
+
+        public void setV(int rX, int rZ, float f) {
+            this.v[indexSpread5(rX, rZ)] = f;
         }
 
         public @Nullable Holder<Biome> getBiome(int rX, int rZ) {

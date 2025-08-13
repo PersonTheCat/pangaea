@@ -2,6 +2,7 @@ package personthecat.pangaea.world.road;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.util.valueproviders.UniformInt;
 import personthecat.pangaea.data.MutableFunctionContext;
@@ -19,6 +20,7 @@ import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 
 public class AStarRoadGenerator extends RoadGenerator<Configuration> {
+    private static final int ANGLE_SMOOTHING_RADIUS = 5;
     private final AStar aStar;
 
     private AStarRoadGenerator(ServerLevel level, RoadMap map, Configuration cfg) {
@@ -98,12 +100,12 @@ public class AStarRoadGenerator extends RoadGenerator<Configuration> {
                 v.addFlag(RoadVertex.MIDPOINT);
             }
         }
-        this.interpolate(vertices);
-        this.smoothAngles(vertices);
+        interpolate(vertices);
+        smoothAngles(vertices);
         return new Road((byte) l, minX, minZ, maxX, maxZ, vertices);
     }
 
-    private void interpolate(final RoadVertex[] vertices) {
+    private static void interpolate(RoadVertex[] vertices) {
         for (int i = 0; i < vertices.length - 1; i += 2) {
             final var a = vertices[i];
             final var b = vertices[i + 2];
@@ -111,25 +113,37 @@ public class AStarRoadGenerator extends RoadGenerator<Configuration> {
                 (a.x + b.x) / 2,
                 (a.z + b.z) / 2,
                 (byte) ((a.radius + b.radius) / 2),
-                (a.theta + b.theta) / 2.0F,
-                (a.xAngle + b.xAngle) / 2.0F,
+                averageAngle(a.theta, b.theta),
+                averageAngle(a.xAngle, b.xAngle),
                 RoadVertex.MIDPOINT
             );
         }
     }
 
-    private void smoothAngles(final RoadVertex[] vertices) {
-        final int amount = 1;
-        final float[] angles = new float[vertices.length - amount];
-        for (int i = amount; i < vertices.length - amount; i++) {
-            float sum = 0;
-            for (int s = -amount; s <= amount; s++) {
-                sum += vertices[i + s].theta;
+    private static float averageAngle(float a, float b) {
+        final float sin = Mth.sin(a) + Mth.sin(b);
+        final float cos = Mth.cos(a) + Mth.cos(b);
+        return (float) Mth.atan2(sin / 2, cos / 2);
+    }
+
+    private static void smoothAngles(RoadVertex[] vertices) {
+        final float[] smoothed = new float[vertices.length];
+        for (int i = 0; i < vertices.length; i++) {
+            final int s = Math.max(0, i - ANGLE_SMOOTHING_RADIUS);
+            final int e = Math.min(vertices.length - 1, i + ANGLE_SMOOTHING_RADIUS);
+            float sin = 0;
+            float cos = 0;
+            int count = 0;
+
+            for (int j = s; j <= e; j++) {
+                sin += Mth.sin(vertices[j].xAngle);
+                cos += Mth.cos(vertices[j].xAngle);
+                count++;
             }
-            angles[i - amount] = sum / (amount * 2 + 1);
+            smoothed[i] = (float) Mth.atan2(sin / count, cos / count);
         }
-        for (int i = 0; i < angles.length; i++) {
-            vertices[i + amount].theta = angles[i];
+        for (int i = 0; i < smoothed.length; i++) {
+            vertices[i].xAngle = smoothed[i];
         }
     }
 

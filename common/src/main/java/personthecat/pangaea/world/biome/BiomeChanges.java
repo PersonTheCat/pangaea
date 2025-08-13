@@ -35,7 +35,6 @@ import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.CodecUtils.idList;
 import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.nullable;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 
@@ -68,7 +67,7 @@ public record BiomeChanges(
 
     public static final MapCodec<BiomeChanges> CODEC = codecOf(
         union(ClimateCategory.CODEC, BiomeChanges::climate),
-        field(EffectsCategory.CODEC.codec(), "effects", BiomeChanges::effects),
+        defaulted(EffectsCategory.CODEC.codec(), "effects", EffectsCategory.NONE, BiomeChanges::effects),
         union(GenerationCategory.CODEC, BiomeChanges::generation),
         union(MobSpawnCategory.CODEC, BiomeChanges::mobs),
         BiomeChanges::new
@@ -123,6 +122,8 @@ public record BiomeChanges(
         EffectsChanges changes,
         EffectsRemovals removals) {
 
+        private static final EffectsCategory NONE =
+            new EffectsCategory(EffectsChanges.NONE, EffectsRemovals.NONE);
         public static final MapCodec<EffectsCategory> CODEC = codecOf(
             union(EffectsChanges.CODEC, EffectsCategory::changes),
             union(EffectsRemovals.CODEC, EffectsCategory::removals),
@@ -144,6 +145,8 @@ public record BiomeChanges(
         @Nullable AmbientAdditionsSettings ambientAdditionsSettings,
         @Nullable Music backgroundMusic) {
 
+        private static final EffectsChanges NONE =
+            new EffectsChanges(null, null, null, null, null, null, null, null, null, null, null, null);
         public static final MapCodec<EffectsChanges> CODEC = codecOf(
             nullable(ColorCodecs.COLOR, "fog_color", EffectsChanges::fogColor),
             nullable(ColorCodecs.COLOR, "water_color", EffectsChanges::waterColor),
@@ -185,6 +188,8 @@ public record BiomeChanges(
         boolean removeAmbientAdditionsSettings,
         boolean removeBackgroundMusic) {
 
+        private static final EffectsRemovals NONE =
+            new EffectsRemovals(false, false, false, false, false, false, false);
         public static final MapCodec<EffectsRemovals> CODEC = codecOf(
             defaulted(Codec.BOOL, "remove_foliage_color", false, EffectsRemovals::removeFoliageColor),
             defaulted(Codec.BOOL, "remove_grass_color", false, EffectsRemovals::removeGrassColor),

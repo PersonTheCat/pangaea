@@ -28,8 +28,9 @@ public abstract class ServerLevelMixin implements LevelExtras {
 
     @Inject(at = @At("RETURN"), method = "<init>")
     public void postInit(CallbackInfo ci) {
-        this.pangaea$noiseGraph = new NoiseGraph(this.chunkSource.randomState()); // accessed by roadMap
-        this.pangaea$roadMap = new RoadMap((ServerLevel) (Object) this);
+        final var level = (ServerLevel) (Object) this;
+        this.pangaea$noiseGraph = new NoiseGraph(level); // accessed by roadMap
+        this.pangaea$roadMap = new RoadMap(level);
     }
 
     @Override

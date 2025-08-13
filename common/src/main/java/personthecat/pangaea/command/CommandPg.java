@@ -14,6 +14,7 @@ import personthecat.catlib.exception.CommandExecutionException;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.catlib.serialization.json.JsonTransformer;
+import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.world.road.RoadMap;
 import xjs.data.JsonFormat;
 import xjs.data.JsonValue;
@@ -33,6 +34,13 @@ public class CommandPg {
     void cacheClear(final CommandContextWrapper ctx) {
         RoadMap.clearAll(ctx.getServer());
         ctx.sendMessage("Successfully cleared road cache.");
+    }
+
+    @ModCommand(description = "Testing distance cache")
+    void debugDistance(final CommandContextWrapper ctx) {
+        final var graph = LevelExtras.getNoiseGraph(ctx.getLevel());
+        final var pos = ctx.getPos();
+        ctx.sendMessage("Nearest vertex: {} blocks", graph.getApproximateRoadDistance((int) pos.x, (int) pos.z));
     }
 
     @Environment(EnvType.CLIENT)
