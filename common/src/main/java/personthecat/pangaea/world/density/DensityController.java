@@ -16,7 +16,7 @@ import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 
 public class DensityController implements SimpleFunction {
-    private static final DensityFunction DEFAULT_SURFACE = DensityFunctions.constant(2.5);
+    private static final DensityFunction DEFAULT_SURFACE = DensityFunctions.constant(1);
     private static final DensityFunction DEFAULT_ENTRANCES = DensityFunctions.constant(1000000);
     private static final DensityFunction DEFAULT_CAVES = DensityFunctions.constant(1);
     private static final DensityFunction DEFAULT_FILLER = DensityFunctions.constant(-1000000);

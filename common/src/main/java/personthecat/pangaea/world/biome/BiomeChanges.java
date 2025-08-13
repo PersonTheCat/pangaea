@@ -290,8 +290,8 @@ public record BiomeChanges(
 
         public static final MapCodec<MobSpawnChanges> CODEC = codecOf(
             nullable(Codec.FLOAT, "creature_spawn_probability", MobSpawnChanges::creatureSpawnProbability),
-            nullable(SPAWNER_CODEC.codec(), "add_spawners", MobSpawnChanges::spawners),
-            nullable(SPAWN_COST_CODEC.codec(), "add_spawn_costs", MobSpawnChanges::mobSpawnCosts),
+            nullable(SPAWNER_CODEC.codec(), "spawners", MobSpawnChanges::spawners),
+            nullable(SPAWN_COST_CODEC.codec(), "spawn_costs", MobSpawnChanges::mobSpawnCosts),
             MobSpawnChanges::new
         );
 
