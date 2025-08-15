@@ -20,3 +20,7 @@ accessible method net/minecraft/world/level/biome/BiomeGenerationSettings <init>
 # Custom Biomes
 accessible class net/minecraft/world/level/biome/Biome$ClimateSettings
 accessible field net/minecraft/world/level/biome/Biome climateSettings Lnet/minecraft/world/level/biome/Biome$ClimateSettings;
+
+# Custom Chunk Statuses
+accessible class net/minecraft/world/level/chunk/status/ChunkStatus$GenerationTask
+accessible class net/minecraft/world/level/chunk/status/ChunkStatus$LoadingTask

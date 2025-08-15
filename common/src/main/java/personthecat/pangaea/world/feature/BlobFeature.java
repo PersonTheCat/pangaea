@@ -85,7 +85,7 @@ public final class BlobFeature extends GiantFeature<Configuration> {
                 n = column.transformNoise(n, y);
 
                 if (n > 0) {
-                    cfg.placer.placeUnchecked(ctx, x, y, z);
+                    cfg.placer.place(ctx, x, y, z);
                     break;
                 }
             }

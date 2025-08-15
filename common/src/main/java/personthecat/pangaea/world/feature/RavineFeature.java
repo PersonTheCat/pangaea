@@ -125,7 +125,7 @@ public class RavineFeature extends GiantFeature<Configuration> {
                             final int yO = aY - minY;
 
                             if ((dX * dX + dZ * dZ) * mut[yO - 1] + dY * dY / 6.0 < 1.0) {
-                                cfg.placer.placeUnchecked(ctx, aX, aY, aZ);
+                                cfg.placer.place(ctx, aX, aY, aZ);
                             }
                         }
                     }

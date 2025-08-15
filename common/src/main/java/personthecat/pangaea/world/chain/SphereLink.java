@@ -68,7 +68,7 @@ public class SphereLink extends ChainLink {
                     final double dY = ((double) aY - 0.5 - y) / rY;
 
                     if (dY > floorLevel && dX * dX + dY * dY + dZ * dZ < 1.0) {
-                        placer.placeUnchecked(ctx, aX, aY, aZ);
+                        placer.place(ctx, aX, aY, aZ);
                     }
                 }
             }

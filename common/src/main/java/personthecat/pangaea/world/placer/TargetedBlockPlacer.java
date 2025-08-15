@@ -19,10 +19,10 @@ public record TargetedBlockPlacer(RuleTest target, BlockPlacer place) implements
     );
 
     @Override
-    public boolean placeUnchecked(PangaeaContext ctx, int x, int y, int z) {
-        final var replaced = ctx.getUnchecked(x, y, z);
+    public boolean place(PangaeaContext ctx, int x, int y, int z, int updates) {
+        final var replaced = ctx.getBlock(x, y, z);
         if (this.target.test(replaced, ctx.rand)) {
-            return this.place.placeUnchecked(ctx, x, y, z);
+            return this.place.place(ctx, x, y, z, updates);
         }
         return false;
     }

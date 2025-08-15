@@ -129,7 +129,7 @@ public class TunnelFeature extends GiantFeature<Configuration> {
                             final double dY = ((double) aY - 0.5 - y) / rY;
 
                             if (dY > floorCurve && dX * dX + dY * dY + dZ * dZ < 1.0) {
-                                cfg.placer.placeUnchecked(ctx, aX, aY, aZ);
+                                cfg.placer.place(ctx, aX, aY, aZ);
                             }
                         }
                     }

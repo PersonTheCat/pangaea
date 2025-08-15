@@ -92,7 +92,7 @@ public class ChasmLink extends ChainLink {
                     final double m = Math.pow(Mth.clampedMap(Mth.abs(local.y), rY / 4, rY, 1, 2), 2) + this.noise.getNoiseScaled(local.y);
 
                     if ((dX * dX + dZ * dZ) * m + dY * dY < 1.0) {
-                        placer.placeUnchecked(ctx, aX, aY, aZ);
+                        placer.place(ctx, aX, aY, aZ);
                     }
                 }
             }

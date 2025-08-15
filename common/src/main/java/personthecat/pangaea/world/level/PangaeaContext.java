@@ -1,7 +1,8 @@
 package personthecat.pangaea.world.level;
 
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.block.Blocks;
@@ -27,15 +28,10 @@ import personthecat.catlib.data.ForkJoinThreadLocal;
 import personthecat.pangaea.data.Counter;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.data.NoiseGraph;
-import personthecat.pangaea.data.Point;
 import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.extras.WorldGenRegionExtras;
-import personthecat.pangaea.mixin.accessor.ChunkAccessAccessor;
 import personthecat.pangaea.mixin.accessor.NoiseChunkAccessor;
 import personthecat.pangaea.util.CommonBlocks;
-
-import java.util.Map;
-import java.util.Set;
 
 public final class PangaeaContext extends WorldGenerationContext {
 
@@ -45,7 +41,7 @@ public final class PangaeaContext extends WorldGenerationContext {
     public final BiomeManager biomes;
     public final NoiseGraph noise;
     public final WorldgenRandom rand;
-    public final ServerLevel level;
+    public final WorldGenLevel level;
     public final NoiseRouter router;
     public final Climate.Sampler sampler;
     public final int chunkX;
@@ -57,9 +53,10 @@ public final class PangaeaContext extends WorldGenerationContext {
     public final int seaLevel;
     public final int minY;
     public final long seed;
+    public final ChunkGenerator gen;
     public final ProtoChunk chunk;
-    public final Map<Heightmap.Types, Heightmap> heightmaps;
     public final Heightmap oceanFloor;
+    public final Heightmap worldSurface;
     public final CarvingMask carvingMask;
     public final Aquifer aquifer;
     public final MutableFunctionContext targetPos;
@@ -72,7 +69,7 @@ public final class PangaeaContext extends WorldGenerationContext {
         final var pos = chunk.getPos();
         this.noise = LevelExtras.getNoiseGraph(level.getLevel());
         this.rand = rand;
-        this.level = level.getLevel();
+        this.level = level;
         this.router = level.getLevel().getChunkSource().randomState().router();
         this.sampler = level.getLevel().getChunkSource().randomState().sampler();
         this.biomes = level.getBiomeManager().withDifferentSource((x, y, z) ->
@@ -86,15 +83,21 @@ public final class PangaeaContext extends WorldGenerationContext {
         this.seaLevel = gen.getSeaLevel();
         this.minY = this.level.getMinBuildHeight();
         this.seed = level.getSeed();
+        this.gen = gen;
         this.chunk = chunk;
-        this.heightmaps = ((ChunkAccessAccessor) chunk).getHeightmaps();
         this.oceanFloor = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
+        this.worldSurface = chunk.getOrCreateHeightmapUnprimed(getSurfaceType(chunk));
         this.carvingMask = chunk.getOrCreateCarvingMask(GenerationStep.Carving.AIR);
         final var nc = chunk.getOrCreateNoiseChunk(c -> null);
         this.aquifer = nc instanceof NoiseChunkAccessor ? nc.aquifer() : NO_AQUIFER;
         this.targetPos = MutableFunctionContext.from(pos);
         this.featureIndex = new Counter();
         this.enableDensityWrap = true;
+    }
+
+    private static Heightmap.Types getSurfaceType(ProtoChunk chunk) {
+        return chunk.getStatus().isOrAfter(ChunkStatus.CARVERS)
+            ? Heightmap.Types.WORLD_SURFACE : Heightmap.Types.WORLD_SURFACE_WG;
     }
 
     public static PangaeaContext init(WorldGenLevel level, ProtoChunk chunk, ChunkGenerator gen) {
@@ -150,14 +153,7 @@ public final class PangaeaContext extends WorldGenerationContext {
         return f.mapAll(f2 -> f2 instanceof Marker m ? m.wrapped() : f2);
     }
 
-    public BlockState get(int x, int y, int z) {
-        if (this.level.isOutsideBuildHeight(y)) {
-            return CommonBlocks.VOID_AIR;
-        }
-        return this.getUnchecked(x, y, z);
-    }
-
-    public BlockState getUnchecked(int x, int y, int z) {
+    public BlockState getBlock(int x, int y, int z) {
         final var section = this.chunk.getSections()[(y - this.minY) >> 4];
         if (section.hasOnlyAir()) {
             return CommonBlocks.AIR;
@@ -165,19 +161,15 @@ public final class PangaeaContext extends WorldGenerationContext {
         return section.getBlockState(x & 15, y & 15, z & 15);
     }
 
-    public BlockState set(int x, int y, int z, BlockState state) {
-        if (this.level.isOutsideBuildHeight(y)) {
-            return state;
-        }
-        return this.setUnchecked(x, y, z, state);
-    }
-
-    public BlockState setUnchecked(int x, int y, int z, BlockState state) {
+    public void setBlock(int x, int y, int z, BlockState state, int updates) {
         final var section = this.chunk.getSections()[(y - this.minY) >> 4];
         if (section.hasOnlyAir() && state.is(Blocks.AIR)) {
-            return state;
+            return;
         }
-        return section.setBlockState(x & 15, y & 15, z & 15, state, false);
+        section.setBlockState(x & 15, y & 15, z & 15, state, false);
+        if ((updates & BlockUpdates.HEIGHTMAP) == BlockUpdates.HEIGHTMAP) {
+            this.worldSurface.update(x & 15, y, z & 15, state);
+        }
     }
 
     public int getHeight(int x, int z) {
@@ -187,23 +179,19 @@ public final class PangaeaContext extends WorldGenerationContext {
     public int getHeightChecked(int x, int z) {
         int cX = x >> 4;
         int cZ = z >> 4;
-        Heightmap m = this.oceanFloor;
-        if (cX != this.chunkX || cZ != this.chunkZ) {
-            final var c = this.level.getChunk(cX, cZ, ChunkStatus.SURFACE, false);
-            if (c == null) {
-                throw new IllegalStateException("No height at " + new Point(x, z));
-            }
-            m = ((ChunkAccessAccessor) c).getHeightmaps().get(Heightmap.Types.OCEAN_FLOOR_WG);
-            if (m == null) {
-                m = c.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
-                Heightmap.primeHeightmaps(c, Set.of(Heightmap.Types.OCEAN_FLOOR_WG));
-            }
+        if (cX == this.chunkX && cZ == this.chunkZ) {
+            return this.oceanFloor.getFirstAvailable(x & 15, z & 15) - 1;
         }
-        return m.getFirstAvailable(x & 15, z & 15) - 1;
+        final var c = this.level.getChunk(cX, cZ);
+        if (c.getStatus().isOrAfter(ChunkStatus.NOISE)) {
+            return c.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG)
+                .getFirstAvailable(x & 15, z & 15) - 1;
+        }
+        final var rand = this.level.getLevel().getChunkSource().randomState();
+        return this.gen.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, this.level, rand) - 1;
     }
 
-    public void reset() {
-        this.featureIndex.reset();
-        this.rand.setSeed(this.seed);
+    public Holder<Biome> getApproximateBiome(int x, int z) {
+        return this.noise.getApproximateBiome(this.biomes, x, z);
     }
 }

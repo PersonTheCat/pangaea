@@ -50,7 +50,7 @@ public final class GiantSphereFeature extends GiantFeature<Configuration> {
 
                     final double dY2 = ((y - cY) * (y - cY)) / r2;
                     if ((dX2 + dZ2 + dY2) <= 1.0) {
-                        cfg.placer.placeUnchecked(ctx, x, y, z);
+                        cfg.placer.place(ctx, x, y, z);
                     }
                 }
             }

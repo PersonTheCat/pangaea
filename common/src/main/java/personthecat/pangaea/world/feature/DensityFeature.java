@@ -52,7 +52,7 @@ public final class DensityFeature extends GiantFeature<Configuration> {
                 n = border.transformNoise(ctx, x, z, n);
                 n = column.transformNoise(n, y);
                 if (n > 0) {
-                    placer.placeUnchecked(ctx, x, y, z);
+                    placer.place(ctx, x, y, z);
                     break;
                 }
             }

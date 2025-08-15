@@ -26,7 +26,7 @@ public class TestFeature extends PangaeaFeature<Configuration> {
         ctx.targetPos.at(ctx.centerX, ctx.centerZ);
         final var column = cfg.column.getColumn(ctx, ctx.centerX, ctx.centerZ);
         for (int y = column.min(); y < column.max(); y++) {
-            cfg.placer.placeUnchecked(ctx, ctx.centerX, y, ctx.centerZ);
+            cfg.placer.place(ctx, ctx.centerX, y, ctx.centerZ);
         }
         return true;
     }

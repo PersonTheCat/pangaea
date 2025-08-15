@@ -10,9 +10,9 @@ public record BlockPlacerList(List<BlockPlacer> place) implements BlockPlacer {
         BlockPlacer.CODEC.listOf().fieldOf("place").xmap(BlockPlacerList::new, BlockPlacerList::place);
 
     @Override
-    public boolean placeUnchecked(PangaeaContext ctx, int x, int y, int z) {
+    public boolean place(PangaeaContext ctx, int x, int y, int z, int updates) {
         for (final var placer : this.place) {
-            if (placer.placeUnchecked(ctx, x, y ,z)) {
+            if (placer.place(ctx, x, y, z, updates)) {
                 return true;
             }
         }

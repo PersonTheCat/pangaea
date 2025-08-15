@@ -2,7 +2,9 @@ package personthecat.pangaea.serialization.extras;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
+import personthecat.catlib.data.BiomePredicate;
 import personthecat.pangaea.serialization.codec.BuilderCodec.BuilderField;
+import personthecat.pangaea.world.placer.BiomeRestrictedBlockPlacer;
 import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.placer.ChanceBlockPlacer;
 import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
@@ -29,7 +31,11 @@ public final class DefaultBuilderFields {
         BuilderField.of(BlockPlacer.class, TargetedBlockPlacer.class)
             .parsing(RuleTest.CODEC, "target")
             .wrap(TargetedBlockPlacer::new)
-            .unwrap(TargetedBlockPlacer::place, TargetedBlockPlacer::target)
+            .unwrap(TargetedBlockPlacer::place, TargetedBlockPlacer::target),
+        BuilderField.of(BlockPlacer.class, BiomeRestrictedBlockPlacer.class)
+            .parsing(BiomePredicate.CODEC, "biomes")
+            .wrap(BiomeRestrictedBlockPlacer::new)
+            .unwrap(BiomeRestrictedBlockPlacer::place, BiomeRestrictedBlockPlacer::biomes)
     );
 
     private DefaultBuilderFields() {}

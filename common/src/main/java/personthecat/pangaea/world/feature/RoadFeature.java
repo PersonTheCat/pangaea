@@ -9,6 +9,7 @@ import personthecat.pangaea.data.VertexGraph.VertexNode;
 import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.serialization.codec.PangaeaCodec;
 import personthecat.pangaea.world.feature.RoadFeature.Configuration;
+import personthecat.pangaea.world.level.BlockUpdates;
 import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.placer.BlockPlacerList;
@@ -34,7 +35,7 @@ public class RoadFeature extends GiantFeature<Configuration> {
         final var aZ = ctx.actualZ;
         final var rX = RoadRegion.absToRegion(aX);
         final var rZ = RoadRegion.absToRegion(aZ);
-        final var region = LevelExtras.getRoadMap(ctx.level).getRegion(rX, rZ);
+        final var region = LevelExtras.getRoadMap(ctx.level.getLevel()).getRegion(rX, rZ);
         for (final var network : region) {
             if (!network.containsPoint(aX, aZ)) {
                 continue;
@@ -87,9 +88,9 @@ public class RoadFeature extends GiantFeature<Configuration> {
                             if (Math.sqrt(dX2 + dZ2 + dY2) > r / 2.0 + 1) {
                                 continue;
                             }
-                            vc.path.placeUnchecked(ctx, x, y, z);
+                            vc.path.place(ctx, x, y, z, BlockUpdates.HEIGHTMAP);
                         } else {
-                            vc.ground.placeUnchecked(ctx, x, y, z);
+                            vc.ground.place(ctx, x, y, z, BlockUpdates.HEIGHTMAP);
                         }
                     }
                 } else {
@@ -100,7 +101,7 @@ public class RoadFeature extends GiantFeature<Configuration> {
                         if (Math.sqrt(dX2 + dZ2 + dY2) >= r + 1) {
                             continue;
                         }
-                        vc.air.placeUnchecked(ctx, x, y, z);
+                        vc.air.place(ctx, x, y, z);
                     }
                 }
             }
@@ -127,11 +128,11 @@ public class RoadFeature extends GiantFeature<Configuration> {
         private static final VertexConfig DEFAULTS = new VertexConfig(
             new BlockPlacerList(List.of(
                 new ChanceBlockPlacer(0.75, new UnconditionalBlockPlacer(Blocks.GRAVEL.defaultBlockState())),
-                new UnconditionalBlockPlacer(Blocks.GRASS_BLOCK.defaultBlockState())
+                new UnconditionalBlockPlacer(Blocks.STONE.defaultBlockState())
             )),
-            new UnconditionalBlockPlacer(Blocks.GRASS_BLOCK.defaultBlockState()),
+            new UnconditionalBlockPlacer(Blocks.STONE.defaultBlockState()),
             new UnconditionalBlockPlacer(Blocks.AIR.defaultBlockState()),
-            Range.of(62, 84));
+            Range.of(62, 90));
         private static final VertexConfig DEFAULT_2 = new VertexConfig(
             new BlockPlacerList(List.of(
                 new ChanceBlockPlacer(0.5, new UnconditionalBlockPlacer(Blocks.GRAVEL.defaultBlockState())),
@@ -139,7 +140,7 @@ public class RoadFeature extends GiantFeature<Configuration> {
             )),
             new UnconditionalBlockPlacer(Blocks.GRASS_BLOCK.defaultBlockState()),
             new UnconditionalBlockPlacer(Blocks.AIR.defaultBlockState()),
-            Range.of(62, 84));
+            Range.of(62, 90));
         public static final MapCodec<VertexConfig> CODEC = PangaeaCodec.buildMap(cat -> codecOf(
             cat.defaulted(BlockPlacer.CODEC, "path", DEFAULTS.path, VertexConfig::path),
             cat.defaulted(BlockPlacer.CODEC, "ground", DEFAULTS.ground, VertexConfig::ground),

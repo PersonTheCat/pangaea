@@ -10,6 +10,10 @@ public interface BlockPlacer {
     Codec<BlockPlacer> CODEC =
         PangaeaCodec.forRegistry(PgRegistries.PLACER_TYPE, BlockPlacer::codec);
 
-    boolean placeUnchecked(PangaeaContext ctx, int x, int y, int z);
+    boolean place(PangaeaContext ctx, int x, int y, int z, int updates);
     MapCodec<? extends BlockPlacer> codec();
+
+    default boolean place(PangaeaContext ctx, int x, int y, int z) {
+        return this.place(ctx, x, y, z, 0);
+    }
 }

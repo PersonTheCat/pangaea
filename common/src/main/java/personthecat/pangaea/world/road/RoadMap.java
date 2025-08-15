@@ -47,6 +47,11 @@ public class RoadMap {
         return this.cacheRegion(r);
     }
 
+    public boolean hasRegion(final short x, final short z) {
+        final var r = this.getCachedRegion(x, z);
+        return r != null && r.isFullyGenerated();
+    }
+
     public void loadOrGenerateRegion(final short x, final short z) {
         final RoadRegion r = this.loadPartial(x, z);
         if (!r.isFullyGenerated()) {

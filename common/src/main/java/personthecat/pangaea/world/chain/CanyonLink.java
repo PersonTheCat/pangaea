@@ -83,7 +83,7 @@ public class CanyonLink extends ChainLink {
                     final int yO = aY - minY;
 
                     if ((dX * dX + dZ * dZ) * this.mut[yO - 1] + dY * dY / 6.0 < 1.0) {
-                        placer.placeUnchecked(ctx, aX, aY, aZ);
+                        placer.place(ctx, aX, aY, aZ);
                     }
                 }
             }

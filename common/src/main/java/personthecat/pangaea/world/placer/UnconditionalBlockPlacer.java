@@ -9,8 +9,8 @@ public record UnconditionalBlockPlacer(BlockState place) implements BlockPlacer 
         BlockState.CODEC.fieldOf("place").xmap(UnconditionalBlockPlacer::new, UnconditionalBlockPlacer::place);
 
     @Override
-    public boolean placeUnchecked(PangaeaContext ctx, int x, int y, int z) {
-        ctx.setUnchecked(x, y, z, this.place);
+    public boolean place(PangaeaContext ctx, int x, int y, int z, int updates) {
+        ctx.setBlock(x, y, z, this.place, updates);
         return true;
     }
 

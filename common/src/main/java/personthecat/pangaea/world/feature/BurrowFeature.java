@@ -46,7 +46,6 @@ public class BurrowFeature extends GiantFeature<Configuration> {
     private void generateColumn(PangaeaContext ctx, Configuration cfg, Border border, int x, int z) {
         final var pos = new MutableFunctionContext(x, 0, z);
         final var rand = ctx.rand;
-        ctx.targetPos.set(pos);
 
         final double stretch = cfg.stretch.sample(rand);
         final double exponent = cfg.exponent.sample(rand);
@@ -72,7 +71,7 @@ public class BurrowFeature extends GiantFeature<Configuration> {
             return;
         }
         for (int y = centerY - cap; y <= centerY + cap; y++) {
-            cfg.placer.placeUnchecked(ctx, x, y, z);
+            cfg.placer.place(ctx, x, y, z);
         }
     }
 
@@ -101,7 +100,7 @@ public class BurrowFeature extends GiantFeature<Configuration> {
             cat.defaulted(ColumnProvider.CODEC, "column", DEFAULT_COLUMN, c -> c.column),
             cat.defaulted(AutoWrapDensity.HELPER_CODEC, "map", DEFAULT_MAP, c -> c.map),
             cat.defaulted(AutoWrapDensity.HELPER_CODEC, "offset", DEFAULT_OFFSET, c -> c.offset),
-            union(PangaeaFeatureConfiguration.CODEC, c -> c),
+            union(GiantFeatureConfiguration.CODEC, c -> c),
             Configuration::new
         ));
         public final FloatProvider radius;
@@ -124,7 +123,7 @@ public class BurrowFeature extends GiantFeature<Configuration> {
                 ColumnProvider column,
                 DensityFunction map,
                 DensityFunction offset,
-                PangaeaFeatureConfiguration parent) {
+                GiantFeatureConfiguration parent) {
             super(parent, 0, false);
             this.radius = radius;
             this.stretch = stretch;

@@ -65,6 +65,7 @@ import personthecat.pangaea.world.injector.FeatureInjector;
 import personthecat.pangaea.world.injector.OreInjector;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
+import personthecat.pangaea.world.placer.BiomeRestrictedBlockPlacer;
 import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.placer.BlockPlacerList;
 import personthecat.pangaea.world.placer.ChanceBlockPlacer;
@@ -170,6 +171,7 @@ public abstract class Pangaea {
             .register("column_restricted", ColumnRestrictedBlockPlacer.CODEC)
             .register("chance", ChanceBlockPlacer.CODEC)
             .register("list", BlockPlacerList.CODEC)
+            .register("biome_restricted", BiomeRestrictedBlockPlacer.CODEC)
             .register("unconditional", UnconditionalBlockPlacer.CODEC);
         PgRegistries.COLUMN_TYPE.createRegister(ID)
             .register("constant", ConstantColumnProvider.CODEC)

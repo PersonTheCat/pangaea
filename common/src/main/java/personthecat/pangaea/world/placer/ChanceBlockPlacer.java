@@ -16,9 +16,9 @@ public record ChanceBlockPlacer(double chance, BlockPlacer place) implements Blo
     );
 
     @Override
-    public boolean placeUnchecked(PangaeaContext ctx, int x, int y, int z) {
+    public boolean place(PangaeaContext ctx, int x, int y, int z, int updates) {
         if (ctx.rand.nextDouble() <= this.chance) {
-            return this.place.placeUnchecked(ctx, x, y, z);
+            return this.place.place(ctx, x, y, z, updates);
         }
         return false;
     }
