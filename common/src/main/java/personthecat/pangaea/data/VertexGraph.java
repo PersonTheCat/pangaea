@@ -54,18 +54,24 @@ public class VertexGraph extends NeighborGraph<VertexNode> {
 
     public static class VertexNode extends Node {
         private byte level;
+        private final float xAngle;
 
         private VertexNode(RoadVertex v, byte level) {
-            this(v.radius, level);
+            this(v.radius, level, v.xAngle);
         }
 
-        private VertexNode(byte radius, byte level) {
+        private VertexNode(byte radius, byte level, float xAngle) {
             super(radius);
             this.level = level;
+            this.xAngle = xAngle;
         }
 
         public byte level() {
             return this.level;
+        }
+
+        public float xAngle() {
+            return this.xAngle;
         }
 
         private VertexNode putUnder(RoadVertex v, byte level) {
@@ -79,10 +85,11 @@ public class VertexGraph extends NeighborGraph<VertexNode> {
         private void writeTo(ByteWriter tw) throws IOException {
             tw.write(this.radius);
             tw.write(this.level);
+            tw.writeInt16((short) (this.xAngle * 1_000F));
         }
 
         private static VertexNode fromReader(ByteReader reader) throws IOException {
-            return new VertexNode(reader.read(), reader.read());
+            return new VertexNode(reader.read(), reader.read(), reader.readInt16() / 1_000F);
         }
     }
 
