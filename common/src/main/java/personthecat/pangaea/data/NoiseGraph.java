@@ -80,7 +80,7 @@ public class NoiseGraph {
         final int lZ = lowerQuarter(rZ);
         final Samples data = this.getData(cX, cZ);
         if (data.getSd(lX + 1, lZ + 1) == 0) { // nothing interpolated between corners
-            this.compute(data, cX, cZ, lX, lZ);
+            this.computeSds(data, cX, cZ, lX, lZ);
         }
         return data.getSd(rX, rZ);
     }
@@ -302,7 +302,7 @@ public class NoiseGraph {
                     continue;
                 }
                 if (data.getD(x, z) == 0) {
-                    data.setD(x, z, (float) this.computeHeight(data, ctx.at((cX << 4) + x, (cZ << 4) + z)));
+                    data.setD(x, z, (float) this.computeHeight(ctx.at((cX << 4) + x, (cZ << 4) + z)));
                 }
             }
         }
@@ -331,7 +331,7 @@ public class NoiseGraph {
         if (uZ < 16) data.setSd(lX + 2, uZ, (lXuZ + uXuZ) / 2F);
     }
 
-    protected int computeHeight(Samples data, MutableFunctionContext ctx) {
+    protected int computeHeight(MutableFunctionContext ctx) {
         final var f = this.router.initialDensityWithoutJaggedness();
         int result = -1;
         int low = 0;
@@ -357,7 +357,7 @@ public class NoiseGraph {
         return Math.sqrt(sZ * sZ + sX * sZ);
     }
 
-    protected void compute(Samples data, int cX, int cZ, int lX, int lZ) {
+    protected void computeSds(Samples data, int cX, int cZ, int lX, int lZ) {
         final MutableFunctionContext ctx = new MutableFunctionContext();
         final int uX = lX + 4;
         final int uZ = lZ + 4;
