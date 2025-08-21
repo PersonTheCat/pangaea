@@ -2,5 +2,7 @@
   "pangaea.errorMenu.injectors": "Data Injectors",
   "pangaea.errorText.unmetDependencies": "%s Unmet Dependencies",
   "pangaea.errorText.unmetDependencies.details": "The following dependencies are unmet: ",
-  "pangaea.errorText.injectionFailures": "%s Injection Failures"
+  "pangaea.errorText.injectionFailures": "%s Injection Failures",
+  "pangaea.errorText.notANoiseSource": "Not a noise biome source: %s",
+  "pangaea.errorText.targetNotFound": "Target not found: %s"
 }

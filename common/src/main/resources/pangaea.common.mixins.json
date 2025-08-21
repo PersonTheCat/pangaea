@@ -12,6 +12,7 @@
     "accessor.MultiNoiseBiomeSourceAccessor",
     "accessor.NoiseChunkAccessor",
     "accessor.OreConfigurationAccessor",
+    "accessor.PlacedFeatureAccessor",
     "accessor.StructureManagerAccessor",
     "accessor.TagMatchTestAccessor",
     "accessor.TrapezoidHeightAccessor",

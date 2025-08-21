@@ -63,6 +63,9 @@ import personthecat.pangaea.world.injector.DataInjectionHook;
 import personthecat.pangaea.world.injector.DimensionInjector;
 import personthecat.pangaea.world.injector.FeatureInjector;
 import personthecat.pangaea.world.injector.OreInjector;
+import personthecat.pangaea.world.injector.PlacementModifierInjector;
+import personthecat.pangaea.world.placement.IntervalPlacementModifier;
+import personthecat.pangaea.world.placement.RoadDistanceFilter;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
 import personthecat.pangaea.world.placer.BiomeRestrictedBlockPlacer;
@@ -154,6 +157,8 @@ public abstract class Pangaea {
             .register("density", DensityHeightProvider.TYPE)
             .register("density_offset", DensityOffsetHeightProvider.TYPE);
         CommonRegistries.PLACEMENT_MODIFIER_TYPE.createRegister(ID)
+            .register("interval", IntervalPlacementModifier.TYPE)
+            .register("road_distance", RoadDistanceFilter.TYPE)
             .register("simple", SimplePlacementModifier.TYPE)
             .register("surface_biome", SurfaceBiomeFilter.TYPE);
         CommonRegistries.RULE_TEST_TYPE.createRegister(ID)
@@ -165,7 +170,8 @@ public abstract class Pangaea {
             .register("biome_modifier", BiomeModifierInjector.CODEC)
             .register("biome_source", BiomeSourceInjector.CODEC)
             .register("dimension", DimensionInjector.CODEC)
-            .register("feature", FeatureInjector.CODEC);
+            .register("feature", FeatureInjector.CODEC)
+            .register("placement", PlacementModifierInjector.CODEC);
         PgRegistries.PLACER_TYPE.createRegister(ID)
             .register("targeted", TargetedBlockPlacer.CODEC)
             .register("column_restricted", ColumnRestrictedBlockPlacer.CODEC)

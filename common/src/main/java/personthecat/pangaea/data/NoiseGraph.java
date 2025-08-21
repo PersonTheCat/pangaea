@@ -26,7 +26,7 @@ public class NoiseGraph {
     public static final int BIOME_SCAN_DIMENSION = BIOME_SAMPLE_DIMENSION * (BIOME_SCAN_CHUNK_RADIUS * 2 + 1);
     private static final int CLEANUP_INTERVAL = 5;
     private static final int CLEANUP_DISTANCE = 12;
-    private static final float NO_VERTEX = Float.MAX_VALUE;
+    private static final float NO_VERTEX = 1_234_567F;
     private static final Point[] BIOME_CHECKS = {
         new Point(3, 3),
         new Point(3, 12),
@@ -218,6 +218,10 @@ public class NoiseGraph {
     }
 
     public float getApproximateRoadDistance(int x, int z) {
+        return this.getApproximateRoadDistance(x, z, RoadRegion.LEN);
+    }
+
+    public float getApproximateRoadDistance(int x, int z, float min) {
         final int cX = x >> 4;
         final int cZ = z >> 4;
         final int rX = x & 15;
@@ -226,7 +230,7 @@ public class NoiseGraph {
         final int sX = rX < 7 ? 3 : rX > 9 ? 12 : 8;
         final int sZ = sX == 8 ? 8 : rZ < 7 ? 3 : rZ > 9 ? 12 : 8;
         final Samples data = this.getData(cX, cZ);
-        return this.getOrComputeDistance(data, sX, sZ, x, z);
+        return this.getOrComputeDistance(data, sX, sZ, x, z, min);
     }
 
     public Holder<Biome> getApproximateBiome(BiomeManager biomes, int x, int z) {
@@ -443,9 +447,17 @@ public class NoiseGraph {
         return biome;
     }
 
-    protected float getOrComputeDistance(Samples data, int rX, int rZ, int aX, int aZ) {
+    protected float getOrComputeDistance(Samples data, int rX, int rZ, int aX, int aZ, float min) {
         float v = data.getV(rX, rZ);
         if (v == NO_VERTEX) {
+            // if center chunk is max distance, ignore other samples
+            if (rX != 8 && rZ != 8) {
+                final var c = this.getOrComputeDistance(data, 8, 8, (aX & ~15) + 8, (aZ & ~15) + 8, min);
+                if (c >= min) {
+                    data.setV(rX, rZ, c);
+                    return c;
+                }
+            }
             final var map = LevelExtras.getRoadMap(this.level);
             final var region = map.getRegion(RoadRegion.absToRegion(aX), RoadRegion.absToRegion(aZ));
             for (final var network : region.getData()) {

@@ -54,7 +54,7 @@ public class VertexGraph extends NeighborGraph<VertexNode> {
 
     public static class VertexNode extends Node {
         private byte level;
-        private final float xAngle;
+        private float xAngle;
 
         private VertexNode(RoadVertex v, byte level) {
             this(v.radius, level, v.xAngle);
@@ -76,8 +76,9 @@ public class VertexGraph extends NeighborGraph<VertexNode> {
 
         private VertexNode putUnder(RoadVertex v, byte level) {
             // we don't need the actual vertex info yet, so ignoring for now
+            if (level < this.level) this.xAngle = v.xAngle;
             this.radius = (byte) Math.max(this.radius, v.radius);
-            this.level = (byte) Math.max(this.level, level);
+            this.level = (byte) Math.min(this.level, level);
             v.addFlag(RoadVertex.INTERSECTION);
             return this;
         }
