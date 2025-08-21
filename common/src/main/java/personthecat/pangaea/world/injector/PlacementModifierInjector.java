@@ -126,7 +126,7 @@ public record PlacementModifierInjector(
             }
             return OptionalInt.empty();
         }
-        for (int i = 0; i < modifiers.size(); i++) {
+        for (int i = modifiers.size() - 1; i >= 0; i--) {
             final var modifier = modifiers.get(i);
             if (modifier.type() == target) {
                 return OptionalInt.of(i);
