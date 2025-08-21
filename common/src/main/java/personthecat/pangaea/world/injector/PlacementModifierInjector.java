@@ -126,10 +126,10 @@ public record PlacementModifierInjector(
             }
             return OptionalInt.empty();
         }
-        for (final PlacementModifier modifier : modifiers) {
+        for (int i = 0; i < modifiers.size(); i++) {
+            final var modifier = modifiers.get(i);
             if (modifier.type() == target) {
-                final int i = modifiers.indexOf(modifier);
-                return i != -1 ? OptionalInt.of(i) : OptionalInt.empty();
+                return OptionalInt.of(i);
             }
         }
         return OptionalInt.empty();
