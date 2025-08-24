@@ -7,7 +7,6 @@ architectury {
 }
 
 loom {
-//    forge { accessTransformer 'src/main/resources/accesstransformer.cfg' }
     accessWidenerPath.set file("src/main/resources/pangaea.accesswidener")
 }
 

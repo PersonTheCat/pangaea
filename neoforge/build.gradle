@@ -7,9 +7,7 @@ architectury {
 }
 
 loom {
-    neoForge {
-        accessTransformer 'src/main/resources/META-INF/accesstransformer.cfg'
-    }
+    accessWidenerPath = project(":common").loom.accessWidenerPath
 
     mods {
         // force this mod onto the classpath since for some reason arch misses it
@@ -54,6 +52,7 @@ remapJar {
     input.set shadowJar.archiveFile
     dependsOn shadowJar
     archiveClassifier.set null
+    atAccessWideners.add("pangaea.accesswidener")
 }
 
 jar {

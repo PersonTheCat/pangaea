@@ -5,6 +5,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.valueproviders.FloatProvider;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.level.levelgen.DensityFunction;
+import net.minecraft.world.level.levelgen.SurfaceRules.ConditionSource;
+import net.minecraft.world.level.levelgen.SurfaceRules.RuleSource;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
@@ -94,6 +96,14 @@ import personthecat.pangaea.world.provider.VeryBiasedToBottomInt;
 import personthecat.pangaea.world.road.AStarRoadGenerator;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
+import personthecat.pangaea.world.surface.AllConditionSource;
+import personthecat.pangaea.world.surface.ChanceConditionSource;
+import personthecat.pangaea.world.surface.DensityConditionSource;
+import personthecat.pangaea.world.surface.HeterogeneousBiomeConditionSource;
+import personthecat.pangaea.world.surface.IntervalConditionSource;
+import personthecat.pangaea.world.surface.RoadDistanceConditionSource;
+import personthecat.pangaea.world.surface.SurfaceBiomeConditionSource;
+import personthecat.pangaea.world.surface.WeightConditionSource;
 import personthecat.pangaea.world.weight.BiomeFilterWeight;
 import personthecat.pangaea.world.weight.ApproximateWeight;
 import personthecat.pangaea.world.weight.ConstantWeight;
@@ -238,6 +248,15 @@ public abstract class Pangaea {
             .register("road", RoadFeature.INSTANCE)
             .register("temporary_tunnel", TunnelFeature.INSTANCE)
             .register("temporary_ravine", RavineFeature.INSTANCE);
+        CommonRegistries.MATERIAL_CONDITION.createRegister(ID)
+            .register("all", AllConditionSource.CODEC)
+            .register("biome", HeterogeneousBiomeConditionSource.CODEC)
+            .register("chance", ChanceConditionSource.CODEC)
+            .register("density", DensityConditionSource.CODEC)
+            .register("interval", IntervalConditionSource.CODEC)
+            .register("road_distance", RoadDistanceConditionSource.CODEC)
+            .register("surface_biome", SurfaceBiomeConditionSource.CODEC)
+            .register("weight", WeightConditionSource.CODEC);
     }
 
     private static void configureCodecs() {
@@ -308,6 +327,18 @@ public abstract class Pangaea {
         PangaeaCodec.get(ColumnProvider.class)
             .addPatterns(DefaultCodecPatterns.COLUMN)
             .addPatternCondition(Cfg::encodePatternHeightProvider);
+
+        PangaeaCodec.get(ConditionSource.class)
+            .addStructures(DefaultCodecStructures.CONDITION_SOURCE)
+            .addStructureCondition(Cfg::encodeStructuralConditions)
+            .addPatterns(DefaultCodecPatterns.CONDITION_SOURCE)
+            .addPatternCondition(Cfg::encodePatternConditions);
+
+        PangaeaCodec.get(RuleSource.class)
+            .addStructures(DefaultCodecStructures.RULE_SOURCE)
+            .addStructureCondition(Cfg::encodeStructuralRules)
+            .addPatterns(DefaultCodecPatterns.RULE_SOURCE)
+            .addPatternCondition(Cfg::encodePatternRules);
     }
 
     private static void enableDebugFeatures() {

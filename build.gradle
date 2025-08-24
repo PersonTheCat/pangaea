@@ -2,7 +2,7 @@
 plugins {
     id "architectury-plugin" version "$architectury_version"
     id "dev.architectury.loom" version "$architectury_loom_version" apply false
-    id 'com.github.johnrengelman.shadow' version '7.1.2' apply false
+    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
 }
 
 architectury {

@@ -24,3 +24,66 @@ accessible field net/minecraft/world/level/biome/Biome climateSettings Lnet/mine
 # Custom Chunk Statuses
 accessible class net/minecraft/world/level/chunk/status/ChunkStatus$GenerationTask
 accessible class net/minecraft/world/level/chunk/status/ChunkStatus$LoadingTask
+
+# Surface Rules and Conditions
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$Condition
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$Context
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$SurfaceRule
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$LazyCondition
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$LazyYCondition
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$LazyXZCondition
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$StoneDepthCheck
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$StoneDepthCheck CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$StoneDepthCheck <init> (IZILnet/minecraft/world/level/levelgen/placement/CaveSurface;)V
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$NotConditionSource
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$NotConditionSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$NotConditionSource <init> (Lnet/minecraft/world/level/levelgen/SurfaceRules$ConditionSource;)V
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$YConditionSource
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$YConditionSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$YConditionSource <init> (Lnet/minecraft/world/level/levelgen/VerticalAnchor;IZ)V
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$WaterConditionSource
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$WaterConditionSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$WaterConditionSource <init> (IIZ)V
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$BiomeConditionSource
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$BiomeConditionSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$BiomeConditionSource <init> (Ljava/util/List;)V
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$NoiseThresholdConditionSource
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$NoiseThresholdConditionSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$NoiseThresholdConditionSource <init> (Lnet/minecraft/resources/ResourceKey;DD)V
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$VerticalGradientConditionSource
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$VerticalGradientConditionSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$VerticalGradientConditionSource <init> (Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/world/level/levelgen/VerticalAnchor;Lnet/minecraft/world/level/levelgen/VerticalAnchor;)V
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$Steep
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Steep CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$Hole
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Hole CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$AbovePreliminarySurface
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$AbovePreliminarySurface CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$Temperature
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Temperature CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$TestRuleSource
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$TestRuleSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$TestRuleSource <init> (Lnet/minecraft/world/level/levelgen/SurfaceRules$ConditionSource;Lnet/minecraft/world/level/levelgen/SurfaceRules$RuleSource;)V
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$SequenceRuleSource
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$SequenceRuleSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$SequenceRuleSource <init> (Ljava/util/List;)V
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$BlockRuleSource
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$BlockRuleSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$BlockRuleSource <init> (Lnet/minecraft/world/level/block/state/BlockState;)V
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$Bandlands
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Bandlands CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context randomState Lnet/minecraft/world/level/levelgen/RandomState;
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context chunk Lnet/minecraft/world/level/chunk/ChunkAccess;
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context noiseChunk Lnet/minecraft/world/level/levelgen/NoiseChunk;
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context context Lnet/minecraft/world/level/levelgen/WorldGenerationContext;
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context blockX I
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context blockZ I
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context surfaceDepth I
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context minSurfaceLevel I
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context pos Lnet/minecraft/core/BlockPos$MutableBlockPos;
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context biome Ljava/util/function/Supplier;
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context blockY I
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context waterHeight I
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context stoneDepthBelow I
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context stoneDepthAbove I
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$Context getMinSurfaceLevel ()I

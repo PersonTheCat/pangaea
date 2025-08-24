@@ -10,8 +10,17 @@ import net.minecraft.world.level.levelgen.DensityFunctions.Mapped;
 import net.minecraft.world.level.levelgen.DensityFunctions.Noise;
 import net.minecraft.world.level.levelgen.DensityFunctions.ShiftedNoise;
 import net.minecraft.world.level.levelgen.DensityFunctions.TwoArgumentSimpleFunction;
+import net.minecraft.world.level.levelgen.SurfaceRules.ConditionSource;
+import net.minecraft.world.level.levelgen.SurfaceRules.NotConditionSource;
+import net.minecraft.world.level.levelgen.SurfaceRules.RuleSource;
+import net.minecraft.world.level.levelgen.SurfaceRules.StoneDepthCheck;
+import net.minecraft.world.level.levelgen.SurfaceRules.TestRuleSource;
+import net.minecraft.world.level.levelgen.SurfaceRules.VerticalGradientConditionSource;
+import net.minecraft.world.level.levelgen.SurfaceRules.YConditionSource;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
+import net.minecraft.world.level.levelgen.placement.CaveSurface;
+import personthecat.catlib.data.FloatRange;
 import personthecat.pangaea.serialization.codec.DensityHelper;
 import personthecat.pangaea.serialization.codec.NoiseCodecs;
 import personthecat.pangaea.serialization.codec.StructuralCodec.Structure;
@@ -30,6 +39,14 @@ import personthecat.pangaea.world.filter.SpawnDistanceChunkFilter;
 import personthecat.pangaea.world.provider.DensityFloatProvider;
 import personthecat.pangaea.world.provider.DensityHeightProvider;
 import personthecat.pangaea.world.provider.DensityIntProvider;
+import personthecat.pangaea.world.surface.ChanceConditionSource;
+import personthecat.pangaea.world.surface.ColumnConditionSource;
+import personthecat.pangaea.world.surface.DensityConditionSource;
+import personthecat.pangaea.world.surface.HeterogeneousBiomeConditionSource;
+import personthecat.pangaea.world.surface.IntervalConditionSource;
+import personthecat.pangaea.world.surface.RoadDistanceConditionSource;
+import personthecat.pangaea.world.surface.SurfaceBiomeConditionSource;
+import personthecat.pangaea.world.surface.WeightConditionSource;
 import personthecat.pangaea.world.weight.CutoffWeight;
 import personthecat.pangaea.world.weight.DensityWeight;
 import personthecat.pangaea.world.weight.MultipleWeight;
@@ -41,7 +58,9 @@ import java.util.function.Predicate;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.asParent;
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
+import static personthecat.pangaea.world.density.FastNoiseDensity.as3dCodec;
 
 public final class DefaultCodecStructures {
     private static final MapCodec<TwoArgumentSimpleFunction> MUL_TIMES_DENSITY =
@@ -84,6 +103,33 @@ public final class DefaultCodecStructures {
     private static final MapCodec<VerticalAnchor.BelowTop> TOP_ANCHOR =
         Codec.intRange(DimensionType.MIN_Y, DimensionType.MAX_Y).fieldOf("top")
             .xmap(i -> new VerticalAnchor.BelowTop(-i), a -> -a.offset());
+
+    private static final MapCodec<RoadDistanceConditionSource> ROAD_DISTANCE_SOURCE =
+        FloatRange.CODEC.fieldOf("road_distance").xmap(RoadDistanceConditionSource::rangeUp, RoadDistanceConditionSource::range);
+    private static final MapCodec<DensityConditionSource> FAST_NOISE_SOURCE =
+        as3dCodec(FastNoiseDensity.CODEC).xmap(DensityConditionSource::fromFastNoise, s -> (FastNoiseDensity) s.density());
+
+    private static final MapCodec<YConditionSource> Y_ABOVE_SOURCE = codecOf(
+        field(VerticalAnchor.CODEC, "y_above", YConditionSource::anchor),
+        defaulted(Codec.intRange(-20, 20), "surface_depth_multiplier", 0, YConditionSource::surfaceDepthMultiplier),
+        defaulted(Codec.BOOL, "add_stone_depth", false, YConditionSource::addStoneDepth),
+        YConditionSource::new
+    );
+
+    private static final MapCodec<NotConditionSource> Y_BELOW_SOURCE = codecOf(
+        field(VerticalAnchor.CODEC, "y_below", n -> ((YConditionSource) n.target()).anchor()),
+        defaulted(Codec.intRange(-20, 20), "surface_depth_multiplier", 0, n -> ((YConditionSource) n.target()).surfaceDepthMultiplier()),
+        defaulted(Codec.BOOL, "add_stone_depth", false, n -> ((YConditionSource) n.target()).addStoneDepth()),
+        (a, m, d) -> new NotConditionSource(new YConditionSource(a, m, d))
+    );
+
+    private static final MapCodec<StoneDepthCheck> STONE_DEPTH_SOURCE = codecOf(
+        defaulted(Codec.INT, "offset", 0, StoneDepthCheck::offset),
+        defaulted(Codec.BOOL, "add_surface_depth", false, StoneDepthCheck::addSurfaceDepth),
+        defaulted(Codec.INT, "secondary_depth_range", 0, StoneDepthCheck::secondaryDepthRange),
+        field(CaveSurface.CODEC, "stone_depth", StoneDepthCheck::surfaceType),
+        StoneDepthCheck::new
+    );
 
     public static final List<Structure<? extends DensityFunction>> DENSITY = List.of(
         Structure.of(MUL_TIMES_DENSITY, isType(TwoArgumentSimpleFunction.Type.MUL)),
@@ -135,6 +181,27 @@ public final class DefaultCodecStructures {
         Structure.of(DensityHeightProvider.CODEC, DensityHeightProvider.class).withRequiredFields("density")
     );
 
+    public static final List<Structure<? extends ConditionSource>> CONDITION_SOURCE = List.of(
+        Structure.of(NotConditionSource.CODEC.codec(), NotConditionSource.class).withRequiredFields("invert"),
+        Structure.of(ROAD_DISTANCE_SOURCE, RoadDistanceConditionSource.class).withRequiredFields("road_distance"),
+        Structure.of(Y_ABOVE_SOURCE, YConditionSource.class).withRequiredFields("y_above"),
+        Structure.of(Y_BELOW_SOURCE, s -> s instanceof NotConditionSource(YConditionSource ignored)).withRequiredFields("y_below"),
+        Structure.of(STONE_DEPTH_SOURCE, StoneDepthCheck.class).withRequiredFields("stone_depth"),
+        Structure.of(FAST_NOISE_SOURCE, s -> s instanceof DensityConditionSource(FastNoiseDensity ignored, var ignored2)).withTestPattern(FAST_NOISE_TEST_PATTERN),
+        Structure.of(VerticalGradientConditionSource.CODEC.codec(), VerticalGradientConditionSource.class).withRequiredFields("random_name", "true_at_and_below", "false_at_and_above"),
+        Structure.of(HeterogeneousBiomeConditionSource.CODEC, HeterogeneousBiomeConditionSource.class).withRequiredFields("biomes"),
+        Structure.of(SurfaceBiomeConditionSource.CODEC, SurfaceBiomeConditionSource.class).withRequiredFields("surface_biomes"),
+        Structure.of(IntervalConditionSource.CODEC, IntervalConditionSource.class).withRequiredFields("interval"),
+        Structure.of(DensityConditionSource.CODEC, DensityConditionSource.class).withRequiredFields("density"),
+        Structure.of(WeightConditionSource.CODEC, WeightConditionSource.class).withRequiredFields("weight"),
+        Structure.of(ChanceConditionSource.CODEC, ChanceConditionSource.class).withRequiredFields("chance"),
+        Structure.of(ColumnConditionSource.CODEC, ColumnConditionSource.class).withRequiredFields("column")
+    );
+
+    public static final List<Structure<? extends RuleSource>> RULE_SOURCE = List.of(
+        Structure.of(TestRuleSource.CODEC.codec(), TestRuleSource.class).withRequiredFields("if_true", "then_run")
+    );
+
     private DefaultCodecStructures() {}
 
     private static Predicate<DensityFunction> isType(TwoArgumentSimpleFunction.Type type) {
@@ -153,69 +220,5 @@ public final class DefaultCodecStructures {
     private static DensityFunction normalizeMaxFunction(DensityFunction f) {
         return f instanceof TwoArgumentSimpleFunction t && t.type() == TwoArgumentSimpleFunction.Type.MAX
             ? Max.from(t) : f;
-    }
-
-    private record MulTimesStructure<A>(A mul, A times) {
-        static final MapCodec<MulTimesStructure<DensityFunction>> DENSITY_CODEC =
-            createCodec(DensityHelper.CODEC);
-        static final MapCodec<MulTimesStructure<WeightFunction>> WEIGHT_CODEC =
-            createCodec(WeightFunction.CODEC);
-
-        static TwoArgumentSimpleFunction toDensity(MulTimesStructure<DensityFunction> s) {
-            return TwoArgumentSimpleFunction.create(TwoArgumentSimpleFunction.Type.MUL, s.mul, s.times);
-        }
-
-        static MulTimesStructure<DensityFunction> fromDensity(TwoArgumentSimpleFunction t) {
-            return new MulTimesStructure<>(t.argument1(), t.argument2());
-        }
-
-        static WeightFunction toWeight(MulTimesStructure<WeightFunction> s) {
-            return MultipleWeight.create(s.mul, s.times);
-        }
-
-        static MulTimesStructure<WeightFunction> fromWeight(WeightFunction f) {
-            final var s = (MultipleWeight) f;
-            return new MulTimesStructure<>(s.argument1(), s.argument2());
-        }
-
-        private static <A> MapCodec<MulTimesStructure<A>> createCodec(Codec<A> base) {
-            return codecOf(
-                field(base, "mul", MulTimesStructure::mul),
-                field(base, "times", MulTimesStructure::times),
-                MulTimesStructure::new
-            );
-        }
-    }
-
-    private record AddPlusStructure<A>(A add, A plus) {
-        static final MapCodec<AddPlusStructure<DensityFunction>> DENSITY_CODEC =
-            createCodec(DensityHelper.CODEC);
-        static final MapCodec<AddPlusStructure<WeightFunction>> WEIGHT_CODEC =
-            createCodec(WeightFunction.CODEC);
-
-        static TwoArgumentSimpleFunction toDensity(AddPlusStructure<DensityFunction> s) {
-            return TwoArgumentSimpleFunction.create(TwoArgumentSimpleFunction.Type.ADD, s.add, s.plus);
-        }
-
-        static AddPlusStructure<DensityFunction> fromDensity(TwoArgumentSimpleFunction t) {
-            return new AddPlusStructure<>(t.argument1(), t.argument2());
-        }
-
-        static WeightFunction toWeight(AddPlusStructure<WeightFunction> s) {
-            return SumWeight.create(s.add, s.plus);
-        }
-
-        static AddPlusStructure<WeightFunction> fromWeight(WeightFunction f) {
-            final var s = (SumWeight) f;
-            return new AddPlusStructure<>(s.argument1(), s.argument2());
-        }
-
-        private static <A> MapCodec<AddPlusStructure<A>> createCodec(Codec<A> base) {
-            return codecOf(
-                field(base, "add", AddPlusStructure::add),
-                field(base, "plus", AddPlusStructure::plus),
-                AddPlusStructure::new
-            );
-        }
     }
 }

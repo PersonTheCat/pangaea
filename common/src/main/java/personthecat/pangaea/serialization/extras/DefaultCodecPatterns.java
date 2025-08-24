@@ -3,9 +3,10 @@ package personthecat.pangaea.serialization.extras;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JavaOps;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.valueproviders.FloatProvider;
 import net.minecraft.util.valueproviders.IntProvider;
@@ -13,6 +14,10 @@ import net.minecraft.util.valueproviders.UniformFloat;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.levelgen.SurfaceRules.BlockRuleSource;
+import net.minecraft.world.level.levelgen.SurfaceRules.ConditionSource;
+import net.minecraft.world.level.levelgen.SurfaceRules.RuleSource;
+import net.minecraft.world.level.levelgen.SurfaceRules.SequenceRuleSource;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import net.minecraft.world.level.levelgen.structure.templatesystem.BlockMatchTest;
@@ -22,6 +27,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 import personthecat.catlib.data.FloatRange;
 import personthecat.catlib.data.IdList;
 import personthecat.catlib.data.Range;
+import personthecat.catlib.registry.RegistryUtils;
 import personthecat.pangaea.mixin.accessor.BlockMatchTestAccessor;
 import personthecat.pangaea.mixin.accessor.BlockStateMatchTestAccessor;
 import personthecat.pangaea.mixin.accessor.TagMatchTestAccessor;
@@ -36,6 +42,7 @@ import personthecat.pangaea.world.placer.BlockPlacerList;
 import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
 import personthecat.pangaea.world.provider.ColumnProvider;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
+import personthecat.pangaea.world.surface.AllConditionSource;
 import personthecat.pangaea.world.weight.ConstantWeight;
 import personthecat.pangaea.world.weight.WeightFunction;
 import personthecat.pangaea.world.weight.WeightList;
@@ -74,8 +81,8 @@ public final class DefaultCodecPatterns {
         Codec.DOUBLE.xmap(ConstantWeight::new, ConstantWeight::weight);
     private static final Codec<WeightList> LIST_WEIGHT =
         WeightFunction.CODEC.listOf().xmap(WeightList::new, WeightList::weights);
-    private static final Codec<WeightFunction> RESOURCE_LOCATION_WEIGHT =
-        ResourceLocation.CODEC.flatXmap(DefaultCodecPatterns::parseWithoutArgs, DefaultCodecPatterns::encodeAsId);
+    private static final Codec<WeightFunction> RESOURCE_KEY_WEIGHT =
+        ResourceKey.codec(PgRegistries.Keys.WEIGHT_TYPE).flatXmap(DefaultCodecPatterns::parseWithoutArgs, DefaultCodecPatterns::encodeAsKey);
 
     private static final Codec<VerticalAnchor.Absolute> NUMBER_ANCHOR =
         Codec.intRange(DimensionType.MIN_Y, DimensionType.MAX_Y).xmap(VerticalAnchor.Absolute::new, VerticalAnchor.Absolute::y);
@@ -88,6 +95,16 @@ public final class DefaultCodecPatterns {
         TestPattern.forMap(m -> Stream.of(AnchorType.values()).anyMatch(t -> m.has(t.fieldName(), TestPattern.LIST)));
     private static final TestPattern PARAMS_ONLY_TEST =
         TestPattern.LIST.or(TestPattern.STRING).or(TestPattern.NUMBER);
+
+    private static final Codec<ConditionSource> LIST_CONDITION =
+        ConditionSource.CODEC.listOf(1, 256).xmap(DefaultCodecPatterns::conditionList, Pattern.get(AllConditionSource::list));
+    private static final Codec<ConditionSource> RESOURCE_KEY_CONDITION =
+        ResourceKey.codec(Registries.MATERIAL_CONDITION).flatXmap(DefaultCodecPatterns::parseWithoutArgs, DefaultCodecPatterns::encodeAsKey);
+
+    private static final Codec<RuleSource> LIST_RULE =
+        RuleSource.CODEC.listOf(1, 256).xmap(DefaultCodecPatterns::ruleList, Pattern.get(SequenceRuleSource::sequence));
+    private static final Codec<BlockRuleSource> STATE_RULE =
+        BlockState.CODEC.xmap(BlockRuleSource::new, BlockRuleSource::resultState);
 
     public static final List<Pattern<? extends BlockPlacer>> PLACER = List.of(
         Pattern.of(STATE_PLACER, UnconditionalBlockPlacer.class).testing(TestPattern.ID.or(TestPattern.STATE)),
@@ -117,7 +134,7 @@ public final class DefaultCodecPatterns {
     public static final List<Pattern<? extends WeightFunction>> WEIGHT = List.of(
         Pattern.of(NUMBER_WEIGHT, ConstantWeight.class).testing(TestPattern.NUMBER),
         Pattern.of(LIST_WEIGHT, WeightList.class).testing(TestPattern.LIST),
-        Pattern.of(RESOURCE_LOCATION_WEIGHT, weight -> false).testing(TestPattern.ID) // cannot encode
+        Pattern.of(RESOURCE_KEY_WEIGHT, weight -> false).testing(TestPattern.ID) // cannot encode
     );
 
     public static final List<Pattern<? extends VerticalAnchor>> ANCHOR = List.of(
@@ -139,19 +156,38 @@ public final class DefaultCodecPatterns {
         HeightPattern.ParamsOnly.INFO.columnPattern().testing(PARAMS_ONLY_TEST)
     );
 
+    public static final List<Pattern<? extends ConditionSource>> CONDITION_SOURCE = List.of(
+        Pattern.of(LIST_CONDITION, AllConditionSource.class).testing(TestPattern.LIST),
+        Pattern.of(RESOURCE_KEY_CONDITION, condition -> false).testing(TestPattern.ID)
+    );
+
+    public static final List<Pattern<? extends RuleSource>> RULE_SOURCE = List.of(
+        Pattern.of(LIST_RULE, SequenceRuleSource.class).testing(TestPattern.LIST),
+        Pattern.of(STATE_RULE, BlockRuleSource.class).testing(TestPattern.STATE)
+    );
+
     private DefaultCodecPatterns() {}
 
-    private static DataResult<WeightFunction> parseWithoutArgs(ResourceLocation id) {
-        final var codec = PgRegistries.WEIGHT_TYPE.lookup(id);
+    private static <T> DataResult<T> parseWithoutArgs(ResourceKey<MapCodec<? extends T>> key) {
+        final var registry = RegistryUtils.getHandle(key.registryKey());
+        final var codec = registry.lookup(key);
         if (codec == null) {
-            return DataResult.error(() -> "No such weight type: " + id);
+            return DataResult.error(() -> "No such weight type: " + key.location());
         }
         return codec.compressedDecode(JavaOps.INSTANCE, Map.of())
-            .map(weight -> (WeightFunction) weight)
-            .mapError(e -> "Cannot decode " + id + " without additional properties");
+            .map(t -> (T) t)
+            .mapError(e -> "Cannot decode " + key.location() + " without additional properties");
     }
 
-    private static DataResult<ResourceLocation> encodeAsId(WeightFunction weight) {
-        return DataResult.error(() -> "Not supported: encoding weight as resource location");
+    private static <T> DataResult<ResourceKey<MapCodec<? extends T>>> encodeAsKey(T t) {
+        return DataResult.error(() -> "Not supported: encoding value as resource key");
+    }
+
+    private static ConditionSource conditionList(List<ConditionSource> list) {
+        return list.size() == 1 ? list.getFirst() : new AllConditionSource(list);
+    }
+
+    private static RuleSource ruleList(List<RuleSource> list) {
+        return list.size() == 1 ? list.getFirst() : new SequenceRuleSource(list);
     }
 }

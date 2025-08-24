@@ -136,6 +136,23 @@ public final class Cfg {
         return INSTANCE.data.encodeFeatureCategories;
     }
 
+    public static boolean encodePatternConditions() {
+        return INSTANCE.data.encodePatternConditions;
+    }
+
+    public static boolean encodeStructuralConditions() {
+        return INSTANCE.data.encodeStructuralConditions;
+    }
+
+    public static boolean encodePatternRules() {
+        return INSTANCE.data.encodePatternRules;
+    }
+
+    public static boolean encodeStructuralRules() {
+        return INSTANCE.data.encodeStructuralRules;
+    }
+
+
     static class Roads {
         boolean pregenRoads = false;
         boolean debugPregenShape = false;
@@ -173,5 +190,9 @@ public final class Cfg {
         boolean encodeStatePropertiesAsList = true;
         boolean encodeReadableColors = true;
         boolean encodeFeatureCategories = true;
+        boolean encodePatternConditions = true;
+        boolean encodeStructuralConditions = true;
+        boolean encodePatternRules = true;
+        boolean encodeStructuralRules = true;
     }
 }
