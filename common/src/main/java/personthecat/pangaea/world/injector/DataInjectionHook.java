@@ -86,6 +86,7 @@ public final class DataInjectionHook {
                 return;
             }
         }
+        ctx.cleanup();
     }
 
     private static boolean isWorldGenPhase(DataRegistryEvent.Source source) {

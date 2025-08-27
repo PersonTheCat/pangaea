@@ -26,9 +26,16 @@ public abstract class ContextMixin implements ContextExtras {
     @Unique private Supplier<Holder<Biome>> pangaea$surfaceBiome;
 
     @Inject(method = "updateXZ", at = @At("TAIL"))
-    private void updateSurfaceBiome(int x, int z, CallbackInfo ci) {
+    private void updateHorizontal(int x, int z, CallbackInfo ci) {
         this.pangaea$surfaceBiome = Suppliers.memoize(() ->
             this.biomeGetter.apply(this.pos.set(x, 1_000_000, z)));
+        this.pangaea$pangaea.targetPos.at(x, z);
+    }
+
+    @Inject(method = "updateY", at = @At("TAIL"))
+    private void updateVertical(
+            int stoneDepthAbove, int stoneDepthBelow, int waterHeight, int x, int y, int z, CallbackInfo ci) {
+        this.pangaea$pangaea.targetPos.at(x, y, z);
     }
 
     @Override
@@ -38,7 +45,7 @@ public abstract class ContextMixin implements ContextExtras {
 
     @Override
     public PangaeaContext pangaea$getPangaea() {
-        return this.pangaea$pangaea;
+        return this.pangaea$pangaea; // duplicate in case original wgc is replaced
     }
 
     @Override

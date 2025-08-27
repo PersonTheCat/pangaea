@@ -66,6 +66,7 @@ import personthecat.pangaea.world.injector.DimensionInjector;
 import personthecat.pangaea.world.injector.FeatureInjector;
 import personthecat.pangaea.world.injector.OreInjector;
 import personthecat.pangaea.world.injector.PlacementModifierInjector;
+import personthecat.pangaea.world.injector.SurfaceRuleInjector;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.placement.RoadDistanceFilter;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
@@ -101,6 +102,7 @@ import personthecat.pangaea.world.surface.ChanceConditionSource;
 import personthecat.pangaea.world.surface.DensityConditionSource;
 import personthecat.pangaea.world.surface.HeterogeneousBiomeConditionSource;
 import personthecat.pangaea.world.surface.IntervalConditionSource;
+import personthecat.pangaea.world.surface.NullSource;
 import personthecat.pangaea.world.surface.RoadDistanceConditionSource;
 import personthecat.pangaea.world.surface.SurfaceBiomeConditionSource;
 import personthecat.pangaea.world.surface.WeightConditionSource;
@@ -181,7 +183,8 @@ public abstract class Pangaea {
             .register("biome_source", BiomeSourceInjector.CODEC)
             .register("dimension", DimensionInjector.CODEC)
             .register("feature", FeatureInjector.CODEC)
-            .register("placement", PlacementModifierInjector.CODEC);
+            .register("placement", PlacementModifierInjector.CODEC)
+            .register("surface", SurfaceRuleInjector.CODEC);
         PgRegistries.PLACER_TYPE.createRegister(ID)
             .register("targeted", TargetedBlockPlacer.CODEC)
             .register("column_restricted", ColumnRestrictedBlockPlacer.CODEC)
@@ -257,6 +260,8 @@ public abstract class Pangaea {
             .register("road_distance", RoadDistanceConditionSource.CODEC)
             .register("surface_biome", SurfaceBiomeConditionSource.CODEC)
             .register("weight", WeightConditionSource.CODEC);
+        CommonRegistries.MATERIAL_RULE.createRegister(ID)
+            .register("null", NullSource.CODEC);
     }
 
     private static void configureCodecs() {

@@ -1,5 +1,6 @@
 package personthecat.pangaea.mixin.extras;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.chunk.ProtoChunk;
 import net.minecraft.world.level.levelgen.GenerationStep.Carving;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.WorldGenerationContext;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -73,9 +75,14 @@ public abstract class NoiseBasedChunkGeneratorMixin {
         };
     }
 
-    @Inject(method = "buildSurface(Lnet/minecraft/server/level/WorldGenRegion;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/levelgen/RandomState;Lnet/minecraft/world/level/chunk/ChunkAccess;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/NoiseBasedChunkGenerator;buildSurface(Lnet/minecraft/world/level/chunk/ChunkAccess;Lnet/minecraft/world/level/levelgen/WorldGenerationContext;Lnet/minecraft/world/level/levelgen/RandomState;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/biome/BiomeManager;Lnet/minecraft/core/Registry;Lnet/minecraft/world/level/levelgen/blending/Blender;)V"))
-    private void injectSurfaceContext(WorldGenRegion level, StructureManager structures, RandomState rand, ChunkAccess chunk, CallbackInfo ci) {
+    @ModifyExpressionValue(method = "buildSurface(Lnet/minecraft/server/level/WorldGenRegion;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/levelgen/RandomState;Lnet/minecraft/world/level/chunk/ChunkAccess;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/WorldGenerationContext;<init>(Lnet/minecraft/world/level/chunk/ChunkGenerator;Lnet/minecraft/world/level/LevelHeightAccessor;)V"))
+    private WorldGenerationContext injectSurfaceContext(
+            WorldGenerationContext original,
+            @Local(argsOnly = true) WorldGenRegion level,
+            @Local(argsOnly = true) StructureManager structures,
+            @Local(argsOnly = true) ChunkAccess chunk) {
         final var ctx = PangaeaContext.init(level, (ProtoChunk) chunk, ((ChunkGenerator) (Object) this));
         ctx.rand.setLargeFeatureSeed(ctx.seed - 2L, ctx.chunkX, ctx.chunkZ);
+        return ctx;
     }
 }

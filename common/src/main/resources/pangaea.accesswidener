@@ -66,6 +66,8 @@ accessible field net/minecraft/world/level/levelgen/SurfaceRules$TestRuleSource 
 accessible method net/minecraft/world/level/levelgen/SurfaceRules$TestRuleSource <init> (Lnet/minecraft/world/level/levelgen/SurfaceRules$ConditionSource;Lnet/minecraft/world/level/levelgen/SurfaceRules$RuleSource;)V
 accessible class net/minecraft/world/level/levelgen/SurfaceRules$SequenceRuleSource
 accessible field net/minecraft/world/level/levelgen/SurfaceRules$SequenceRuleSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$SequenceRule
+accessible method net/minecraft/world/level/levelgen/SurfaceRules$SequenceRule <init> (Ljava/util/List;)V
 accessible method net/minecraft/world/level/levelgen/SurfaceRules$SequenceRuleSource <init> (Ljava/util/List;)V
 accessible class net/minecraft/world/level/levelgen/SurfaceRules$BlockRuleSource
 accessible field net/minecraft/world/level/levelgen/SurfaceRules$BlockRuleSource CODEC Lnet/minecraft/util/KeyDispatchDataCodec;

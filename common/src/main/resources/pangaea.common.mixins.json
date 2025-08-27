@@ -11,6 +11,7 @@
     "accessor.MobSpawnSettingsAccessor",
     "accessor.MultiNoiseBiomeSourceAccessor",
     "accessor.NoiseChunkAccessor",
+    "accessor.NoiseGeneratorSettingsAccessor",
     "accessor.OreConfigurationAccessor",
     "accessor.PlacedFeatureAccessor",
     "accessor.StructureManagerAccessor",

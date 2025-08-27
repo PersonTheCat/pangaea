@@ -10,6 +10,7 @@ import personthecat.catlib.exception.FormattedException;
 public class InjectionWarningException extends FormattedException {
     private static final String INJECTOR_CATEGORY = "pangaea.errorMenu.injectors";
     private static final String NOT_A_NOISE_SOURCE = "pangaea.errorText.notANoiseSource";
+    private static final String NOT_A_NOISE_GENERATOR = "pangaea.errorText.notANoiseGenerator";
     private static final String TARGET_NOT_FOUND = "pangaea.errorText.targetNotFound";
     private final Component displayMessage;
 
@@ -21,6 +22,11 @@ public class InjectionWarningException extends FormattedException {
     public static InjectionWarningException incompatibleBiomeSource(ResourceKey<LevelStem> key) {
         final var displayMessage = Component.translatable(NOT_A_NOISE_SOURCE, key.location());
         return new InjectionWarningException(displayMessage, "Not a noise biome source: " + key.location());
+    }
+
+    public static InjectionWarningException incompatibleGenerator(ResourceKey<LevelStem> key) {
+        final var displayMessage = Component.translatable(NOT_A_NOISE_GENERATOR, key.location());
+        return new InjectionWarningException(displayMessage, "Not a noise-based chunk generator: " + key.location());
     }
 
     public static InjectionWarningException targetNotFound(ResourceKey<?> key) {
