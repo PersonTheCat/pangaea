@@ -4,23 +4,28 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.valueproviders.FloatProvider;
 import net.minecraft.util.valueproviders.IntProvider;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions.Mapped;
 import net.minecraft.world.level.levelgen.DensityFunctions.Noise;
 import net.minecraft.world.level.levelgen.DensityFunctions.ShiftedNoise;
 import net.minecraft.world.level.levelgen.DensityFunctions.TwoArgumentSimpleFunction;
+import net.minecraft.world.level.levelgen.SurfaceRules;
+import net.minecraft.world.level.levelgen.SurfaceRules.AbovePreliminarySurface;
 import net.minecraft.world.level.levelgen.SurfaceRules.ConditionSource;
 import net.minecraft.world.level.levelgen.SurfaceRules.NotConditionSource;
 import net.minecraft.world.level.levelgen.SurfaceRules.RuleSource;
 import net.minecraft.world.level.levelgen.SurfaceRules.StoneDepthCheck;
 import net.minecraft.world.level.levelgen.SurfaceRules.TestRuleSource;
 import net.minecraft.world.level.levelgen.SurfaceRules.VerticalGradientConditionSource;
+import net.minecraft.world.level.levelgen.SurfaceRules.WaterConditionSource;
 import net.minecraft.world.level.levelgen.SurfaceRules.YConditionSource;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import net.minecraft.world.level.levelgen.placement.CaveSurface;
 import personthecat.catlib.data.FloatRange;
+import personthecat.catlib.data.Range;
 import personthecat.pangaea.serialization.codec.DensityHelper;
 import personthecat.pangaea.serialization.codec.NoiseCodecs;
 import personthecat.pangaea.serialization.codec.StructuralCodec.Structure;
@@ -36,15 +41,19 @@ import personthecat.pangaea.world.filter.DensityChunkFilter;
 import personthecat.pangaea.world.filter.FastNoiseChunkFilter;
 import personthecat.pangaea.world.filter.IntervalChunkFilter;
 import personthecat.pangaea.world.filter.SpawnDistanceChunkFilter;
+import personthecat.pangaea.world.placer.BlockPlacer;
+import personthecat.pangaea.world.placer.SurfaceBlockPlacer;
 import personthecat.pangaea.world.provider.DensityFloatProvider;
 import personthecat.pangaea.world.provider.DensityHeightProvider;
 import personthecat.pangaea.world.provider.DensityIntProvider;
 import personthecat.pangaea.world.surface.ChanceConditionSource;
+import personthecat.pangaea.world.surface.CheckerPatternConditionSource;
 import personthecat.pangaea.world.surface.ColumnConditionSource;
 import personthecat.pangaea.world.surface.DensityConditionSource;
 import personthecat.pangaea.world.surface.HeterogeneousBiomeConditionSource;
 import personthecat.pangaea.world.surface.IntervalConditionSource;
 import personthecat.pangaea.world.surface.RoadDistanceConditionSource;
+import personthecat.pangaea.world.surface.SpawnDistanceConditionSource;
 import personthecat.pangaea.world.surface.SurfaceBiomeConditionSource;
 import personthecat.pangaea.world.surface.WeightConditionSource;
 import personthecat.pangaea.world.weight.CutoffWeight;
@@ -63,6 +72,9 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.pangaea.world.density.FastNoiseDensity.as3dCodec;
 
 public final class DefaultCodecStructures {
+    private static final MapCodec<SurfaceBlockPlacer> SURFACE_PLACER =
+        BlockState.CODEC.fieldOf("surface_or").xmap(SurfaceBlockPlacer::new, SurfaceBlockPlacer::alternate);
+
     private static final MapCodec<TwoArgumentSimpleFunction> MUL_TIMES_DENSITY =
         MulTimesStructure.DENSITY_CODEC.xmap(MulTimesStructure::toDensity, MulTimesStructure::fromDensity);
     private static final MapCodec<TwoArgumentSimpleFunction> ADD_PLUS_DENSITY =
@@ -108,6 +120,11 @@ public final class DefaultCodecStructures {
         FloatRange.CODEC.fieldOf("road_distance").xmap(RoadDistanceConditionSource::rangeUp, RoadDistanceConditionSource::range);
     private static final MapCodec<DensityConditionSource> FAST_NOISE_SOURCE =
         as3dCodec(FastNoiseDensity.CODEC).xmap(DensityConditionSource::fromFastNoise, s -> (FastNoiseDensity) s.density());
+    private static final MapCodec<ConditionSource> ABOVE_SURFACE_SOURCE =
+        Codec.BOOL.fieldOf("above_preliminary_surface").xmap(
+            b -> b ? AbovePreliminarySurface.INSTANCE : SurfaceRules.not(AbovePreliminarySurface.INSTANCE),
+            r -> r instanceof AbovePreliminarySurface
+        );
 
     private static final MapCodec<YConditionSource> Y_ABOVE_SOURCE = codecOf(
         field(VerticalAnchor.CODEC, "y_above", YConditionSource::anchor),
@@ -124,11 +141,35 @@ public final class DefaultCodecStructures {
     );
 
     private static final MapCodec<StoneDepthCheck> STONE_DEPTH_SOURCE = codecOf(
-        defaulted(Codec.INT, "offset", 0, StoneDepthCheck::offset),
+        field(Codec.INT, "stone_depth", StoneDepthCheck::offset),
         defaulted(Codec.BOOL, "add_surface_depth", false, StoneDepthCheck::addSurfaceDepth),
         defaulted(Codec.INT, "secondary_depth_range", 0, StoneDepthCheck::secondaryDepthRange),
-        field(CaveSurface.CODEC, "stone_depth", StoneDepthCheck::surfaceType),
+        defaulted(CaveSurface.CODEC, "in", CaveSurface.FLOOR, StoneDepthCheck::surfaceType),
         StoneDepthCheck::new
+    );
+
+    private static final MapCodec<WaterConditionSource> WATER_DEPTH_SOURCE = codecOf(
+        field(Codec.INT, "water_depth", WaterConditionSource::offset),
+        defaulted(Codec.intRange(-20, 20), "surface_depth_multiplier", 0, WaterConditionSource::surfaceDepthMultiplier),
+        defaulted(Codec.BOOL, "add_stone_depth", false, WaterConditionSource::addStoneDepth),
+        WaterConditionSource::new
+    );
+
+    private static final MapCodec<SpawnDistanceConditionSource> SPAWN_DISTANCE_SOURCE = codecOf(
+        field(Range.RANGE_UP_CODEC, "spawn_distance", SpawnDistanceConditionSource::distance),
+        defaulted(Codec.doubleRange(0, 1), "chance", 1.0, SpawnDistanceConditionSource::chance),
+        defaulted(Codec.intRange(0, Integer.MAX_VALUE), "fade", 0, SpawnDistanceConditionSource::fade),
+        SpawnDistanceConditionSource::new
+    );
+
+    private static final MapCodec<CheckerPatternConditionSource> CHECKER_PATTERN_SOURCE = codecOf(
+        field(Codec.intRange(1, Integer.MAX_VALUE) ,"checker_pattern", CheckerPatternConditionSource::width),
+        defaulted(Codec.BOOL, "vertical", false, CheckerPatternConditionSource::vertical),
+        CheckerPatternConditionSource::new
+    );
+
+    public static final List<Structure<? extends BlockPlacer>> PLACER = List.of(
+        Structure.of(SURFACE_PLACER, SurfaceBlockPlacer.class).withRequiredFields("surface_or")
     );
 
     public static final List<Structure<? extends DensityFunction>> DENSITY = List.of(
@@ -184,9 +225,13 @@ public final class DefaultCodecStructures {
     public static final List<Structure<? extends ConditionSource>> CONDITION_SOURCE = List.of(
         Structure.of(NotConditionSource.CODEC.codec(), NotConditionSource.class).withRequiredFields("invert"),
         Structure.of(ROAD_DISTANCE_SOURCE, RoadDistanceConditionSource.class).withRequiredFields("road_distance"),
+        Structure.of(ABOVE_SURFACE_SOURCE, s -> s instanceof AbovePreliminarySurface || s instanceof NotConditionSource(AbovePreliminarySurface ignored)).withRequiredFields("above_preliminary_surface"),
         Structure.of(Y_ABOVE_SOURCE, YConditionSource.class).withRequiredFields("y_above"),
         Structure.of(Y_BELOW_SOURCE, s -> s instanceof NotConditionSource(YConditionSource ignored)).withRequiredFields("y_below"),
         Structure.of(STONE_DEPTH_SOURCE, StoneDepthCheck.class).withRequiredFields("stone_depth"),
+        Structure.of(WATER_DEPTH_SOURCE, WaterConditionSource.class).withRequiredFields("water_depth"),
+        Structure.of(SPAWN_DISTANCE_SOURCE, SpawnDistanceConditionSource.class).withRequiredFields("spawn_distance"),
+        Structure.of(CHECKER_PATTERN_SOURCE, CheckerPatternConditionSource.class).withRequiredFields("checker_pattern"),
         Structure.of(FAST_NOISE_SOURCE, s -> s instanceof DensityConditionSource(FastNoiseDensity ignored, var ignored2)).withTestPattern(FAST_NOISE_TEST_PATTERN),
         Structure.of(VerticalGradientConditionSource.CODEC.codec(), VerticalGradientConditionSource.class).withRequiredFields("random_name", "true_at_and_below", "false_at_and_above"),
         Structure.of(HeterogeneousBiomeConditionSource.CODEC, HeterogeneousBiomeConditionSource.class).withRequiredFields("biomes"),

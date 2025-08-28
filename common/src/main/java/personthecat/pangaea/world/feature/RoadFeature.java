@@ -14,6 +14,7 @@ import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.placer.BlockPlacerList;
 import personthecat.pangaea.world.placer.ChanceBlockPlacer;
+import personthecat.pangaea.world.placer.SurfaceBlockPlacer;
 import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
 import personthecat.pangaea.world.road.RoadRegion;
 
@@ -128,9 +129,9 @@ public class RoadFeature extends GiantFeature<Configuration> {
         private static final VertexConfig DEFAULTS = new VertexConfig(
             new BlockPlacerList(List.of(
                 new ChanceBlockPlacer(0.75, new UnconditionalBlockPlacer(Blocks.GRAVEL.defaultBlockState())),
-                new UnconditionalBlockPlacer(Blocks.STONE.defaultBlockState())
+                new SurfaceBlockPlacer(Blocks.GRASS_BLOCK.defaultBlockState())
             )),
-            new UnconditionalBlockPlacer(Blocks.STONE.defaultBlockState()),
+            new SurfaceBlockPlacer(Blocks.DIRT.defaultBlockState()),
             new UnconditionalBlockPlacer(Blocks.AIR.defaultBlockState()),
             Range.of(62, 90));
         private static final VertexConfig DEFAULT_2 = new VertexConfig(
@@ -138,7 +139,7 @@ public class RoadFeature extends GiantFeature<Configuration> {
                 new ChanceBlockPlacer(0.5, new UnconditionalBlockPlacer(Blocks.GRAVEL.defaultBlockState())),
                 new UnconditionalBlockPlacer(Blocks.COARSE_DIRT.defaultBlockState())
             )),
-            new UnconditionalBlockPlacer(Blocks.GRASS_BLOCK.defaultBlockState()),
+            new SurfaceBlockPlacer(Blocks.GRASS_BLOCK.defaultBlockState()),
             new UnconditionalBlockPlacer(Blocks.AIR.defaultBlockState()),
             Range.of(62, 90));
         public static final MapCodec<VertexConfig> CODEC = PangaeaCodec.buildMap(cat -> codecOf(

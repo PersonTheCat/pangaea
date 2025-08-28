@@ -25,6 +25,8 @@ import net.minecraft.world.level.levelgen.WorldGenerationContext;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import personthecat.catlib.data.ForkJoinThreadLocal;
+import personthecat.catlib.event.error.LibErrorContext;
+import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.data.Counter;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.data.NoiseGraph;
@@ -117,6 +119,15 @@ public final class PangaeaContext extends WorldGenerationContext {
         // ctx is doubly linked here to minimize cost of thread-local access
         WorldGenRegionExtras.setPangaeaContext(level, ctx);
         return ctx;
+    }
+
+    public static PangaeaContext tryGet(WorldGenerationContext wgc) {
+        try {
+            return get(wgc);
+        } catch (final IllegalStateException e) {
+            LibErrorContext.warn(Pangaea.MOD, new ContextNotInstalledException(e));
+            return null;
+        }
     }
 
     public static PangaeaContext get() {

@@ -6,10 +6,12 @@ import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.levelgen.SurfaceRules.Condition;
 import net.minecraft.world.level.levelgen.SurfaceRules.ConditionSource;
 import net.minecraft.world.level.levelgen.SurfaceRules.Context;
+import net.minecraft.world.level.levelgen.SurfaceRules.LazyXZCondition;
 import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.data.FloatRange;
 import personthecat.pangaea.data.NoiseGraph;
 import personthecat.pangaea.extras.ContextExtras;
+import personthecat.pangaea.world.surface.NeverConditionSource.NeverCondition;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
@@ -42,7 +44,14 @@ public record RoadDistanceConditionSource(FloatRange range, float minSignificant
 
     @Override
     public Condition apply(Context ctx) {
-        return new RoadDistanceCondition(ctx, ContextExtras.getNoiseGraph(ctx), this.range, this.minSignificant);
+        final var graph = ContextExtras.getNoiseGraph(ctx);
+        final var pos = ctx.chunk.getPos();
+
+        final float d = Math.min(1_000_000F, graph.getApproximateRoadDistance(pos.getMiddleBlockX(), pos.getMiddleBlockZ(), this.minSignificant));
+        if (d >= this.range.min() - 16 && d < this.range.max() + 16) {
+            return new RoadDistanceCondition(ctx, this.range, this.minSignificant);
+        }
+        return NeverCondition.INSTANCE;
     }
 
     @Override
@@ -50,10 +59,21 @@ public record RoadDistanceConditionSource(FloatRange range, float minSignificant
         return KeyDispatchDataCodec.of(CODEC);
     }
 
-    record RoadDistanceCondition(Context ctx, NoiseGraph graph, FloatRange range, float minSignificant) implements Condition {
+    static class RoadDistanceCondition extends LazyXZCondition {
+        private final NoiseGraph graph;
+        private final FloatRange range;
+        private final float minSignificant;
+
+        RoadDistanceCondition(Context ctx, FloatRange range, float minSignificant) {
+            super(ctx);
+            this.graph = ContextExtras.getNoiseGraph(ctx);
+            this.range = range;
+            this.minSignificant = minSignificant;
+        }
+
         @Override
-        public boolean test() {
-            return this.range.contains(Math.min(1_000_000F, this.graph.getApproximateRoadDistance(this.ctx.blockX, this.ctx.blockZ, this.minSignificant)));
+        public boolean compute() {
+            return this.range.contains(Math.min(1_000_000F, this.graph.getApproximateRoadDistance(this.context.blockX, this.context.blockZ, this.minSignificant)));
         }
     }
 }

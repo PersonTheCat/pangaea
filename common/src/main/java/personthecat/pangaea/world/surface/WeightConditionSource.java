@@ -1,6 +1,5 @@
 package personthecat.pangaea.world.surface;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.levelgen.SurfaceRules.Condition;
@@ -13,18 +12,14 @@ import personthecat.pangaea.extras.ContextExtras;
 import personthecat.pangaea.world.level.PangaeaContext;
 import personthecat.pangaea.world.weight.WeightFunction;
 
-import java.util.function.Function;
-
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 
 public record WeightConditionSource(WeightFunction weight, FloatRange threshold) implements ConditionSource {
-    private static final Codec<FloatRange> RANGE_UP =
-        FloatRange.CODEC.xmap(r -> r.diff() == 0 ? FloatRange.of(r.min(), Float.MAX_VALUE) : r, Function.identity());
     public static final MapCodec<WeightConditionSource> CODEC = codecOf(
         field(WeightFunction.CODEC, "weight", WeightConditionSource::weight),
-        defaulted(RANGE_UP, "threshold", FloatRange.of(0, Float.MAX_VALUE), WeightConditionSource::threshold),
+        defaulted(FloatRange.RANGE_UP_CODEC, "threshold", FloatRange.of(0, Float.MAX_VALUE), WeightConditionSource::threshold),
         WeightConditionSource::new
     );
 

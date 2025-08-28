@@ -1,8 +1,11 @@
 package personthecat.pangaea.util;
 
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.levelgen.DensityFunction.FunctionContext;
 import net.minecraft.world.level.levelgen.NoiseRouterData;
+import personthecat.catlib.data.Range;
 import personthecat.pangaea.data.Rectangle;
 
 import java.util.HashSet;
@@ -33,6 +36,26 @@ public final class Utils {
 
   public static float getPv(Climate.Sampler sampler, FunctionContext ctx) {
     return NoiseRouterData.peaksAndValleys((float) sampler.weirdness().compute(ctx));
+  }
+
+  public static boolean checkDistanceWithFade(RandomSource rand, Range range, int distance, double chance, int fade) {
+    if (range.contains(distance + fade)) {
+      final var p = getProbabilityWithFade(range, distance, chance, fade);
+      return p >= 1 || rand.nextDouble() <= p;
+    }
+    return false;
+  }
+
+  public static double getProbabilityWithFade(Range range, double distance, double chance, int fade) {
+    final int min = range.min();
+    final int max = range.max();
+
+    if (distance > max) { // fade out
+      return chance * Mth.map(distance, max, max + fade, 1, 0);
+    } else if (distance < min) { // fade in
+      return chance * Mth.map(distance, min - fade, min, 0, 1);
+    }
+    return chance;
   }
 
   public static double stdDev(final double... ds) {

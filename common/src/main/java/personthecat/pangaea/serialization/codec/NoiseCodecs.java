@@ -107,7 +107,7 @@ public class NoiseCodecs {
         cat.defaulted(FLOAT_3, "offset", float3(0.0F), NoiseCodecs::getOffset),
         cat.defaulted(Codec.BOOL, "invert", false, NoiseBuilder::invert),
         cat.defaulted(FloatRange.CODEC, "range", FloatRange.of(-1.0F, 1.0F), NoiseCodecs::getRange),
-        cat.defaulted(FloatRange.CODEC, "threshold", FloatRange.of(0.0F, 1.0F), NoiseCodecs::getThreshold),
+        cat.defaulted(FloatRange.RANGE_UP_CODEC, "threshold", FloatRange.of(0.0F, Float.MAX_VALUE), NoiseCodecs::getThreshold),
         union(filter(REFERENCE_CODEC, b -> isWrapperType(b.type())), b -> b),
         union(filter(FRACTAL_CODEC, b -> b.type() == NoiseType.FRACTAL || b.fractal() != FractalType.NONE), b -> b),
         union(filter(WARP_CODEC, b -> b.type() == NoiseType.WARPED || b.warp() != WarpType.NONE), b -> b),

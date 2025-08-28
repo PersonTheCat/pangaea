@@ -1,11 +1,13 @@
 package personthecat.pangaea.world.surface;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.levelgen.SurfaceRules.Condition;
 import net.minecraft.world.level.levelgen.SurfaceRules.ConditionSource;
 import net.minecraft.world.level.levelgen.SurfaceRules.Context;
 import org.jetbrains.annotations.NotNull;
+import personthecat.pangaea.world.surface.NeverConditionSource.NeverCondition;
 
 import java.util.List;
 
@@ -15,7 +17,15 @@ public record AllConditionSource(List<ConditionSource> list) implements Conditio
 
     @Override
     public Condition apply(Context ctx) {
-        return new AllCondition(this.list.stream().map(s -> s.apply(ctx)).toList());
+        final var conditions = ImmutableList.<Condition>builder();
+        for (final var source : this.list) {
+            final var condition = source.apply(ctx);
+            if (condition == NeverCondition.INSTANCE) {
+                return NeverCondition.INSTANCE; // result will always be false for this chunk
+            }
+            conditions.add(condition);
+        }
+        return new AllCondition(conditions.build());
     }
 
     @Override

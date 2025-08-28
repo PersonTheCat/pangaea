@@ -1,6 +1,5 @@
 package personthecat.pangaea.world.surface;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.levelgen.DensityFunction;
@@ -12,19 +11,15 @@ import personthecat.catlib.data.FloatRange;
 import personthecat.pangaea.data.MutableFunctionContext;
 import personthecat.pangaea.world.density.FastNoiseDensity;
 
-import java.util.function.Function;
-
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.pangaea.world.density.FastNoiseDensity.as3dCodec;
 
 public record DensityConditionSource(DensityFunction density, FloatRange threshold) implements ConditionSource {
-    private static final Codec<FloatRange> RANGE_UP =
-        FloatRange.CODEC.xmap(r -> r.diff() == 0 ? FloatRange.of(r.min(), Float.MAX_VALUE) : r, Function.identity());
     public static final MapCodec<DensityConditionSource> CODEC = codecOf(
         field(as3dCodec(DensityFunction.HOLDER_HELPER_CODEC), "density", DensityConditionSource::density),
-        defaulted(RANGE_UP, "threshold", FloatRange.of(0, Float.MAX_VALUE), DensityConditionSource::threshold),
+        defaulted(FloatRange.RANGE_UP_CODEC, "threshold", FloatRange.of(0, Float.MAX_VALUE), DensityConditionSource::threshold),
         DensityConditionSource::new
     );
 

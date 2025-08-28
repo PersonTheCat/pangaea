@@ -75,7 +75,7 @@ public abstract class NoiseBasedChunkGeneratorMixin {
         };
     }
 
-    @ModifyExpressionValue(method = "buildSurface(Lnet/minecraft/server/level/WorldGenRegion;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/levelgen/RandomState;Lnet/minecraft/world/level/chunk/ChunkAccess;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/WorldGenerationContext;<init>(Lnet/minecraft/world/level/chunk/ChunkGenerator;Lnet/minecraft/world/level/LevelHeightAccessor;)V"))
+    @ModifyExpressionValue(method = "buildSurface(Lnet/minecraft/server/level/WorldGenRegion;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/levelgen/RandomState;Lnet/minecraft/world/level/chunk/ChunkAccess;)V", at = @At(value = "NEW", target = "Lnet/minecraft/world/level/levelgen/WorldGenerationContext;"))
     private WorldGenerationContext injectSurfaceContext(
             WorldGenerationContext original,
             @Local(argsOnly = true) WorldGenRegion level,

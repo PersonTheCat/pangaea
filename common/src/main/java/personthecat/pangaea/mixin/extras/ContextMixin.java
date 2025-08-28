@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.SurfaceRules.Context;
+import net.minecraft.world.level.levelgen.WorldGenerationContext;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,8 +23,15 @@ import java.util.function.Supplier;
 public abstract class ContextMixin implements ContextExtras {
     @Shadow private @Final Function<BlockPos, Holder<Biome>> biomeGetter;
     @Shadow public @Final BlockPos.MutableBlockPos pos;
+    @Shadow public @Final WorldGenerationContext context;
     @Unique private PangaeaContext pangaea$pangaea;
     @Unique private Supplier<Holder<Biome>> pangaea$surfaceBiome;
+
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void loadExtras(CallbackInfo ci) {
+        // duplicate in case original ctx is replaced (#get may access thread-local value)
+        this.pangaea$pangaea = PangaeaContext.tryGet(this.context);
+    }
 
     @Inject(method = "updateXZ", at = @At("TAIL"))
     private void updateHorizontal(int x, int z, CallbackInfo ci) {
@@ -45,11 +53,6 @@ public abstract class ContextMixin implements ContextExtras {
 
     @Override
     public PangaeaContext pangaea$getPangaea() {
-        return this.pangaea$pangaea; // duplicate in case original wgc is replaced
-    }
-
-    @Override
-    public void pangaea$load(PangaeaContext pg) {
-        this.pangaea$pangaea = pg;
+        return this.pangaea$pangaea;
     }
 }

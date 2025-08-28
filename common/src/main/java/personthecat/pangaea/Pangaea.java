@@ -70,12 +70,14 @@ import personthecat.pangaea.world.injector.SurfaceRuleInjector;
 import personthecat.pangaea.world.placement.IntervalPlacementModifier;
 import personthecat.pangaea.world.placement.RoadDistanceFilter;
 import personthecat.pangaea.world.placement.SimplePlacementModifier;
+import personthecat.pangaea.world.placement.SpawnDistancePlacementFilter;
 import personthecat.pangaea.world.placement.SurfaceBiomeFilter;
 import personthecat.pangaea.world.placer.BiomeRestrictedBlockPlacer;
 import personthecat.pangaea.world.placer.BlockPlacer;
 import personthecat.pangaea.world.placer.BlockPlacerList;
 import personthecat.pangaea.world.placer.ChanceBlockPlacer;
 import personthecat.pangaea.world.placer.ColumnRestrictedBlockPlacer;
+import personthecat.pangaea.world.placer.SurfaceBlockPlacer;
 import personthecat.pangaea.world.placer.TargetedBlockPlacer;
 import personthecat.pangaea.world.placer.UnconditionalBlockPlacer;
 import personthecat.pangaea.world.provider.AnchorRangeColumnProvider;
@@ -99,11 +101,14 @@ import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.ruletest.HeterogeneousListRuleTest;
 import personthecat.pangaea.world.surface.AllConditionSource;
 import personthecat.pangaea.world.surface.ChanceConditionSource;
+import personthecat.pangaea.world.surface.CheckerPatternConditionSource;
 import personthecat.pangaea.world.surface.DensityConditionSource;
 import personthecat.pangaea.world.surface.HeterogeneousBiomeConditionSource;
 import personthecat.pangaea.world.surface.IntervalConditionSource;
+import personthecat.pangaea.world.surface.NeverConditionSource;
 import personthecat.pangaea.world.surface.NullSource;
 import personthecat.pangaea.world.surface.RoadDistanceConditionSource;
+import personthecat.pangaea.world.surface.SpawnDistanceConditionSource;
 import personthecat.pangaea.world.surface.SurfaceBiomeConditionSource;
 import personthecat.pangaea.world.surface.WeightConditionSource;
 import personthecat.pangaea.world.weight.BiomeFilterWeight;
@@ -172,7 +177,8 @@ public abstract class Pangaea {
             .register("interval", IntervalPlacementModifier.TYPE)
             .register("road_distance", RoadDistanceFilter.TYPE)
             .register("simple", SimplePlacementModifier.TYPE)
-            .register("surface_biome", SurfaceBiomeFilter.TYPE);
+            .register("surface_biome", SurfaceBiomeFilter.TYPE)
+            .register("spawn_distance", SpawnDistancePlacementFilter.TYPE);
         CommonRegistries.RULE_TEST_TYPE.createRegister(ID)
             .register("heterogeneous_list", HeterogeneousListRuleTest.TYPE);
         PgRegistries.INJECTOR_TYPE.createRegister(ID)
@@ -191,6 +197,7 @@ public abstract class Pangaea {
             .register("chance", ChanceBlockPlacer.CODEC)
             .register("list", BlockPlacerList.CODEC)
             .register("biome_restricted", BiomeRestrictedBlockPlacer.CODEC)
+            .register("surface", SurfaceBlockPlacer.CODEC)
             .register("unconditional", UnconditionalBlockPlacer.CODEC);
         PgRegistries.COLUMN_TYPE.createRegister(ID)
             .register("constant", ConstantColumnProvider.CODEC)
@@ -255,9 +262,12 @@ public abstract class Pangaea {
             .register("all", AllConditionSource.CODEC)
             .register("biome", HeterogeneousBiomeConditionSource.CODEC)
             .register("chance", ChanceConditionSource.CODEC)
+            .register("checker_pattern", CheckerPatternConditionSource.CODEC)
             .register("density", DensityConditionSource.CODEC)
             .register("interval", IntervalConditionSource.CODEC)
+            .register("never", NeverConditionSource.CODEC)
             .register("road_distance", RoadDistanceConditionSource.CODEC)
+            .register("spawn_distance", SpawnDistanceConditionSource.CODEC)
             .register("surface_biome", SurfaceBiomeConditionSource.CODEC)
             .register("weight", WeightConditionSource.CODEC);
         CommonRegistries.MATERIAL_RULE.createRegister(ID)
@@ -273,6 +283,8 @@ public abstract class Pangaea {
         PangaeaCodec.get(BlockPlacer.class)
             .addBuilderFields(DefaultBuilderFields.PLACER)
             .addBuilderCondition(Cfg::encodeStructuralBlockPlacers)
+            .addStructures(DefaultCodecStructures.PLACER)
+            .addStructureCondition(Cfg::encodeStructuralBlockPlacers)
             .addPatterns(DefaultCodecPatterns.PLACER)
             .addPatternCondition(Cfg::encodePatternBlockPlacers);
 
@@ -367,13 +379,6 @@ public abstract class Pangaea {
             log.info("Clearing carvers from biome: {}", ctx.getName());
             ctx.removeCarver(carver -> true);
         });
-    }
-
-    // just pretend this doesn't exist until Roads are done
-    public static MinecraftServer SERVER; // DEBUG
-
-    protected final void startup(final MinecraftServer server) {
-        SERVER = server;
     }
 
     protected final void shutdown(final MinecraftServer server) {

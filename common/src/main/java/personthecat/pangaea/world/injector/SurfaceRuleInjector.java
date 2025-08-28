@@ -81,7 +81,7 @@ public record SurfaceRuleInjector(
         }
         final var rule = g.generatorSettings().value().surfaceRule();
         if (rule instanceof InjectedRuleSource injected) {
-            ((NoiseGeneratorSettingsAccessor) (Object) g).setSurfaceRule(injected.optimize());
+            ((NoiseGeneratorSettingsAccessor) (Object) g.generatorSettings().value()).setSurfaceRule(injected.optimize());
         }
     }
 

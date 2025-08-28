@@ -13,7 +13,6 @@ import java.util.function.Supplier;
 public interface ContextExtras {
     PangaeaContext pangaea$getPangaea();
     Supplier<Holder<Biome>> pangaea$surfaceBiome();
-    void pangaea$load(PangaeaContext pg);
 
     default RandomSource pangaea$getRandomSource() {
         return this.pangaea$getPangaea().rand;
@@ -45,10 +44,6 @@ public interface ContextExtras {
 
     static PangaeaContext getPangaea(Context ctx) {
         return get(ctx).pangaea$getPangaea();
-    }
-
-    static void load(Context ctx, PangaeaContext pg) {
-        get(ctx).pangaea$load(pg);
     }
 
     @SuppressWarnings("ConstantConditions")

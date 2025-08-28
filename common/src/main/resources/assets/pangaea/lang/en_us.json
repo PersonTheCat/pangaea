@@ -5,5 +5,6 @@
   "pangaea.errorText.injectionFailures": "%s Injection Failures",
   "pangaea.errorText.notANoiseSource": "Not a noise biome source: %s",
   "pangaea.errorText.targetNotFound": "Target not found: %s",
-  "pangaea.errorText.cleanupError": "Error running cleanup for injector: %s"
+  "pangaea.errorText.cleanupError": "Error running cleanup for injector: %s",
+  "pangaea.errorText.contextNotInstalled": "PangaeaContext not available for this chunk status. Some features may not work"
 }
