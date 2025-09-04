@@ -1,93 +1,52 @@
 package personthecat.pangaea.world.density;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunction.SimpleFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
-import net.minecraft.world.level.levelgen.DensityFunctions.BlendDensity;
-import net.minecraft.world.level.levelgen.DensityFunctions.MarkerOrMarked;
 import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.serialization.codec.CodecUtils;
 
-import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
-
 public class DensityController implements SimpleFunction {
-    private static final DensityFunction DEFAULT_SURFACE = DensityFunctions.constant(1);
-    private static final DensityFunction DEFAULT_ENTRANCES = DensityFunctions.constant(1000000);
-    private static final DensityFunction DEFAULT_CAVES = DensityFunctions.constant(1);
-    private static final DensityFunction DEFAULT_FILLER = DensityFunctions.constant(-1000000);
-    private static final DensityCutoff DEFAULT_UPPER_CUTOFF = new DensityCutoff(255, 255, 0.1);
-    private static final DensityCutoff DEFAULT_LOWER_CUTOFF = new DensityCutoff(-64, -64, 0.1);
-    private static final MapCodec<DensityController> DIRECT_CODEC = codecOf(
-        defaulted(DensityFunction.HOLDER_HELPER_CODEC, "surface", DEFAULT_SURFACE, c -> c.unwrapMain().surface),
-        defaulted(DensityList.Min.LIST_CODEC, "entrances", DEFAULT_ENTRANCES, c -> c.unwrapMain().entrances),
-        defaulted(DensityCutoff.CODEC, "upper_cutoff", DEFAULT_UPPER_CUTOFF, c -> c.unwrapMain().upperCutoff),
-        defaulted(DensityCutoff.CODEC, "lower_cutoff", DEFAULT_LOWER_CUTOFF, c -> c.unwrapMain().lowerCutoff),
-        defaulted(DensityList.Min.LIST_CODEC, "underground_caverns", DEFAULT_CAVES, c -> c.unwrapMain().undergroundCaverns),
-        defaulted(DensityList.Max.LIST_CODEC, "underground_filler", DEFAULT_FILLER, c -> c.unwrapMain().undergroundFiller),
-        defaulted(Codec.DOUBLE, "surface_threshold", 1.5625, c -> c.unwrapMain().surfaceThreshold),
-        defaulted(Codec.DOUBLE, "filler_threshold", 0.03, c -> c.unwrapMain().fillerThreshold),
-        defaulted(DensityList.Min.LIST_CODEC, "global_caverns", DEFAULT_CAVES, c -> c.globalCaverns),
-        defaulted(Codec.DOUBLE, "primary_scale", 0.64, c -> c.primaryScale),
-        DensityController::new
-    );
-    public static final MapCodec<DensityController> CODEC = FastNoiseDensity.as3dCodec(DIRECT_CODEC);
     private final DensityFunction main;
     private final DensityFunction globalCaverns;
-    private final double primaryScale;
+    private final double thickness;
     private final double minValue;
     private final double maxValue;
 
-    private DensityController(
+    public DensityController(
             DensityFunction surface, DensityFunction entrances, DensityCutoff upperCutoff, DensityCutoff lowerCutoff,
             DensityFunction undergroundCaverns, DensityFunction undergroundFiller, double surfaceThreshold,
-            double fillerThreshold, DensityFunction globalCaverns, double primaryScale) {
+            double fillerThreshold, DensityFunction globalCaverns, double thickness) {
         this(new MainFunction(
                 surface, entrances, upperCutoff, lowerCutoff, undergroundCaverns,
                 undergroundFiller, surfaceThreshold, fillerThreshold),
-            globalCaverns, primaryScale);
+            globalCaverns, thickness);
     }
     
     private DensityController(
-            DensityFunction main, DensityFunction globalCaverns, double primaryScale) {
+            DensityFunction main, DensityFunction globalCaverns, double thickness) {
         this.main = main;
         this.globalCaverns = globalCaverns;
-        this.primaryScale = primaryScale;
+        this.thickness = thickness;
         this.minValue = this.computeMinValue();
         this.maxValue = this.computeMaxValue();
     }
 
-    public MainFunction unwrapMain() {
-        DensityFunction f = this.main;
-        while (true) {
-            switch (f) {
-                case MarkerOrMarked m -> f = m.wrapped();
-                case BlendDensity b -> f = b.input();
-                case MainFunction m -> {
-                    return m;
-                }
-                case null, default -> throw new IllegalStateException("Unexpected value in controller: " + f);
-            }
-        }
-
-    }
-
     @Override
     public double compute(final FunctionContext ctx) {
-        final double d = squeeze(this.primaryScale * this.main.compute(ctx));
+        final double d = squeeze(this.thickness * this.main.compute(ctx));
         return d < this.globalCaverns.minValue() ? d : Math.min(d, this.globalCaverns.compute(ctx));
     }
 
     private double computeMinValue() {
-        return Math.min(this.globalCaverns.minValue(), squeeze(this.primaryScale * this.main.minValue()));
+        return Math.min(this.globalCaverns.minValue(), squeeze(this.thickness * this.main.minValue()));
     }
 
     private double computeMaxValue() {
-        return Math.min(this.globalCaverns.maxValue(), squeeze(this.primaryScale * this.main.maxValue()));
+        return Math.min(this.globalCaverns.maxValue(), squeeze(this.thickness * this.main.maxValue()));
     }
 
     @Override
@@ -106,12 +65,12 @@ public class DensityController implements SimpleFunction {
         if (main instanceof MainFunction) {
             main = DensityFunctions.interpolated(DensityFunctions.blendDensity(main));
         }
-        return new DensityController(main.mapAll(visitor), this.globalCaverns.mapAll(visitor), this.primaryScale);
+        return new DensityController(main.mapAll(visitor), this.globalCaverns.mapAll(visitor), this.thickness);
     }
 
     @Override
     public @NotNull KeyDispatchDataCodec<? extends DensityFunction> codec() {
-        return KeyDispatchDataCodec.of(CODEC);
+        return KeyDispatchDataCodec.of(CodecUtils.neverMapCodec());
     }
 
     private static double squeeze(double d) {

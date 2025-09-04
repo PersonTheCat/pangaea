@@ -12,6 +12,7 @@
     "accessor.MultiNoiseBiomeSourceAccessor",
     "accessor.NoiseChunkAccessor",
     "accessor.NoiseGeneratorSettingsAccessor",
+    "accessor.NoiseRouterAccessor",
     "accessor.OreConfigurationAccessor",
     "accessor.PlacedFeatureAccessor",
     "accessor.ResourceAccessor",

@@ -14,17 +14,12 @@ import static personthecat.pangaea.resources.builtin.BuiltInWorldPack.key;
 public final class BuiltInTerrain {
 
     public static void bootstrap(ResourceMap resources) {
-        resources.addDynamicResource(key(PgRegistries.Keys.INJECTOR, "cavern/density_modifications"), terrain());
+        resources.addDynamicResource(key(PgRegistries.Keys.INJECTOR, "density/overworld_modifications"), terrain());
     }
 
     private static Object terrain() {
-        return Map.of(
-            "overworld", overworldTerrain()
-        );
-    }
-
-    private static Object overworldTerrain() {
         final var map = new HashMap<>();
+        map.put("dimensions", List.of("overworld"));
         map.put("surface", "overworld/sloped_cheese");
         map.put("upper_cutoff", upperCutoff());
         map.put("lower_cutoff", lowerCutoff());
@@ -42,7 +37,7 @@ public final class BuiltInTerrain {
                 map.put("global_caverns", globalCaverns);
             }
             if (Cfg.enableSpeleothems()) {
-                map.put("underground_filler", "overworld/caves/pillars");
+                map.put("underground_filler", List.of("overworld/caves/pillars"));
             }
         }
         return map;

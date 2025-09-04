@@ -46,6 +46,10 @@ public abstract class DensityList implements SimpleFunction {
         return min(list, target, DEFAULT_MIN);
     }
 
+    public static DensityFunction min(List<DensityFunction> list, DensityFunction ifEmpty) {
+        return min(list, MAX_REASONABLE, ifEmpty);
+    }
+
     public static DensityFunction min(List<DensityFunction> list, double target, DensityFunction ifEmpty) {
         return apply(list, DensityFunctions::min, ifEmpty).orElseGet(() -> new Min(list, target));
     }
@@ -54,12 +58,20 @@ public abstract class DensityList implements SimpleFunction {
         return max(list, target, DEFAULT_MAX);
     }
 
+    public static DensityFunction max(List<DensityFunction> list, DensityFunction ifEmpty) {
+        return max(list, -MAX_REASONABLE, ifEmpty);
+    }
+
     public static DensityFunction max(List<DensityFunction> list, double target, DensityFunction ifEmpty) {
         return apply(list, DensityFunctions::max, ifEmpty).orElseGet(() -> new Max(list, target));
     }
 
     public static DensityFunction sum(List<DensityFunction> list, double target) {
         return sum(list, target, DEFAULT_SUM);
+    }
+
+    public static DensityFunction sum(List<DensityFunction> list, DensityFunction ifEmpty) {
+        return sum(list, MAX_REASONABLE / 2, ifEmpty);
     }
 
     public static DensityFunction sum(List<DensityFunction> list, double target, DensityFunction ifEmpty) {

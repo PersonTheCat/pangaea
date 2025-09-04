@@ -32,7 +32,6 @@ import personthecat.pangaea.world.chain.CanyonPath;
 import personthecat.pangaea.world.chain.ChasmLink;
 import personthecat.pangaea.world.chain.SphereLink;
 import personthecat.pangaea.world.chain.TunnelPath;
-import personthecat.pangaea.world.density.DensityController;
 import personthecat.pangaea.world.density.DensityList;
 import personthecat.pangaea.world.density.FastNoiseDensity;
 import personthecat.pangaea.world.density.NormalDensity;
@@ -61,7 +60,7 @@ import personthecat.pangaea.world.injector.BiomeInjector;
 import personthecat.pangaea.world.injector.BiomeModifierInjector;
 import personthecat.pangaea.world.injector.BiomeSourceInjector;
 import personthecat.pangaea.world.injector.CarverInjector;
-import personthecat.pangaea.world.injector.CavernInjector;
+import personthecat.pangaea.world.injector.DensityInjector;
 import personthecat.pangaea.world.injector.DataInjectionHook;
 import personthecat.pangaea.world.injector.DimensionInjector;
 import personthecat.pangaea.world.injector.FeatureInjector;
@@ -156,7 +155,6 @@ public abstract class Pangaea {
 
     private static void updateRegistries() {
         CommonRegistries.DENSITY_FUNCTION_TYPE.createRegister(ID)
-            .register("controller", DensityController.CODEC)
             .register("noise", FastNoiseDensity.CODEC)
             .register("min", DensityList.Min.CODEC)
             .register("max", DensityList.Max.CODEC)
@@ -187,7 +185,7 @@ public abstract class Pangaea {
             .register("biome_modifier", BiomeModifierInjector.CODEC)
             .register("biome_source", BiomeSourceInjector.CODEC)
             .register("carver", CarverInjector.CODEC)
-            .register("cavern", CavernInjector.CODEC)
+            .register("density", DensityInjector.CODEC)
             .register("dimension", DimensionInjector.CODEC)
             .register("feature", FeatureInjector.CODEC)
             .register("ore", OreInjector.CODEC)
