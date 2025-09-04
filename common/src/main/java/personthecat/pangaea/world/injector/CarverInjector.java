@@ -7,8 +7,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.GenerationStep.Carving;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
+import net.minecraft.world.level.levelgen.carver.WorldCarver;
 import personthecat.catlib.data.BiomePredicate;
 import personthecat.catlib.data.IdList;
+import personthecat.catlib.registry.CommonRegistries;
 import personthecat.catlib.serialization.codec.capture.CaptureCategory;
 import personthecat.pangaea.serialization.codec.CarverCodecs;
 import personthecat.pangaea.serialization.codec.PangaeaCodec;
@@ -21,6 +23,7 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 public record CarverInjector(
         BiomePredicate biomes,
         IdList<ConfiguredWorldCarver<?>> remove,
+        IdList<WorldCarver<?>> removeCarvers,
         InjectionMap<AddedCarver> inject) implements Injector {
 
     public static final MapCodec<CarverInjector> CODEC =
@@ -32,6 +35,12 @@ public record CarverInjector(
     public void inject(ResourceKey<Injector> key, InjectionContext ctx) {
         if (this.remove != null) {
             ctx.addRemovals(this.biomes, mods -> mods.removeCarver(this.remove));
+        }
+        if (this.removeCarvers != null) {
+            ctx.addRemovals(this.biomes, mods -> mods.removeCarver(holder -> {
+                final var carver = CommonRegistries.CARVER.getHolder(holder.value().worldCarver());
+                return this.removeCarvers.test(carver);
+            }));
         }
         this.inject.forEach((id, mods) -> mods.apply(this.biomes, id, ctx));
     }
@@ -46,6 +55,7 @@ public record CarverInjector(
         return codecOf(
             defaulted(BiomePredicate.CODEC, "biomes", BiomePredicate.ALL_BIOMES, CarverInjector::biomes),
             nullable(IdList.codecOf(Registries.CONFIGURED_CARVER), "remove", CarverInjector::remove),
+            nullable(IdList.codecOf(Registries.CARVER), "remove_carvers", CarverInjector::removeCarvers),
             defaulted(injectionListCodec, "inject", new InjectionMap<>(), CarverInjector::inject),
             CarverInjector::new
         );

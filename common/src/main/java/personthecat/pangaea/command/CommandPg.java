@@ -35,7 +35,7 @@ public class CommandPg {
 
     @ModCommand(description = "Export the built-in data pack generated from settings")
     void exportPack(final CommandContextWrapper ctx, final String path, final Optional<Boolean> replace) throws IOException {
-        final var out = Pangaea.MOD.configFile().toPath().resolve("exports").resolve(path);
+        final var out = Pangaea.MOD.configFolder().toPath().resolve("exports").resolve(path);
         BuiltInWorldPack.buildExtension().export(out, replace.orElse(false));
         ctx.sendMessage("Exported built-in pack to {}", out);
     }

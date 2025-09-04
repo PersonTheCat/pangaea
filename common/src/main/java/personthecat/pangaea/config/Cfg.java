@@ -167,6 +167,14 @@ public final class Cfg {
         return INSTANCE.builtInPacks.general.enabledBuiltInPack;
     }
 
+    public static boolean removeTunnels() {
+        return INSTANCE.builtInPacks.general.removeTunnels;
+    }
+
+    public static boolean removeRavines() {
+        return INSTANCE.builtInPacks.general.removeRavines;
+    }
+
     public static boolean enableRoads() {
         return INSTANCE.builtInPacks.roads.enableRoads;
     }
@@ -395,6 +403,12 @@ public final class Cfg {
         static class General {
             @Comment("Whether to completely enable or disable the built-in pack")
             boolean enabledBuiltInPack = true;
+
+            @Comment("Whether to remove Mojang's vanilla tunnel caves (replaced by built-in pack)")
+            boolean removeTunnels = true;
+
+            @Comment("Whether to remove Mojang's vanilla ravines (replaced by built-in pack)")
+            boolean removeRavines = true;
         }
 
         static class Roads {
