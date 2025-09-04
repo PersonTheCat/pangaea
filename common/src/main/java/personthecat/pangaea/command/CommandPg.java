@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.DensityFunction;
@@ -18,12 +19,15 @@ import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.resources.builtin.BuiltInWorldPack;
 import personthecat.pangaea.world.road.RoadMap;
+import personthecat.pangaea.world.road.RoadRegion;
 import xjs.data.JsonFormat;
 import xjs.data.JsonValue;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+
+import static personthecat.catlib.command.CommandUtils.clickToRun;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class CommandPg {
@@ -38,6 +42,63 @@ public class CommandPg {
         final var out = Pangaea.MOD.configFolder().toPath().resolve("exports").resolve(path);
         BuiltInWorldPack.buildExtension().export(out, replace.orElse(false));
         ctx.sendMessage("Exported built-in pack to {}", out);
+    }
+
+    @ModCommand(description = "Locates the nearest road vertex in a 3,072 block radius")
+    void locateRoads(final CommandContextWrapper ctx, final Optional<Boolean> generate) {
+        final var map = LevelExtras.getRoadMap(ctx.getLevel());
+        final int ax = (int) ctx.getPos().x;
+        final int az = (int) ctx.getPos().z;
+        final short x = RoadRegion.absToRegion(ax);
+        final short z = RoadRegion.absToRegion(az);
+        var nearest = map.getRegion(x, z).getNearest(ax, az);
+        boolean loadingPrinted = false;
+        boolean regionsMissing = false;
+        if (nearest == null) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dz == 0) {
+                        continue;
+                    }
+                    short x2 = (short) (x + dz);
+                    short z2 = (short) (z + dz);
+
+                    if (!map.hasRegion(x2, z2)) {
+                        if (generate.orElse(false)) {
+                            if (!loadingPrinted) {
+                                ctx.sendMessage("Loading...");
+                                loadingPrinted = true;
+                            }
+                        } else {
+                            regionsMissing = true;
+                            continue;
+                        }
+                    }
+                    map.loadOrGenerateRegion(x2, z2);
+                    final var n = map.getRegion(x2, z2).getNearest(ax, az);
+                    if (n == null) {
+                        continue;
+                    }
+                    if (nearest == null || n.distance() < nearest.distance()) {
+                        nearest = n;
+                    }
+                }
+            }
+        }
+        if (nearest == null) {
+            if (regionsMissing) {
+                ctx.sendMessage("No roads were found. Try running with the generate option for better results");
+            } else {
+                ctx.sendMessage("There are no roads nearby");
+            }
+            return;
+        }
+        final var tpStyle = Style.EMPTY
+            .withUnderlined(true)
+            .withClickEvent(clickToRun("/tp %s ~ %s".formatted(nearest.x(), nearest.z())));
+        final var message = Component.literal("found road at ")
+            .append(Component.literal("[%s, %s]".formatted(nearest.x(), nearest.z())).withStyle(tpStyle));
+        ctx.sendMessage(message);
     }
 
     @ModCommand(description = "Clears road region data from memory")

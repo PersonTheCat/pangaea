@@ -6,6 +6,8 @@ import net.minecraft.server.level.ServerLevel;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import personthecat.pangaea.data.NeighborGraph.NodeResult;
+import personthecat.pangaea.data.VertexGraph.VertexNode;
 import personthecat.pangaea.data.Point;
 import personthecat.pangaea.io.ByteReader;
 import personthecat.pangaea.io.ByteWriter;
@@ -62,6 +64,20 @@ public class RoadRegion implements Iterable<RoadNetwork> {
         final int aX = regionToAbs(this.x);
         final int aY = regionToAbs(this.z);
         return x >= aX && x < (aX + LEN) && z >= aY && z < (aY + LEN);
+    }
+
+    public @Nullable NodeResult<VertexNode> getNearest(final int x, final int z) {
+        NodeResult<VertexNode> nearest = null;
+        for (final var network : this.data.values()) {
+            final var n = network.graph.getNearest(x, z, 0);
+            if (n == null) {
+                continue;
+            }
+            if (nearest == null || n.distance() < nearest.distance()) {
+                nearest = n;
+            }
+        }
+        return nearest;
     }
 
     public boolean isFullyGenerated() {
