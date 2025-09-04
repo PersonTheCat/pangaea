@@ -8,6 +8,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.valueproviders.ConstantFloat;
 import net.minecraft.util.valueproviders.FloatProvider;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.util.valueproviders.UniformFloat;
@@ -57,8 +58,10 @@ public final class DefaultCodecPatterns {
     private static final Codec<BlockPlacerList> LIST_PLACER =
         BlockPlacer.CODEC.listOf().xmap(BlockPlacerList::new, BlockPlacerList::place);
 
-    private static final Codec<UniformFloat> RANGE_FLOAT =
-        FloatRange.CODEC.xmap(r -> UniformFloat.of(r.min(), r.max()), f -> FloatRange.of(f.getMinValue(), f.getMaxValue()));
+    private static final Codec<FloatProvider> RANGE_FLOAT = FloatRange.CODEC.xmap(
+        r -> r.diff() == 0 ? ConstantFloat.of(r.min()) : UniformFloat.of(r.min(), r.max()),
+        f -> FloatRange.of(f.getMinValue(), f.getMaxValue())
+    );
 
     private static final Codec<UniformInt> RANGE_INT =
         Range.CODEC.xmap(r -> UniformInt.of(r.min(), r.max()), i -> Range.of(i.getMinValue(), i.getMaxValue()));

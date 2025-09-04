@@ -30,7 +30,6 @@
     "codec.RuleSourceMixin",
     "codec.RuleTestMixin",
     "codec.VerticalAnchorMixin",
-    "extras.BeehiveDecoratorMixin",
     "extras.ChunkGeneratorMixin",
     "extras.ChunkStatusMixin",
     "extras.ContextMixin",
@@ -42,6 +41,8 @@
     "extras.RegistryDataLoaderMixin",
     "extras.RegistryOpsMixin",
     "extras.ServerLevelMixin",
+    "extras.TreeFeatureMixin",
+    "extras.WorldCarverMixin",
     "extras.WorldGenRegionMixin"
   ],
   "injectors": {

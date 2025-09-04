@@ -82,6 +82,7 @@ public class RegistryDataLoaderMixin {
             @Share("converted") LocalRef<JsonElement> converted) {
         final var stream = ((ResourceAccessor) resource).getStreamSupplier();
         if (stream instanceof ImposterResource) {
+            @SuppressWarnings("all") // This can only be of type E
             final ImposterResource<E> r = ((ImposterResource<E>) stream);
             final Either<DataResult<E>, JsonElement> result = r.apply(ops, decoder);
             result

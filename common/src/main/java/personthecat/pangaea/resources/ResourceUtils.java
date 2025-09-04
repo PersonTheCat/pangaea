@@ -46,7 +46,7 @@ public final class ResourceUtils {
         return streamJson(data.convert(JsonOps.INSTANCE).getValue());
     }
 
-    static InputStream streamJson(JsonElement json) throws IOException {
+    public static InputStream streamJson(JsonElement json) throws IOException {
         final var stream = new ByteArrayStream();
         final var writer = new JsonWriter(new OutputStreamWriter(stream));
         writer.setLenient(true);

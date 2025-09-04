@@ -45,7 +45,7 @@ public final class BuiltInChasms {
         return Map.of(
             "radius", List.of(Cfg.minChasmRadius(), Cfg.maxChasmRadius()),
             "vertical_scale", Cfg.chasmVerticalScale(),
-            "tilt", List.of(Math.toRadians(Cfg.minChasmTiltDegrees()), Math.toRadians(Cfg.minChasmTiltDegrees())),
+            "tilt", List.of(Math.toRadians(Cfg.minChasmTiltDegrees()), Math.toRadians(Cfg.maxChasmTiltDegrees())),
             "noise", wallNoise()
         );
     }
