@@ -10,11 +10,14 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.placement.BiomeFilter;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.BiomePredicate;
+import personthecat.catlib.data.IdList;
+import personthecat.catlib.registry.CommonRegistries;
 import personthecat.catlib.serialization.codec.capture.CaptureCategory;
 import personthecat.pangaea.serialization.codec.FeatureCodecs;
 import personthecat.pangaea.serialization.codec.PangaeaCodec;
@@ -26,18 +29,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.nullable;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.union;
 
-public record FeatureInjector(InjectionMap<Modifications> injections) implements Injector {
+public record FeatureInjector(
+        BiomePredicate biomes,
+        @Nullable IdList<PlacedFeature> remove,
+        @Nullable IdList<Feature<?>> removeFeatures,
+        InjectionMap<AddedFeature> inject) implements Injector {
+
     public static final MapCodec<FeatureInjector> CODEC =
         PangaeaCodec.build(FeatureInjector::createCodec)
-            .addCaptures(CaptureCategory.get(ConditionConfiguration.class).captors())
-            .addCaptures(CaptureCategory.get(Modifications.class).captors())
+            .addCaptures(CaptureCategory.get(AddedFeature.class).captors())
             .mapCodec();
 
     @Override
     public void inject(ResourceKey<Injector> key, InjectionContext ctx) {
-        this.injections.forEach((id, mods) -> mods.inject(id, ctx));
+        if (this.remove != null) {
+            ctx.addRemovals(this.biomes, mods -> mods.removeFeature(this.remove));
+        }
+        if (this.removeFeatures != null) {
+            ctx.addRemovals(this.biomes, mods -> mods.removeFeature(holder -> {
+               final var feature = CommonRegistries.FEATURE.getHolder(holder.value().feature().value().feature());
+               return this.removeFeatures.test(feature);
+            }));
+        }
+        this.inject.forEach((id, mods) -> mods.apply(this.biomes, id, ctx));
     }
 
     @Override
@@ -46,13 +64,17 @@ public record FeatureInjector(InjectionMap<Modifications> injections) implements
     }
 
     private static MapCodec<FeatureInjector> createCodec(CaptureCategory<FeatureInjector> cat) {
-        return InjectionMap.codecOfEasyList(Modifications.CODEC.codec())
-            .fieldOf("inject")
-            .xmap(FeatureInjector::new, FeatureInjector::injections);
+        final var injectionListCodec = InjectionMap.codecOfEasyList(AddedFeature.CODEC.codec());
+        return codecOf(
+            defaulted(BiomePredicate.CODEC, "biomes", BiomePredicate.ALL_BIOMES, FeatureInjector::biomes),
+            nullable(IdList.codecOf(Registries.PLACED_FEATURE), "remove", FeatureInjector::remove),
+            nullable(IdList.codecOf(Registries.FEATURE), "remove_features", FeatureInjector::removeFeatures),
+            defaulted(injectionListCodec, "inject", new InjectionMap<>(), FeatureInjector::inject),
+            FeatureInjector::new
+        );
     }
 
-    public record Modifications(
-            BiomePredicate biomes,
+    public record AddedFeature(
             Decoration step,
             ConfiguredFeature<?, ?> feature,
             @Nullable InjectionMap<List<PlacementModifier>> placement) {
@@ -60,22 +82,21 @@ public record FeatureInjector(InjectionMap<Modifications> injections) implements
         private static final Codec<InjectionMap<List<PlacementModifier>>> PLACEMENT_CODEC =
             InjectionMap.codecOfMapOrList(SimplePlacementModifier.DEFAULTED_LIST_CODEC);
 
-        public static final MapCodec<Modifications> CODEC = PangaeaCodec.buildMap(cat -> codecOf(
-            cat.defaulted(BiomePredicate.CODEC, "biomes", BiomePredicate.ALL_BIOMES, Modifications::biomes),
-            cat.defaulted(Decoration.CODEC, "step", Decoration.RAW_GENERATION, Modifications::step),
-            union(FeatureCodecs.FLAT_CONFIG, Modifications::feature),
-            cat.nullable(PLACEMENT_CODEC, "placement", Modifications::placement),
-            Modifications::new
+        public static final MapCodec<AddedFeature> CODEC = PangaeaCodec.buildMap(cat -> codecOf(
+            cat.defaulted(Decoration.CODEC, "step", Decoration.RAW_GENERATION, AddedFeature::step),
+            union(FeatureCodecs.FLAT_CONFIG, AddedFeature::feature),
+            cat.nullable(PLACEMENT_CODEC, "placement", AddedFeature::placement),
+            AddedFeature::new
         ));
 
-        public void inject(ResourceLocation id, InjectionContext ctx) {
+        private void apply(BiomePredicate biomes, ResourceLocation id, InjectionContext ctx) {
             final var step = this.step;
 
             final var configuredRegistry = ctx.registries().registryOrThrow(Registries.CONFIGURED_FEATURE);
             final var configuredHolder = Registry.registerForHolder(configuredRegistry, id, this.feature);
 
             final var features = this.createFeatures(id, ctx, configuredHolder);
-            ctx.addAdditions(this.biomes, mods -> features.forEach(f -> mods.addFeature(step, f)));
+            ctx.addAdditions(biomes, mods -> features.forEach(f -> mods.addFeature(step, f)));
         }
 
         private List<Holder<PlacedFeature>> createFeatures(
@@ -97,7 +118,7 @@ public record FeatureInjector(InjectionMap<Modifications> injections) implements
         }
 
         private List<PlacementModifier> addBiomeFilter(List<PlacementModifier> modifiers) {
-            if (modifiers.stream().anyMatch(Modifications::isBiomeFilter)) return modifiers;
+            if (modifiers.stream().anyMatch(AddedFeature::isBiomeFilter)) return modifiers;
             return ImmutableList.<PlacementModifier>builder().addAll(modifiers).add(SurfaceBiomeFilter.INSTANCE).build();
         }
 
