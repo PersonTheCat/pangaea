@@ -9,7 +9,7 @@ version="${mod_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
 description="${mod_description}"
-logoFile="icon.png"
+logoFile= "assets/pangaea/icon.png"
 
 [[dependencies.${mod_id}]]
 modId="catlib"

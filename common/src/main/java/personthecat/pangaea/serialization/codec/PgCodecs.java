@@ -6,17 +6,14 @@ import com.mojang.serialization.DynamicOps;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.valueproviders.ConstantFloat;
 import net.minecraft.util.valueproviders.FloatProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.registry.RegistryHandle;
 import personthecat.pangaea.extras.RegistryOpsExtras;
-import personthecat.pangaea.resources.ResourceInfo;
 
 public final class PgCodecs {
-    private static final ResourceInfo DEFAULT_INFO = new ResourceInfo(new ResourceLocation("custom", ""));
 
     private PgCodecs() {}
 
@@ -27,7 +24,7 @@ public final class PgCodecs {
                 return resource.namespace();
             }
         }
-        return DEFAULT_INFO.namespace();
+        return "custom";
     }
 
     public static <T, C> @Nullable T inferFromPath(
@@ -39,10 +36,9 @@ public final class PgCodecs {
         if (resource == null) {
             return null;
         }
-        final var typePath = type.location().getNamespace() + '/' + type.location().getPath();
         for (final var entry : handle.entrySet()) {
             final var entryPath = entry.getKey().location().getPath();
-            if (resource.isInDirectory(typePath + '/' + entryPath + "/")) {
+            if (resource.isInDirectory(type.location(), entryPath + "/")) {
                 return entry.getValue();
             }
         }

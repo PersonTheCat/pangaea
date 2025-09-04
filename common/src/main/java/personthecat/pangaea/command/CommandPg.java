@@ -14,11 +14,14 @@ import personthecat.catlib.exception.CommandExecutionException;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.catlib.serialization.json.JsonTransformer;
+import personthecat.pangaea.Pangaea;
 import personthecat.pangaea.extras.LevelExtras;
+import personthecat.pangaea.resources.builtin.BuiltInWorldPack;
 import personthecat.pangaea.world.road.RoadMap;
 import xjs.data.JsonFormat;
 import xjs.data.JsonValue;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +31,13 @@ public class CommandPg {
     @ModCommand(description = "Demo command for testing Pangaea")
     void welcome(final CommandContextWrapper ctx) {
         ctx.sendMessage("Welcome to Pangaea!");
+    }
+
+    @ModCommand(description = "Export the built-in data pack generated from settings")
+    void exportPack(final CommandContextWrapper ctx, final String path, final Optional<Boolean> replace) throws IOException {
+        final var out = Pangaea.MOD.configFile().toPath().resolve("exports").resolve(path);
+        BuiltInWorldPack.buildExtension().export(out, replace.orElse(false));
+        ctx.sendMessage("Exported built-in pack to {}", out);
     }
 
     @ModCommand(description = "Clears road region data from memory")

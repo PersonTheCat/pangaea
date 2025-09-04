@@ -298,13 +298,13 @@ public abstract class Pangaea {
             .addStructures(DefaultCodecStructures.FLOAT)
             .addStructureCondition(Cfg::encodeStructuralFloatProviders)
             .addPatterns(DefaultCodecPatterns.FLOAT)
-            .addPatternCondition(Cfg::encodeRangeFloatProvider);
+            .addPatternCondition(Cfg::encodePatternFloatProvider);
 
         PangaeaCodec.get(IntProvider.class)
             .addStructures(DefaultCodecStructures.INT)
             .addStructureCondition(Cfg::encodeStructuralIntProviders)
             .addPatterns(DefaultCodecPatterns.INT)
-            .addPatternCondition(Cfg::encodeRangeIntProvider);
+            .addPatternCondition(Cfg::encodePatternIntProvider);
 
         PangaeaCodec.get(RuleTest.class)
             .addPatterns(DefaultCodecPatterns.RULE_TEST)

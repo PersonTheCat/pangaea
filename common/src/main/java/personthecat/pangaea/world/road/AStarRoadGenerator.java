@@ -156,7 +156,7 @@ public class AStarRoadGenerator extends RoadGenerator<Configuration> {
             defaulted(ChunkFilter.CODEC, "chunk_filter", ChanceChunkFilter.of(1.0 / 400.0), Configuration::chunkFilter),
             defaulted(WeightFunction.CODEC, "weight", DefaultWeight.INSTANCE, Configuration::weight),
             defaulted(IntProvider.NON_NEGATIVE_CODEC, "branches", UniformInt.of(0, 15), Configuration::branches),
-            defaulted(IntProvider.NON_NEGATIVE_CODEC, "road_length", UniformInt.of(400, 800), Configuration::roadLength),
+            defaulted(IntProvider.NON_NEGATIVE_CODEC, "length", UniformInt.of(400, 800), Configuration::roadLength),
             defaulted(IntProvider.codec(1, 8).listOf(), "radii", DEFAULT_RADII, Configuration::radii),
             defaulted(DestinationStrategy.CODEC, "destination_strategy", DestinationStrategy.DEFAULT, Configuration::destinationStrategy),
             Configuration::new

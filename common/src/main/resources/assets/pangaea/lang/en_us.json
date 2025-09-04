@@ -6,5 +6,9 @@
   "pangaea.errorText.notANoiseSource": "Not a noise biome source: %s",
   "pangaea.errorText.targetNotFound": "Target not found: %s",
   "pangaea.errorText.cleanupError": "Error running cleanup for injector: %s",
-  "pangaea.errorText.contextNotInstalled": "PangaeaContext not available for this chunk status. Some features may not work"
+  "pangaea.errorText.contextNotInstalled": "PangaeaContext not available for this chunk status. Some features may not work",
+  "pangaea.errorMenu.worldPacks": "World Packs",
+  "pangaea.errorText.invalidGeneratedData": "Error loading generated resource: %s",
+  "pangaea.pack.source.required": "World Packs (Required)",
+  "pangaea.pack.source.optional": "World Packs (Optional)"
 }
