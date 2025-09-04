@@ -60,6 +60,7 @@ import personthecat.pangaea.world.filter.UnionChunkFilter;
 import personthecat.pangaea.world.injector.BiomeInjector;
 import personthecat.pangaea.world.injector.BiomeModifierInjector;
 import personthecat.pangaea.world.injector.BiomeSourceInjector;
+import personthecat.pangaea.world.injector.CarverInjector;
 import personthecat.pangaea.world.injector.CavernInjector;
 import personthecat.pangaea.world.injector.DataInjectionHook;
 import personthecat.pangaea.world.injector.DimensionInjector;
@@ -182,13 +183,14 @@ public abstract class Pangaea {
         CommonRegistries.RULE_TEST_TYPE.createRegister(ID)
             .register("heterogeneous_list", HeterogeneousListRuleTest.TYPE);
         PgRegistries.INJECTOR_TYPE.createRegister(ID)
-            .register("ore", OreInjector.CODEC)
-            .register("cavern", CavernInjector.CODEC)
             .register("biome", BiomeInjector.CODEC)
             .register("biome_modifier", BiomeModifierInjector.CODEC)
             .register("biome_source", BiomeSourceInjector.CODEC)
+            .register("carver", CarverInjector.CODEC)
+            .register("cavern", CavernInjector.CODEC)
             .register("dimension", DimensionInjector.CODEC)
             .register("feature", FeatureInjector.CODEC)
+            .register("ore", OreInjector.CODEC)
             .register("placement", PlacementModifierInjector.CODEC)
             .register("surface", SurfaceRuleInjector.CODEC);
         PgRegistries.PLACER_TYPE.createRegister(ID)
