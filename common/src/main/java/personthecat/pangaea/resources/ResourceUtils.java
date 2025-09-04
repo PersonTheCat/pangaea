@@ -13,10 +13,12 @@ import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.catlib.util.PathUtils;
 import xjs.data.serialization.JsonContext;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 
 @Log4j2
 public final class ResourceUtils {
@@ -47,12 +49,13 @@ public final class ResourceUtils {
     }
 
     public static InputStream streamJson(JsonElement json) throws IOException {
-        final var stream = new ByteArrayStream();
-        final var writer = new JsonWriter(new OutputStreamWriter(stream));
+        final var out = new StringWriter();
+        final var writer = new JsonWriter(out);
         writer.setLenient(true);
         writer.setIndent("  ");
         Streams.write(json, writer);
         writer.close();
-        return stream.asInputStream();
+
+        return new ByteArrayInputStream(out.toString().getBytes(StandardCharsets.UTF_8));
     }
 }
