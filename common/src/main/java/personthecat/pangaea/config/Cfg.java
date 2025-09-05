@@ -474,7 +474,7 @@ public final class Cfg {
 
             @Comment("The chance to start generating a chasm in any given chunk")
             @DecimalRange(min = 0.0, max = 1.0)
-            float chasmChance = 0.01F;
+            float chasmChance = 0.05F;
 
             @Comment("Min horizontal radius (before tilt) of any chasm segment")
             @DecimalRange(min = 0.0, max = 8.0)
