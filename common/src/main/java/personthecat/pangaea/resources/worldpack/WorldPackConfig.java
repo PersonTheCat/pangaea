@@ -58,7 +58,7 @@ public record WorldPackConfig(
         field(ComponentSerialization.CODEC, "description", WorldPackConfig::description),
         nullable(ComponentSerialization.CODEC, "details", WorldPackConfig::details),
         defaulted(Codec.INT, "pack_format", CURRENT_PACK_FORMAT, WorldPackConfig::packFormat),
-        defaulted(Codec.BOOL, "required", true, WorldPackConfig::required),
+        defaulted(Codec.BOOL, "required", false, WorldPackConfig::required),
         defaulted(Codec.BOOL, "convert_to_json", true, WorldPackConfig::convertToJson),
         defaulted(mapOf(ExtraCodecs.JSON), "metadata", Map.of(), WorldPackConfig::metadata),
         WorldPackConfig::new

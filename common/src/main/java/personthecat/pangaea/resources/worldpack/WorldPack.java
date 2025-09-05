@@ -84,7 +84,7 @@ public class WorldPack extends DelegatingPackResources {
                 .forEach((path, resource) ->
                     output.accept(new ResourceLocation(namespace, prefix + "/" + path + ".json"), resource));
         }
-        super.listResources(type, prefix, namespace, (id, data) -> {
+        super.listResources(type, namespace, prefix, (id, data) -> {
             // dynamically insert non-json formats as imposter json files
             final var ext = PathUtils.extension(id.getPath());
             if (WorldPackExtension.ALT_FORMATS.contains(ext)) {

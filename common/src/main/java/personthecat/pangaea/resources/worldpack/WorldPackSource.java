@@ -8,7 +8,7 @@ import java.util.function.UnaryOperator;
 
 public final class WorldPackSource {
     public static final PackSource REQUIRED = PackSource.create(decorateWithSource("pangaea.pack.source.required"), true);
-    public static final PackSource OPTIONAL = PackSource.create(decorateWithSource("pangaea.pack.source.optional"), false);
+    public static final PackSource OPTIONAL = PackSource.create(decorateWithSource("pangaea.pack.source.optional"), true);
 
     private WorldPackSource() {}
 
