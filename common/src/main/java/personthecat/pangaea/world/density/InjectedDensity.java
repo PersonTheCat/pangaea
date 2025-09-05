@@ -83,10 +83,6 @@ public class InjectedDensity implements SimpleFunction {
         this.optimized = Suppliers.memoize(this::optimize);
     }
 
-    public static InjectedDensity empty() {
-        return new InjectedDensity(List.of(), List.of(), List.of(), List.of(), null, null, null, null, null, null);
-    }
-
     @Override
     public double compute(FunctionContext ctx) {
         return this.optimized.get().compute(ctx);

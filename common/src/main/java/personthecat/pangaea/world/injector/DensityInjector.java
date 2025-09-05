@@ -58,12 +58,12 @@ public record DensityInjector(
         if (!((Object) g.generatorSettings().value().noiseRouter() instanceof NoiseRouterAccessor r)) {
             throw new IllegalStateException("NoiseRouter mixin not applied successfully");
         }
-        var density = g.generatorSettings().value().noiseRouter().finalDensity();
-        if (!(density instanceof InjectedDensity)) {
-            density = InjectedDensity.empty();
-            r.setFinalDensity(density);
+        final var density = g.generatorSettings().value().noiseRouter().finalDensity();
+        if (density instanceof InjectedDensity injected) {
+            this.applyInjections(injected);
+            return;
         }
-        this.applyInjections((InjectedDensity) density);
+        r.setFinalDensity(this.additions);
     }
 
     private void applyInjections(InjectedDensity density) {

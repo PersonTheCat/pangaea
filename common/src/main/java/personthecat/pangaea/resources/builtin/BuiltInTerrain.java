@@ -43,13 +43,6 @@ public final class BuiltInTerrain {
         return map;
     }
 
-    private static Object entrances() {
-        return Map.of(
-            "mul", Cfg.surfaceEntranceScale(),
-            "times", "overworld/caves/entrances"
-        );
-    }
-
     private static Object upperCutoff() {
         return Map.of(
             "range", List.of(Cfg.upperTerrainCutoff(), 256),
@@ -61,6 +54,13 @@ public final class BuiltInTerrain {
         return Map.of(
             "range", List.of(-64, Cfg.lowerTerrainCutoff()),
             "harshness", 0.1171875
+        );
+    }
+
+    private static Object entrances() {
+        return Map.of(
+            "mul", Cfg.surfaceEntranceScale(),
+            "times", "overworld/caves/entrances"
         );
     }
 
