@@ -46,9 +46,9 @@ public record DensityCutoff(double min, double max, double harshness) {
     }
 
     public double transformLower(double d, double y) {
-        d += this.harshness;
-        d *= Mth.clampedMap(y, this.min, this.max, 0, 1);
         d -= this.harshness;
+        d *= Mth.clampedMap(y, this.min, this.max, 0, 1);
+        d += this.harshness;
         return d;
     }
 

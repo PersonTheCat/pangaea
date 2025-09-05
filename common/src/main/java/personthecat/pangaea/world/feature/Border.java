@@ -1,5 +1,6 @@
 package personthecat.pangaea.world.feature;
 
+import net.minecraft.util.Mth;
 import personthecat.pangaea.util.Utils;
 import personthecat.pangaea.world.density.DensityCutoff;
 import personthecat.pangaea.world.level.PangaeaContext;
@@ -77,7 +78,6 @@ public interface Border {
         if (graph.isEmpty()) {
             return NONE;
         }
-        final var cutoff = new DensityCutoff(r, t, 0.1);
         return new Border() {
 
             @Override
@@ -92,7 +92,7 @@ public interface Border {
 
             @Override
             public double transformNoise(PangaeaContext ctx, int x, int z, double n) {
-                return cutoff.transformLower(n, graph.distance(x, z, r));
+                return n * Mth.clampedMap(graph.distance(x, z, r), r, t, 0, 1);
             }
         };
     }

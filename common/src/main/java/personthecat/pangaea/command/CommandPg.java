@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static personthecat.catlib.command.CommandUtils.clickToRun;
+import static personthecat.catlib.command.CommandUtils.displayOnHover;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class CommandPg {
@@ -95,7 +96,8 @@ public class CommandPg {
         }
         final var tpStyle = Style.EMPTY
             .withUnderlined(true)
-            .withClickEvent(clickToRun("/tp %s ~ %s".formatted(nearest.x(), nearest.z())));
+            .withClickEvent(clickToRun("/tp %s ~ %s".formatted(nearest.x(), nearest.z())))
+            .withHoverEvent(displayOnHover("Click to teleport"));
         final var message = Component.literal("found road at ")
             .append(Component.literal("[%s, %s]".formatted(nearest.x(), nearest.z())).withStyle(tpStyle));
         ctx.sendMessage(message);
