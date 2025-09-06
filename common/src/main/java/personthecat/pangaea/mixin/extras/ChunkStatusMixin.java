@@ -85,19 +85,19 @@ public abstract class ChunkStatusMixin {
     @Unique
     private static CompletableFuture<ChunkAccess> pangaea$beforeSurfaceTask(WorldGenContext wgc, ChunkStatus status, Executor ex, ToFullChunk toFullChunk, List<ChunkAccess> chunks, ChunkAccess chunk) {
         final var level = new WorldGenRegion(wgc.level(), chunks, status, 0);
-        return CompletableFuture.supplyAsync(() -> {
-            final var ctx = PangaeaContext.init(level, (ProtoChunk) chunk, wgc.generator());
-            GeneratorHooks.applyGiantFeatures(level, GiantFeatureStage.BEFORE_SURFACE, wgc.generator(), ctx);
-            return chunk;
-        }, ex);
+        final var ctx = PangaeaContext.init(level, (ProtoChunk) chunk, wgc.generator());
+        GeneratorHooks.applyGiantFeatures(level, GiantFeatureStage.BEFORE_SURFACE, wgc.generator(), ctx);
+        return CompletableFuture.completedFuture(chunk);
     }
 
     @Unique
     private static CompletableFuture<ChunkAccess> pangaea$afterSurfaceTask(WorldGenContext wgc, ChunkStatus status, Executor ex, ToFullChunk toFullChunk, List<ChunkAccess> chunks, ChunkAccess chunk) {
         final var level = new WorldGenRegion(wgc.level(), chunks, status, 0);
-        final var ctx = PangaeaContext.init(level, (ProtoChunk) chunk, wgc.generator());
-        GeneratorHooks.applyGiantFeatures(level, GiantFeatureStage.AFTER_SURFACE, wgc.generator(), ctx);
-        return CompletableFuture.completedFuture(chunk);
+        return CompletableFuture.supplyAsync(() -> {
+            final var ctx = PangaeaContext.init(level, (ProtoChunk) chunk, wgc.generator());
+            GeneratorHooks.applyGiantFeatures(level, GiantFeatureStage.AFTER_SURFACE, wgc.generator(), ctx);
+            return chunk;
+        }, ex);
     }
 
     @Unique
