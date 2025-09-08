@@ -54,6 +54,11 @@ jar {
     archiveClassifier.set 'dev'
 }
 
+test {
+    mkdir file("$projectDir/runTest")
+    workingDir = file("$projectDir/runTest")
+}
+
 sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources

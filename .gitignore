@@ -1,6 +1,7 @@
 build/
 *.ipr
 run/
+runTest/
 *.iws
 out/
 *.iml
