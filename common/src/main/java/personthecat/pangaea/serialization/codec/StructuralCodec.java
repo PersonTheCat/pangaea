@@ -8,6 +8,7 @@ import com.mojang.serialization.MapDecoder;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 import net.minecraft.util.Unit;
+import personthecat.catlib.serialization.codec.context.CategorizedMapCodec;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -37,7 +38,8 @@ public class StructuralCodec<A> extends MapCodec<A> {
     }
 
     public Codec<A> wrap(String typeKey, Codec<A> original) {
-        return defaultType(typeKey, original, this, (o, a) -> this.hasStructureForInput(a));
+        final var codec = new CategorizedMapCodec<>(this, "pangaea.errorText.structuralCodecs");
+        return defaultType(typeKey, original, codec, (o, a) -> this.hasStructureForInput(a));
     }
 
     public boolean hasStructureForInput(A input) {

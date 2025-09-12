@@ -2,6 +2,7 @@ package personthecat.pangaea.serialization.codec.appender;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import personthecat.catlib.serialization.codec.capture.Key;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,11 @@ public final class AlternativeAppender implements CodecAppender {
     public static final int PRIORITY = PatternAppender.PRIORITY - 1_000;
     public static final Info<AlternativeAppender> INFO = AlternativeAppender::new;
     private final List<Alternative<?>> alternatives = new ArrayList<>();
+
+    @SafeVarargs
+    public final <A, B extends A> void addAlternative(Codec<B> alt, B... implicitType) {
+        this.addAlternative(alt, Key.inferType(implicitType));
+    }
 
     public <A, B extends A> void addAlternative(Codec<B> alt, Class<B> type) {
         this.alternatives.add(new Alternative<>(alt, type));

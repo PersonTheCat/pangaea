@@ -9,6 +9,10 @@
   "pangaea.errorText.contextNotInstalled": "PangaeaContext not available for this chunk status. Some features may not work",
   "pangaea.errorMenu.worldPacks": "World Packs",
   "pangaea.errorText.invalidGeneratedData": "Error loading generated resource: %s",
+  "pangaea.errorText.flagCodecs": "Flag Codecs",
+  "pangaea.errorText.builderCodecs": "Builder Codecs",
+  "pangaea.errorText.structuralCodecs": "Structural Codecs",
+  "pangaea.errorText.patternCodecs": "Pattern Codecs",
   "pangaea.pack.source.required": "World Packs (Required)",
   "pangaea.pack.source.optional": "World Packs (Optional)"
 }

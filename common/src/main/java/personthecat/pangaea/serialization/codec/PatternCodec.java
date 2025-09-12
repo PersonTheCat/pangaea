@@ -6,6 +6,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Decoder;
 import com.mojang.serialization.DynamicOps;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.serialization.codec.context.CategorizedCodec;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -22,14 +23,15 @@ public record PatternCodec<A>(List<Pattern<A>> patterns, BooleanSupplier encode)
     }
 
     public Codec<A> wrap(Codec<A> original) {
-        return simpleEither(original, this).withEncoder(a ->
+        final var codec = new CategorizedCodec<>(this, "pangaea.errorText.patternCodecs");
+        return simpleEither(original, codec).withEncoder(a ->
             this.encode.getAsBoolean() && this.hasPatternForInput(a) ? this : original);
     }
 
     public boolean hasPatternForInput(A input) {
         if (this.encode.getAsBoolean()) {
             for (final Pattern<A> p : this.patterns) {
-                if (p.filter.test(p.normalizer.apply(input))) {
+                if (p.filter == null || p.filter.test(p.normalizer.apply(input))) {
                     return true;
                 }
             }

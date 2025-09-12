@@ -173,8 +173,8 @@ public final class DefaultCodecStructures {
     );
 
     public static final List<Structure<? extends DensityFunction>> DENSITY = List.of(
-        Structure.of(MUL_TIMES_DENSITY, isType(TwoArgumentSimpleFunction.Type.MUL)),
-        Structure.of(ADD_PLUS_DENSITY, isType(TwoArgumentSimpleFunction.Type.ADD)),
+        Structure.of(MUL_TIMES_DENSITY, isType(TwoArgumentSimpleFunction.Type.MUL)).withRequiredFields("mul", "times"),
+        Structure.of(ADD_PLUS_DENSITY, isType(TwoArgumentSimpleFunction.Type.ADD)).withRequiredFields("add", "plus"),
         Structure.of(MIN, Min.class).normalized(DefaultCodecStructures::normalizeMinFunction).withRequiredFields("min"),
         Structure.of(MAX, Max.class).normalized(DefaultCodecStructures::normalizeMaxFunction).withRequiredFields("max"),
         Structure.of(SUM, Sum.class).withRequiredFields("sum"),

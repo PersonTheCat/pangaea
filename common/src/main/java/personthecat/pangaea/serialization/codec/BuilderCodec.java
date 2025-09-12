@@ -8,6 +8,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.serialization.codec.context.CategorizedMapCodec;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,8 +41,10 @@ public class BuilderCodec<A> extends MapCodec<A> {
         this.union = union;
     }
 
-    public BuilderCodec<A> asUnionOf(@Nullable MapCodec<A> union) {
-        return new BuilderCodec<>(this.fields, this.encode, union);
+    public MapCodec<A> asUnionOf(@Nullable MapCodec<A> union) {
+        union = new CategorizedMapCodec<>(union, null);
+        final var codec = new BuilderCodec<>(this.fields, this.encode, union);
+        return new CategorizedMapCodec<>(codec, "pangaea.errorText.builderCodecs");
     }
 
     public Codec<A> asUnionOf(Codec<A> union) {
@@ -54,7 +57,8 @@ public class BuilderCodec<A> extends MapCodec<A> {
     }
 
     public Codec<A> wrap(String typeKey, Codec<A> original) {
-        return defaultType(typeKey, original, this, (o, a) ->
+        final var codec = new CategorizedMapCodec<>(this, "pangaea.errorText.flagCodecs");
+        return defaultType(typeKey, original, codec, (o, a) ->
             this.encode.getAsBoolean() && this.hasFieldForInput(a));
     }
 
