@@ -71,6 +71,10 @@ public final class Cfg {
         return INSTANCE.debug.enableTemporaryDebugFeatures;
     }
 
+    public static boolean enableDebugErrors() {
+        return INSTANCE.debug.enableDebugErrors;
+    }
+
     public static boolean optimizeBiomeLayouts() {
         return INSTANCE.debug.optimizeBiomeLayouts;
     }
@@ -356,6 +360,9 @@ public final class Cfg {
 
         @Comment("Whether to enable data pack features flagged as temporary / debug")
         boolean enableTemporaryDebugFeatures = false;
+
+        @Comment("Whether to enable debug errors in the built-in world pack")
+        boolean enableDebugErrors = false;
 
         @Comment("Experimental solution to merge like values in the biome layouts, slices,\n" +
                 "and dimension layouts (if using DimensionInjector)")

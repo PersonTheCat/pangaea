@@ -13,6 +13,7 @@
   "pangaea.errorText.builderCodecs": "Builder Codecs",
   "pangaea.errorText.structuralCodecs": "Structural Codecs",
   "pangaea.errorText.patternCodecs": "Pattern Codecs",
+  "pangaea.errorText.codecTemplates": "Codec Templates",
   "pangaea.pack.source.required": "World Packs (Required)",
   "pangaea.pack.source.optional": "World Packs (Optional)"
 }

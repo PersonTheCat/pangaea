@@ -44,7 +44,7 @@ public class InjectionFailureException extends FormattedException {
         this.failures.forEach((id, error) -> {
             message.append(Component.literal(id.location().toString()).setStyle(Style.EMPTY.withBold(true)));
             message.append(":\n\n");
-            message.append(StackTraceLinter.format(createStackTraceText(error)));
+            message.append(StackTraceLinter.INSTANCE.lint(createStackTraceText(error)));
             message.append("\n\n");
         });
         return message;

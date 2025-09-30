@@ -6,9 +6,8 @@ import net.minecraft.resources.ResourceKey;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.exception.FormattedException;
+import personthecat.catlib.linting.Linters;
 import personthecat.catlib.linting.StackTraceLinter;
-import personthecat.catlib.linting.SyntaxLinter;
-import xjs.data.JsonFormat;
 import xjs.data.JsonValue;
 
 public class GeneratedDataException extends FormattedException {
@@ -47,14 +46,14 @@ public class GeneratedDataException extends FormattedException {
         message.append("\n\nData:\n\n");
         message.append(this.getFormattedData());
         message.append("\n\n");
-        message.append(StackTraceLinter.format(this.readStacktrace()));
+        message.append(StackTraceLinter.INSTANCE.lint(this.readStacktrace()));
         message.append("\n\n");
         return message;
     }
 
     private Component getFormattedData() {
         if (this.data instanceof JsonValue json) {
-            return SyntaxLinter.DEFAULT_LINTER.lint(json.toString(JsonFormat.DJS_FORMATTED));
+            return Linters.DJS.lint(json.toString("djs"));
         }
         return Component.literal(this.data.toString());
     }

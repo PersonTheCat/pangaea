@@ -93,6 +93,7 @@ public class RegistryDataLoaderMixin {
                     } catch (final Exception e) {
                         final var msg = data.error().map(DataResult.Error::message).orElse(e.getMessage());
                         LibErrorContext.error(Pangaea.MOD, new GeneratedDataException(key, r.unwrap(), msg, e));
+                        throw e;
                     }
                     ci.cancel();
                 });

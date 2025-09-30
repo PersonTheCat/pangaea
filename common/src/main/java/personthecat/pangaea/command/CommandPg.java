@@ -12,6 +12,7 @@ import personthecat.catlib.client.gui.SimpleTextPage;
 import personthecat.catlib.command.CommandContextWrapper;
 import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.exception.CommandExecutionException;
+import personthecat.catlib.linting.Linters;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.catlib.serialization.json.JsonTransformer;
@@ -20,7 +21,6 @@ import personthecat.pangaea.extras.LevelExtras;
 import personthecat.pangaea.resources.builtin.BuiltInWorldPack;
 import personthecat.pangaea.world.road.RoadMap;
 import personthecat.pangaea.world.road.RoadRegion;
-import xjs.data.JsonFormat;
 import xjs.data.JsonValue;
 
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class CommandPg {
 
     @ModCommand(description = "Export the built-in data pack generated from settings")
     void exportPack(final CommandContextWrapper ctx, final String path, final Optional<Boolean> replace) throws IOException {
-        final var out = Pangaea.MOD.configFolder().toPath().resolve("exports").resolve(path);
+        final var out = Pangaea.MOD.configFolder().resolve("exports").resolve(path);
         BuiltInWorldPack.buildExtension().export(out, replace.orElse(false));
         ctx.sendMessage("Exported built-in pack to {}", out);
     }
@@ -136,12 +136,12 @@ public class CommandPg {
 
     @Environment(EnvType.CLIENT)
     private static void renderJson(final CommandContextWrapper ctx, final JsonValue json) {
-        final var text = json.toString(JsonFormat.DJS_FORMATTED).replace("\r", "");
+        final var text = json.toString("djs").replace("\r", "");
         if (text.length() > 30_000) {
             ctx.sendError("I ain't reading all that");
             return;
         }
-        final var component = text.length() < 15_000 ? ctx.lintMessage(text) : Component.literal(text);
+        final var component = text.length() < 15_000 ? Linters.DJS.lint(text) : Component.literal(text);
         ctx.setScreen(new SimpleTextPage(null, Component.literal("Final Density"), component));
     }
 

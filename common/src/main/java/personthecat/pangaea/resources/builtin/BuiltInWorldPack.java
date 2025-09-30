@@ -48,6 +48,9 @@ public final class BuiltInWorldPack {
         if (Cfg.modifyTerrainShape()) {
             BuiltInTerrain.bootstrap(resources);
         }
+        if (Cfg.enableDebugErrors()) {
+            BuiltInDebug.bootstrap(resources);
+        }
         BuiltInGeneral.boostrap(resources);
         return resources;
     }
