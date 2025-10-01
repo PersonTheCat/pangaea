@@ -16,12 +16,14 @@ import net.minecraft.util.ExtraCodecs;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.serialization.codec.CodecUtils;
+import personthecat.catlib.serialization.codec.context.CategorizedCodec;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
 
 import static personthecat.catlib.serialization.codec.CodecUtils.mapOf;
+import static personthecat.catlib.serialization.codec.CodecUtils.toCodecUnsafe;
 
 public class FunctionCodec {
     private static final String ARGUMENT_KEY = "@arg";
@@ -30,7 +32,9 @@ public class FunctionCodec {
     private static final Decoder<Map<String, Object>> ARGUMENT_DECODER = mapOf(ExtraCodecs.JAVA);
 
     public static <A> Codec<A> wrap(Codec<A> codec, ResourceKey<Registry<Template<A>>> key) {
-        return CodecUtils.simpleEither(codec, new Dispatcher<>(key));
+        final var dispatcher =
+            new CategorizedCodec<>(toCodecUnsafe(new Dispatcher<>(key)), "pangaea.errorText.codecTemplates");
+        return CodecUtils.simpleEither(codec, dispatcher);
     }
 
     public static <A> Codec<Template<A>> create(Codec<A> type) {
@@ -153,9 +157,10 @@ public class FunctionCodec {
                     if (template != null) {
                         return template.decode(ops, input);
                     }
+                    return DataResult.error(() -> "Unknown template ID: " + id);
                 }
             }
-            return DataResult.error(() -> "Not a template");
+            return DataResult.error(() -> "Not a template (use {type=<template_id>})");
         }
     }
 }

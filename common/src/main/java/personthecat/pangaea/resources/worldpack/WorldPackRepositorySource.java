@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 @Slf4j
 public class WorldPackRepositorySource implements RepositorySource {
     public static final WorldPackRepositorySource INSTANCE = new WorldPackRepositorySource();
-    public static final Path FOLDER = Pangaea.MOD.configFolder().toPath().resolve("packs");
+    public static final Path FOLDER = Pangaea.MOD.configFolder().resolve("packs");
 
     private WorldPackRepositorySource() {}
 

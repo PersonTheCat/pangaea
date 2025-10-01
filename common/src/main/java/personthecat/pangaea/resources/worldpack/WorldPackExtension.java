@@ -72,7 +72,7 @@ public record WorldPackExtension(WorldPackConfig config, ResourceMap dynamicReso
     private static void checkDirectory(Path path, boolean replaceExisting) {
         if (Files.exists(path)) {
             if (replaceExisting) {
-                FileIO.delete(path.toFile());
+                FileIO.delete(path);
             } else {
                 throw new IllegalArgumentException("World pack already exists. Change directory or use replace option");
             }
